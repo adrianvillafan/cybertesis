@@ -2,6 +2,7 @@ import express from 'express';
 import jwt from 'jsonwebtoken';
 import mysql from 'mysql2';
 import cors from 'cors';
+import bcrypt from 'bcryptjs';
 
 const app = express();
 const port = 3306;
@@ -10,7 +11,7 @@ const secretKey = 'mi_secreto_super_secreto';
 
 app.use(express.json());
 
-// Crear un pool de conexiones a la base de datos MySQL
+// Crear un pool de conexiones a la base de datos
 const pool = mysql.createPool({
     host: 'sql.freedb.tech',
     user: 'freedb_marcelasdasd',
@@ -21,7 +22,6 @@ const pool = mysql.createPool({
     queueLimit: 0
 });
 
-// Función para obtener una conexión del pool y realizar consultas
 function executeQuery(sql, params, callback) {
     pool.query(sql, params, (err, results) => {
         callback(err, results);
@@ -31,13 +31,17 @@ function executeQuery(sql, params, callback) {
 // Lógica de inicio de sesión
 app.post('/login', (req, res) => {
   var { email, password, role } = req.body;
-  role = role.value;
+  var role = role.value;
+  const salt = bcrypt.genSaltSync(10);
+  const hash = bcrypt.hashSync(password, salt);
+  console.log("Password:", password);
+  console.log("Hashed Password:", hash);
   
   if (!email || !password || !role) {
     return res.status(400).json({ message: 'Se requiere correo electrónico, contraseña y rol' });
   }
 
-  // Consulta a la base de datos MySQL para encontrar al usuario por correo electrónico
+  // Consulta a la base de datos para encontrar al usuario por correo electrónico y rol
   const sql = 'SELECT * FROM users WHERE email = ? AND current_team_id = ?';
   executeQuery(sql, [email, role], (err, results) => {
     if (err) {
@@ -45,38 +49,43 @@ app.post('/login', (req, res) => {
       return res.status(500).json({ message: 'Error interno del servidor' });
     }
 
-    // Verificar si se encontró un usuario con ese correo electrónico
     if (results.length === 0) {
       return res.status(401).json({ message: 'Correo electrónico incorrecto' });
     }
 
-    // Verificar la contraseña y el rol
     const user = results[0];
-    if (password !== user.password || role !== user.current_team_id) {
-      return res.status(401).json({ message: 'Correo electrónico, contraseña o rol incorrectos' });
+    if (!bcrypt.compareSync(password, user.password)) {
+      return res.status(401).json({ message: 'Contraseña incorrecta' });
     }
 
-    // Generar token de autenticación
-    const token = jwt.sign({ email: user.email, role: user.role }, secretKey);
-    res.json({ token });
-    console.log(token);
+    // Generar un nuevo token de autenticación
+    const newToken = jwt.sign({ 
+      email: user.email, 
+      role: user.role, 
+      iat: Math.floor(Date.now() / 1000)
+  }, secretKey);
+  
+    // Actualizar el token de sesión y la última hora de inicio de sesión en la base de datos
+    const updateSql = 'UPDATE users SET session_token = ?, last_login = NOW() WHERE id = ?';
+    executeQuery(updateSql, [newToken, user.id], (updateErr, updateResults) => {
+      if (updateErr) {
+        console.error('Error al actualizar la información de sesión del usuario:', updateErr);
+        return res.status(500).json({ message: 'Error al actualizar la información de sesión del usuario' });
+      }
+      res.json({ token: newToken });  // Enviar el nuevo token al cliente
+      });
+      console.log("session_token:", newToken);
   });
 });
 
+
+
+
 // Ruta de cierre de sesión
 app.get('/logout', (req, res) => {
-  try {
-    res.send('Cierre de sesión exitoso');
-    console.log('Cierre de sesión exitoso');
-  } catch (error) {
-    console.error('Error al cerrar sesión:', error);
-    res.status(500).send('Error interno del servidor');
-  }
-});
-
-// Ruta de perfil
-app.get('/profile', (req, res) => {
-  res.send('Perfil de usuario');
+  // Aquí, simplemente confirmamos el cierre de sesión sin necesidad de lógica en el servidor
+  // El cliente debe eliminar el token almacenado localmente
+  res.send('Cierre de sesión exitoso');
 });
 
 app.listen(port, () => {

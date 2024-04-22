@@ -13,6 +13,8 @@
   "dependencies": {
     "@cloudscape-design/components": "^3.0.610",
     "@cloudscape-design/global-styles": "^1.0.27",
+    "bcrypt": "^5.1.1",
+    "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "express": "^4.19.2",
     "jsonwebtoken": "^9.0.2",
