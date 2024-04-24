@@ -1,7 +1,7 @@
-export async function handleSubmit( form, handleLoginSuccess) {
+export async function handleSubmit(form, handleLoginSuccess) {
   console.log('Formulario:', form);
   try {
-    const response = await fetch('http://localhost:3306/login' , {
+    const response = await fetch('http://localhost:3306/login', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -10,26 +10,25 @@ export async function handleSubmit( form, handleLoginSuccess) {
     });
 
     if (!response.ok) {
-      throw new Error('Error en la solicitud');
+      throw new Error(`Error en la solicitud: ${response.statusText}`);
     }
 
-    // Manejar la respuesta del servidor
-    const data = await response.json();
+    const data = await response.json();  // Espera que la respuesta sea un objeto JSON
     console.log('Respuesta del servidor:', data);
-    localStorage.setItem('token', data.token);
-    // Verificar si la respuesta contiene un token de sesión
-    if (data.token) {
-      // Inicio de sesión exitoso, llamar a la función handleLoginSuccess
-      
-      handleLoginSuccess(data.token);
+
+    if (data.token && data.userData) {
+      localStorage.setItem('token', data.token);  // Guarda el token en localStorage
+      handleLoginSuccess(data.token, data.userData);  // Invoca el manejador de éxito con el token y los datos del usuario
     } else {
-      throw new Error('El servidor no devolvió un token de sesión válido');
+      throw new Error('El servidor no devolvió un token de sesión válido o los datos del usuario');
     }
   } catch (error) {
-    console.error('Error:', error);
+    console.error('Error al procesar el login:', error.message);
     throw error;
   }
 }
+
+
 
 export async function handleLogout() {
   try {
@@ -39,8 +38,9 @@ export async function handleLogout() {
     });
 
     if (response.ok) {
-      localStorage.removeItem('token');  // Limpia el token del almacenamiento local
-      window.location.reload();  // O considera usar navigate para la redirección
+      localStorage.removeItem('token'); // Asegúrate de que se elimina
+      localStorage.removeItem('userData'); // No olvides remover los datos del usuario
+      window.location.reload(); // Esto recargará la aplicación, restableciendo el estado
     } else {
       throw new Error('Error al cerrar sesión en el servidor');
     }

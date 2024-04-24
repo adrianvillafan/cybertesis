@@ -13,19 +13,19 @@ app.use(express.json());
 
 // Crear un pool de conexiones a la base de datos
 const pool = mysql.createPool({
-    host: 'sql.freedb.tech',
-    user: 'freedb_marcelasdasd',
-    password: 'tCADemhZRPF39d!',
-    database: 'freedb_Cybertesis',
-    waitForConnections: true,
-    connectionLimit: 10,
-    queueLimit: 0
+  host: 'sql.freedb.tech',
+  user: 'freedb_marcelasdasd',
+  password: 'tCADemhZRPF39d!',
+  database: 'freedb_Cybertesis',
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0
 });
 
 function executeQuery(sql, params, callback) {
-    pool.query(sql, params, (err, results) => {
-        callback(err, results);
-    });
+  pool.query(sql, params, (err, results) => {
+    callback(err, results);
+  });
 }
 
 // Lógica de inicio de sesión
@@ -36,7 +36,7 @@ app.post('/login', (req, res) => {
   const hash = bcrypt.hashSync(password, salt);
   console.log("Password:", password);
   console.log("Hashed Password:", hash);
-  
+
   if (!email || !password || !role) {
     return res.status(400).json({ message: 'Se requiere correo electrónico, contraseña y rol' });
   }
@@ -58,13 +58,15 @@ app.post('/login', (req, res) => {
       return res.status(401).json({ message: 'Contraseña incorrecta' });
     }
 
+    console.log(user);
+
     // Generar un nuevo token de autenticación
-    const newToken = jwt.sign({ 
-      email: user.email, 
-      role: user.role, 
+    const newToken = jwt.sign({
+      email: user.email,
+      role: user.role,
       iat: Math.floor(Date.now() / 1000)
-  }, secretKey);
-  
+    }, secretKey);
+
     // Actualizar el token de sesión y la última hora de inicio de sesión en la base de datos
     const updateSql = 'UPDATE users SET session_token = ?, last_login = NOW() WHERE id = ?';
     executeQuery(updateSql, [newToken, user.id], (updateErr, updateResults) => {
@@ -72,9 +74,56 @@ app.post('/login', (req, res) => {
         console.error('Error al actualizar la información de sesión del usuario:', updateErr);
         return res.status(500).json({ message: 'Error al actualizar la información de sesión del usuario' });
       }
-      res.json({ token: newToken });  // Enviar el nuevo token al cliente
-      });
-      console.log("session_token:", newToken);
+      // Dependiendo del rol, cargar información específica del usuario
+      switch (user.current_team_id) {
+        case 1: // Administrador
+          res.json({ token: newToken, userData: {nombre_usuario:'Administrador' , current_team_id: 1 } });
+          break;
+        case 2: // Estudiante
+          const studentSql = `
+          SELECT 
+          estudiante.id, 
+          estudiante.codigo_estudiante, 
+          estudiante.dni, 
+          facultad.id AS facultad_id, 
+          facultad.nombre AS nombre_facultad, 
+          escuela.id AS escuela_id, 
+          escuela.nombre AS nombre_escuela, 
+          grado.id AS grado_id, 
+          grado.grado AS nombre_grado,
+          users.name AS nombre_usuario,  -- Nombre del usuario
+          users.current_team_id  -- ID del rol del usuario
+      FROM estudiante
+      INNER JOIN facultad ON estudiante.facultad_id = facultad.id
+      INNER JOIN escuela ON estudiante.escuela_id = escuela.id
+      INNER JOIN grado ON estudiante.grado_id = grado.id
+      INNER JOIN users ON estudiante.user_id = users.id  -- Unión con la tabla de usuarios
+      WHERE estudiante.user_id = ?;
+      
+    `; executeQuery(studentSql, [user.id], (studentErr, studentResults) => {
+            if (studentErr || studentResults.length === 0) {
+              console.error('Error al buscar datos del estudiante:', studentErr);
+              return res.status(500).json({ message: 'Error al buscar datos del estudiante' });
+            }
+            res.json({ token: newToken, userData: studentResults[0] });
+            console.log(user.email)
+            console.log(studentResults[0])
+          });
+          break;
+        case 3: // Escuela UPG
+          // Similar a estudiante, consulta para datos específicos de Escuela UPG
+          break;
+        case 4: // Recepción Documentos
+          // Similar a estudiante, consulta para datos específicos de Recepción Documentos
+          break;
+        case 5: // UOARI
+          // Similar a estudiante, consulta para datos específicos de UOARI
+          break;
+        default:
+          // Si no es ninguno de los anteriores, enviar solo los datos básicos
+          console.log("ERROR")
+      }
+    });
   });
 });
 

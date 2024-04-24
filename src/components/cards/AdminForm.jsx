@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import Form from "@cloudscape-design/components/form";
 import SpaceBetween from "@cloudscape-design/components/space-between";
 import Button from "@cloudscape-design/components/button";
@@ -9,9 +8,9 @@ import Input from "@cloudscape-design/components/input";
 import Checkbox from "@cloudscape-design/components/checkbox";
 import Select from "@cloudscape-design/components/select";
 import { handleSubmit } from '../../../api';
+import { useUser } from '../../hooks/useUser';
 
 const AdminForm = ({ handleBack }) => {
-  const navigate = useNavigate();
   const [form, setForm] = useState({ role: null, email: '', password: '', rememberMe: false });
 
   const handleRoleChange = (selectedOption) => {
@@ -22,20 +21,22 @@ const AdminForm = ({ handleBack }) => {
     setForm(prev => ({ ...prev, [key]: value }));
   };
 
+  const { setUser } = useUser();
+
   const handleFormSubmit = async (e) => {
     e.preventDefault();
     try {
-      await handleSubmit( form, handleLoginSuccess);
-      console.log('Inicio de sesión exitoso');
-      navigate('/profile');
+      await handleSubmit(form, handleLoginSuccess);
     } catch (error) {
       console.error('Error al iniciar sesión:', error);
     }
   };
 
-  const handleLoginSuccess = (token) => {
-    // Redirigir al usuario a la página de perfil
+  const handleLoginSuccess = (token, userData) => {
+    console.log("handleLoginSuccess called", { token, userData }); // Confirma que se llama a esta función
     localStorage.setItem('token', token);
+    localStorage.setItem('userData', JSON.stringify(userData));
+    setUser(userData);
     window.location.href = '/profile';
   };
 
