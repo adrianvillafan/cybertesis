@@ -127,9 +127,6 @@ app.post('/login', (req, res) => {
   });
 });
 
-
-
-
 // Ruta de cierre de sesión
 app.get('/logout', (req, res) => {
   // Aquí, simplemente confirmamos el cierre de sesión sin necesidad de lógica en el servidor

@@ -14,17 +14,16 @@ import messages from '@cloudscape-design/components/i18n/messages/all.es';
 
 const LOCALE = 'es';
 
-const Layout = ({ breadcrumbs, navigationItems, contentHeader, children, onNavigation }) => {
+const Layout = ({ breadcrumbs, navigationItems, contentHeader, children, onNavigation, onLogoutClick }) => {
 
 
   const updatedNavigationItems = [
-    { type: "link",text: 'Inicio', href: '#' },
-    { type: "link",text: 'Notificaciones', href: '#notifications', info: <Badge color="red">23</Badge> },
+    { type: "link",text: <a onClick={() => onNavigation('inicio')}>Inicio</a>, href: '#inicio' },
+    { type: "link", text: <a onClick={() => onNavigation('notifications')}>Notificaciones</a>, href: '#notificacion', info: <Badge color="red">23</Badge> },
     ...navigationItems, // Opciones específicas del usuario
-    { type: "link",text: 'Cerrar Sesión', href: '#logout' } // Botón de Cerrar Sesión al final
+    { type: "link", text: <a onClick={onLogoutClick}>Cerrar Sesión</a>, href: '#' } // Botón de Cerrar Sesión al final
   ];
 
-  console.log(updatedNavigationItems);
   const [activeHref, setActiveHref] = React.useState(
     "/"
   );
@@ -45,17 +44,13 @@ const Layout = ({ breadcrumbs, navigationItems, contentHeader, children, onNavig
               href: '#', 
               text: 'Service name',
             }}
-            items={updatedNavigationItems.map(item => ({
-              ...item,
-              onClick: () => onNavigation(item.href)}))}
+            items={updatedNavigationItems}
             
           />
         }
         content={
-          <ContentLayout header={contentHeader}>
-            <Container header={<Header variant="h2">Container header</Header>}>
+          <ContentLayout header={<Header variant="h1">{contentHeader}</Header>}>
               {children}
-            </Container>
           </ContentLayout>
         }
       />
