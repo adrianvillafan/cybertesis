@@ -8,9 +8,8 @@ const CreateRequest = () => {
   const [tipoSolicitud, setTipoSolicitud] = useState('regular');   // Aquí agregamos el estado para el tipo de solicitud
   const [step, setStep] = useState(1);  // Controla el paso actual del formulario de solicitud
   const [documentosCargados, setDocumentosCargados] = useState([]);
-  const [isProcessing, setIsProcessing] = useState(false);
   const [canProceed, setCanProceed] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
   const documentosRequeridos = {
     regular: [
       { id: 1, nombre: 'Tesis' },
@@ -44,29 +43,28 @@ const CreateRequest = () => {
   };
 
   const handleProcessSolicitud = () => {
-    // Asumimos que siempre hay archivos para simplificar
     const requiredDocumentCount = tipoSolicitud === 'regular' ? 6 : 7;
+    console.log(requiredDocumentCount)
     const allFilesUploaded = files.slice(0, requiredDocumentCount).every(fileArray => fileArray.length > 0);
-
+  
     if (allFilesUploaded) {
       console.log('Todos los documentos están cargados.');
-      setIsProcessing(true);
-      setCanProceed(true);  // Habilita el botón de Siguiente
+      setCanProceed(true);
+      setErrorMessage('');  // Limpia el mensaje de error si todos los documentos están cargados
     } else {
       console.log('Faltan documentos por cargar.');
-      setIsProcessing(false);
-      setCanProceed(false);  // Deshabilita el botón de Siguiente
+      setCanProceed(false);
+      setErrorMessage('Por favor, asegúrate de cargar todos los documentos requeridos antes de proceder.');  // Establece el mensaje de error
     }
   };
+  
 
 
   // Función modificada para abrir el modal
-  const handleNextStep = () => {
+  const handleNextStep = async () => {
     handleProcessSolicitud();
     if (canProceed) {
       setStep(4);
-    } else {
-      setIsModalOpen(true);  // Abre el modal si la validación falla
     }
   };
 
@@ -124,7 +122,7 @@ const CreateRequest = () => {
                 // Encuentra la opción que corresponde al valor actual de tipoSolicitud
                 { label: tipoSolicitud === 'regular' ? 'Regular' : 'Postergación', value: tipoSolicitud }
               }
-              onChange={({ detail }) => setTipoSolicitud(detail.selectedOption.value)}
+              onChange={({ detail }) => {setTipoSolicitud(detail.selectedOption.value); setCanProceed(false)}}
             />
           </FormField>
           <FormField
@@ -136,7 +134,7 @@ const CreateRequest = () => {
                 <label>{doc.nombre}</label>
                 <FileUpload
                   value={files[index]}
-                  onChange={({ detail }) => handleFileChange(index, detail.value)}
+                  onChange={({ detail }) => {handleFileChange(index, detail.value);setCanProceed(false) }}
                   accept="application/pdf"
                   i18nStrings={{
                     uploadButtonText: multiple => multiple ? "Seleccionar archivos" : "Seleccionar archivo",
@@ -161,21 +159,12 @@ const CreateRequest = () => {
               Siguiente
             </Button>
           </SpaceBetween>
+          {errorMessage && (
+            <Box margin={{ top: 's' }} color="red">
+              <p style={{ color: 'red' }}>{errorMessage}</p>
+            </Box>
+          )}
         </div>
-      )}
-
-      {isModalOpen && (
-        <Modal
-          header="Documentos Incompletos"
-          onDismiss={() => setIsModalOpen(false)}
-          actions={
-            <React.Fragment>
-              <Button onClick={() => setIsModalOpen(false)}>Cerrar</Button>
-            </React.Fragment>
-          }
-        >
-          <p>Por favor, asegúrate de cargar todos los documentos requeridos antes de proceder.</p>
-        </Modal>
       )}
 
 
