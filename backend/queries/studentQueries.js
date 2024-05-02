@@ -27,6 +27,7 @@ export function fetchStudentData(userId, callback) {
       console.error('Error al buscar datos del estudiante:', studentErr);
       callback({ message: 'Error al buscar datos del estudiante' }, null);
     } else {
+      console.log('Resultados de la consulta:', studentResults[0]);
       callback(null, studentResults[0]);
     }
   });

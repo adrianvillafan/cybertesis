@@ -11,6 +11,7 @@ export function fetchAdminData(userId, callback) {
         WHERE users.id = ? AND users.current_team_id = 1;
     `;
     executeQuery(sql, [userId], (err, results) => {
-        callback(err, results);
+        console.log('Resultados de la consulta:', results[0]);
+        callback(err, results[0]);
     });
 }
