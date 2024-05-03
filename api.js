@@ -1,7 +1,7 @@
 export async function handleSubmit(form, handleLoginSuccess) {
   console.log('Formulario:', form);
   try {
-    const response = await fetch('http://localhost:3306/api/users/login', {
+    const response = await fetch('http://localhost:3000/api/users/login', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -32,7 +32,7 @@ export async function handleSubmit(form, handleLoginSuccess) {
 
 export async function handleLogout() {
   try {
-    const response = await fetch('http://localhost:3306/api/users/logout', {
+    const response = await fetch('http://localhost:3000/api/users/logout', {
       method: 'GET',
       headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
     });
