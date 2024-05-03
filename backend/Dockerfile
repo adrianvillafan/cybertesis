@@ -10,6 +10,7 @@ COPY package*.json ./
 # Instalar dependencias del proyecto
 RUN npm install
 RUN npm install nodemon --save-dev
+RUN npm install minio
 
 # Copiar todos los archivos del proyecto al directorio de trabajo del contenedor
 COPY . .

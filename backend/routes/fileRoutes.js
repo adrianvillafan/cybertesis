@@ -1,6 +1,6 @@
 import express from 'express';
 import multer from 'multer';
-//import { handleFileUpload, handleFileDownload } from '../minio/utils/storageHelpers.js';
+import { handleFileUpload, handleFileDownload } from '../minio/utils/storageHelpers.js';
 
 // Configuración de Multer para guardar archivos en memoria
 const storage = multer.memoryStorage();
@@ -14,10 +14,10 @@ router.post('/upload', upload.single('file'), (req, res) => {
   if (!req.file) {
     return res.status(400).send('No se subió ningún archivo.');
   }
-  //handleFileUpload(req, res);
+  handleFileUpload(req, res);
 });
 
 // Ruta para descargar archivos
-//router.get('/download/:filename', handleFileDownload);
+router.get('/download/:filename', handleFileDownload);
 
 export default router;
