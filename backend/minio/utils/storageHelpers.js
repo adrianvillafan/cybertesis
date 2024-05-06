@@ -1,7 +1,7 @@
 // /minio/utils/storageHelpers.js
 import { uploadFile, deleteFile, getDownloadUrl } from '../controllers/minioController.js';
 
-const bucketName = 'my-bucket'; // Asegúrate de usar el nombre de tu bucket correcto
+const bucketName = 'documentos'; // Asegúrate de usar el nombre de tu bucket correcto
 
 // Manejador para subir archivos
 export const handleFileUpload = async (req, res) => {
