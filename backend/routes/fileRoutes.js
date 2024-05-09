@@ -9,7 +9,6 @@ const upload = multer({ storage: storage, limits: { fileSize: 10 * 1024 * 1024 }
 const BUCKET_NAME = process.env.BUCKET_NAME 
 
 
-
 // Ruta para subir archivos, con caché temporal
 let fileCache = {};  // Simula una caché simple en memoria
 router.post('/upload', upload.single('file'), (req, res) => {
@@ -68,19 +67,6 @@ router.post('/confirm-upload', async (req, res) => {
 });
 
 
-// Ruta temporal para previsualizar el archivo
-router.get('/preview/:fileId', (req, res) => {
-  const fileId = req.params.fileId;
-  // Encuentra el archivo basado en el ID, por ejemplo, buscar en la base de datos o en el sistema de archivos
-  const file = fileCache[fileId];
-  if (!file) {
-    return res.status(404).send('Archivo no encontrado.');
-  }
-
-  // Suponiendo que 'file' es un objeto que incluye el buffer del archivo y el tipo MIME
-  res.type(file.mimetype);
-  res.send(file.buffer);
-});
 
 // Ruta para descargar archivos
 router.get('/download/:filename', async (req, res) => {

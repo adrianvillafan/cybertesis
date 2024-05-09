@@ -1,10 +1,9 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { Modal, Button, Box, Container, Header, SpaceBetween, Link, Select, FileUpload, FormField, Form } from '@cloudscape-design/components';
+import { Button, Box, Container, Header, SpaceBetween, Link, Select, FileUpload, FormField, Form } from '@cloudscape-design/components';
 import UserContext from '../../contexts/UserContext';
-import { uploadDocument, confirmUploadDocument, submitSolicitud } from '../../../../../api';
 import { Worker, Viewer } from '@react-pdf-viewer/core';
 import '@react-pdf-viewer/core/lib/styles/index.css';
-import DocumentPreview from './pdfPreviewer';
+import { uploadDocument, confirmUploadDocument , submitSolicitud} from '../../../../../api';
 
 const CreateRequest = () => {
   const { user } = useContext(UserContext);
@@ -14,22 +13,6 @@ const CreateRequest = () => {
   const [canProceed, setCanProceed] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [fileIds, setFileIds] = useState([]);
-
-
-  const [isModalOpen, setIsModalOpen] = useState(false);
-    const [currentFile, setCurrentFile] = useState(null);
-
-    const openModal = (file) => {
-        setCurrentFile(file);
-        setIsModalOpen(true);
-    };
-
-    const closeModal = () => {
-        setIsModalOpen(false);
-        setCurrentFile(null);
-    };
-
-
   const documentosRequeridos = {
     regular: [
       { id: 1, nombre: 'Tesis' },
@@ -57,7 +40,7 @@ const CreateRequest = () => {
   };
 
   const handleFileChange = (index, newFiles) => {
-    console.log('New files:', index);
+    console.log('New files:', index );
     const updatedFiles = [...files];
     updatedFiles[index] = newFiles;
     setFiles(updatedFiles);
@@ -83,65 +66,65 @@ const CreateRequest = () => {
 
   const handleFileUpload = async (file, tipo) => {
     try {
-      const response = await uploadDocument(file);
-      if (response.fileId) {
-        setUploadedFiles(prev => {
-          // Verifica si el tipo ya existe en el arreglo
-          const existingIndex = prev.findIndex(item => item.tipo === tipo);
-          // Si existe, actualiza el fileId
-          if (existingIndex !== -1) {
-            const newUploadedFiles = [...prev];
-            newUploadedFiles[existingIndex] = { ...newUploadedFiles[existingIndex], fileId: response.fileId };
-            return newUploadedFiles;
-          }
-          // Si no existe, añade el nuevo archivo
-          else {
-            return [...prev, { fileId: response.fileId, tipo }];
-          }
-        });
-        setFileIds(prevFileIds => {
-          const updatedFileIds = [...prevFileIds];
-          updatedFileIds[tipo] = response.fileId;
-          console.log('File IDs:', updatedFileIds);
-          console.log('uploadedFiles:', uploadedFiles);
-          return updatedFileIds;
-        });
-      }
+        const response = await uploadDocument(file);
+        if (response.fileId) {
+            setUploadedFiles(prev => {
+                // Verifica si el tipo ya existe en el arreglo
+                const existingIndex = prev.findIndex(item => item.tipo === tipo);
+                // Si existe, actualiza el fileId
+                if (existingIndex !== -1) {
+                    const newUploadedFiles = [...prev];
+                    newUploadedFiles[existingIndex] = { ...newUploadedFiles[existingIndex], fileId: response.fileId };
+                    return newUploadedFiles;
+                } 
+                // Si no existe, añade el nuevo archivo
+                else {
+                    return [...prev, { fileId: response.fileId, tipo }];
+                }
+            });
+            setFileIds(prevFileIds => {
+                const updatedFileIds = [...prevFileIds];
+                updatedFileIds[tipo] = response.fileId;
+                console.log('File IDs:', updatedFileIds);
+                console.log('uploadedFiles:', uploadedFiles);
+                return updatedFileIds;
+            });
+        }
     } catch (error) {
-      console.error('Error uploading file:', error);
-      setErrorMessage('Error uploading file. Please try again.');
+        console.error('Error uploading file:', error);
+        setErrorMessage('Error uploading file. Please try again.');
     }
-  };
+};
 
-
+  
 
   const enviarSolicitud = async () => {
     console.log('Sending request...');
     try {
-      // Crear el objeto de datos para la solicitud
-      const solicitudData = {
-        estudianteId: user.id, // ID del estudiante desde el contexto
-        tipoSolicitudId: tipoSolicitud === 'regular' ? 1 : 2, // Este valor debería obtenerse de la UI
-        estadoId: 1, // Suponiendo un valor por defecto o obtenido de la UI
-      };
+        // Crear el objeto de datos para la solicitud
+        const solicitudData = {
+            estudianteId: user.id, // ID del estudiante desde el contexto
+            tipoSolicitudId: tipoSolicitud === 'regular' ? 1 : 2 , // Este valor debería obtenerse de la UI
+            estadoId: 1, // Suponiendo un valor por defecto o obtenido de la UI
+        };
 
-      const solicitudResult = await submitSolicitud(solicitudData);
-      console.log('Request sent successfully, request ID:', solicitudResult);
+        const solicitudResult = await submitSolicitud(solicitudData);
+        console.log('Request sent successfully, request ID:', solicitudResult);
 
-      await Promise.all(
-        uploadedFiles.map(file =>
-          confirmUploadDocument(file.fileId, file.tipo, user.id, solicitudResult, user.id)
-        )
-      );
+        await Promise.all(
+            uploadedFiles.map(file => 
+                confirmUploadDocument(file.fileId, file.tipo, user.id, solicitudResult, user.id)
+            )
+        );
 
-      console.log('Todos los documentos han sido confirmados correctamente');
+        console.log('Todos los documentos han sido confirmados correctamente');
 
-      setStep(5);
+        setStep(5);
     } catch (error) {
-      console.error('Error sending request:', error);
-      setErrorMessage('Failed to send request. Please try again.');
+        console.error('Error sending request:', error);
+        setErrorMessage('Failed to send request. Please try again.');
     }
-  };
+};
 
 
 
@@ -154,136 +137,129 @@ const CreateRequest = () => {
     }
   };
 
-
+   
 
   return (
     <Container>
-
-      {step === 1 && (
-        <Box margin={{ vertical: 'm' }}>
-          <Header variant="h1">Requerimientos para iniciar la solicitud</Header>
-          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. IMPORTANTE: Leer los requerimientos necesarios para evitar que su solicitud sea OBSERVADA. Asegurarse de tener todos los documentos necesarios para realizar la solicitud.</p>
-          <Link href="/path/to/document.pdf" external={true}>¿Aún no tienes los documentos? Descarga aquí.</Link>
-          <Button variant="primary" onClick={handleStart}>Iniciar Solicitud</Button>
-        </Box>
-      )}
-
-      {step === 2 && (
-        <Box>
-          <Header variant="h2">Paso 1: Confirmar Datos</Header>
-          <Box direction="row" padding={{ vertical: 'm', horizontal: 'l' }} alignItems="center">
-            <img src="/path/to/user-image.jpg" alt="Foto del usuario" style={{ width: 100, height: 100, marginRight: 'l' }} />
-            <div>
-              <p>Nombre: Usuario Ejemplo</p>
-              <p>Código: 123456</p>
-              <p>Facultad: Ciencias</p>
-              <p>Programa: Ingeniería</p>
-              <p>Especialidad: Sistemas</p>
-            </div>
-          </Box>
-          <Box>
-            <Button onClick={() => setStep(1)}>Cancelar</Button>
-            <Button onClick={() => setStep(3)}>Siguiente</Button>
-          </Box>
-        </Box>
-      )}
-
-      {step === 3 && tipoSolicitud && (
-        <div>
-
-          <FormField label="Tipo de Solicitud">
-            <Select
-
-              options={[
-                { label: 'Regular', value: 'regular' },
-                { label: 'Postergación', value: 'postergacion' }
-              ]}
-              selectedOption={
-                // Encuentra la opción que corresponde al valor actual de tipoSolicitud
-                { label: tipoSolicitud === 'regular' ? 'Regular' : 'Postergación', value: tipoSolicitud }
-              }
-              onChange={({ detail }) => { setTipoSolicitud(detail.selectedOption.value); setCanProceed(false) }}
-            />
-          </FormField>
-          <FormField
-            label="Documentos Requeridos"
-            constraintText="Tamaño máximo de archivo: 5MB"
-          >
-            {documentosRequeridos[tipoSolicitud].map((doc, index) => (
-              <div key={doc.id}>
-                <label>{doc.nombre}</label>
-                <FileUpload
-                  value={files[index]}
-                  onChange={({ detail }) => { handleFileChange(index, detail.value); setCanProceed(false) }}
-                  accept="application/pdf"
-                  i18nStrings={{
-                    uploadButtonText: multiple => multiple ? "Seleccionar archivos" : "Seleccionar archivo",
-                    dropzoneText: multiple => multiple ? "Arrastre archivos aquí" : "Arrastre archivo aquí",
-                    removeFileAriaLabel: index => `Eliminar archivo ${index + 1}`,
-                    limitShowFewer: "Mostrar menos",
-                    limitShowMore: "Mostrar más",
-                    errorIconAriaLabel: "Error"
-                  }}
-                  showFileLastModified
-                  showFileSize
-                />
-              </div>
-            ))}
-          </FormField>
-          <SpaceBetween size="l" direction="horizontal">
-            <Button onClick={() => setStep(2)}>Atrás</Button>
-            <Button onClick={handleProcessSolicitud} variant="primary">
-              Procesar Solicitud
-            </Button>
-            <Button onClick={handleNextStep} disabled={!canProceed}>
-              Siguiente
-            </Button>
-          </SpaceBetween>
-          {errorMessage && (
-            <Box margin={{ top: 's' }} color="red">
-              <p style={{ color: 'red' }}>{errorMessage}</p>
+      
+          {step === 1 && (
+            <Box margin={{ vertical: 'm' }}>
+              <Header variant="h1">Requerimientos para iniciar la solicitud</Header>
+              <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. IMPORTANTE: Leer los requerimientos necesarios para evitar que su solicitud sea OBSERVADA. Asegurarse de tener todos los documentos necesarios para realizar la solicitud.</p>
+              <Link href="/path/to/document.pdf" external={true}>¿Aún no tienes los documentos? Descarga aquí.</Link>
+              <Button variant="primary" onClick={handleStart}>Iniciar Solicitud</Button>
             </Box>
           )}
-        </div>
-      )}
+
+          {step === 2 && (
+            <Box>
+              <Header variant="h2">Paso 1: Confirmar Datos</Header>
+              <Box direction="row" padding={{ vertical: 'm', horizontal: 'l' }} alignItems="center">
+                <img src="/path/to/user-image.jpg" alt="Foto del usuario" style={{ width: 100, height: 100, marginRight: 'l' }} />
+                <div>
+                  <p>Nombre: Usuario Ejemplo</p>
+                  <p>Código: 123456</p>
+                  <p>Facultad: Ciencias</p>
+                  <p>Programa: Ingeniería</p>
+                  <p>Especialidad: Sistemas</p>
+                </div>
+              </Box>
+              <Box>
+                <Button onClick={() => setStep(1)}>Cancelar</Button>
+                <Button onClick={() => setStep(3)}>Siguiente</Button>
+              </Box>
+            </Box>
+          )}
+
+          {step === 3 && tipoSolicitud && (
+            <div>
+
+              <FormField label="Tipo de Solicitud">
+                <Select
+
+                  options={[
+                    { label: 'Regular', value: 'regular' },
+                    { label: 'Postergación', value: 'postergacion' }
+                  ]}
+                  selectedOption={
+                    // Encuentra la opción que corresponde al valor actual de tipoSolicitud
+                    { label: tipoSolicitud === 'regular' ? 'Regular' : 'Postergación', value: tipoSolicitud }
+                  }
+                  onChange={({ detail }) => { setTipoSolicitud(detail.selectedOption.value); setCanProceed(false) }}
+                />
+              </FormField>
+              <FormField
+                label="Documentos Requeridos"
+                constraintText="Tamaño máximo de archivo: 5MB"
+              >
+                {documentosRequeridos[tipoSolicitud].map((doc, index) => (
+                  <div key={doc.id}>
+                    <label>{doc.nombre}</label>
+                    <FileUpload
+                      value={files[index]}
+                      onChange={({ detail }) => { handleFileChange(index, detail.value); setCanProceed(false) }}
+                      accept="application/pdf"
+                      i18nStrings={{
+                        uploadButtonText: multiple => multiple ? "Seleccionar archivos" : "Seleccionar archivo",
+                        dropzoneText: multiple => multiple ? "Arrastre archivos aquí" : "Arrastre archivo aquí",
+                        removeFileAriaLabel: index => `Eliminar archivo ${index + 1}`,
+                        limitShowFewer: "Mostrar menos",
+                        limitShowMore: "Mostrar más",
+                        errorIconAriaLabel: "Error"
+                      }}
+                      showFileLastModified
+                      showFileSize
+                    />
+                  </div>
+                ))}
+              </FormField>
+              <SpaceBetween size="l" direction="horizontal">
+                <Button onClick={() => setStep(2)}>Atrás</Button>
+                <Button onClick={handleProcessSolicitud} variant="primary">
+                  Procesar Solicitud
+                </Button>
+                <Button onClick={handleNextStep} disabled={!canProceed}>
+                  Siguiente
+                </Button>
+              </SpaceBetween>
+              {errorMessage && (
+                <Box margin={{ top: 's' }} color="red">
+                  <p style={{ color: 'red' }}>{errorMessage}</p>
+                </Box>
+              )}
+            </div>
+          )}
 
 
 
-      {step === 4 && (
-        <Box>
-        {uploadedFiles.map((doc, index) => (
-          <Box key={doc.fileId} padding={{ vertical: 'xxs' }}>
-            <p>{doc.fileId} "-" {doc.tipo}</p>
-            <DocumentPreview fileId={doc.fileId} />
-          </Box>
-        ))}
-      </Box>
+          {step === 4 && (
+            <Box>
+              <Header variant="h2">Paso 3: Confirmar Documentos</Header>
+              <Box>
+                {uploadedFiles.map(doc => (
+                  <Box key={doc.tipo} padding={{ vertical: 'xxs' }}>
+                    <p>{doc.fileId}</p>
+                    <Button>Ver Documento</Button>
+                  </Box>
+                ))}
+              </Box>
+              <Box>
+                <Button onClick={() => setStep(3)}>Atrás</Button>
+                <Button onClick={() => enviarSolicitud()}>Enviar</Button>
+              </Box>
+            </Box>
+          )}
+
+          {step === 5 && (
+            <Box>
+              <Header variant="h2">Solicitud Enviada</Header>
+              <p>Su solicitud ha sido enviada con éxito. Número de solicitud: XYZ123</p>
+              <Button onClick={() => setStep(1)}>Aceptar</Button>
+            </Box>
+          )}
+
+
       
-      )}
-
-      {isModalOpen && (
-        <Modal
-          title="Vista previa del documento"
-          visible={isModalOpen}
-          onClose={closeModal}
-          size="large"
-        >
-          <Worker workerUrl={`https://unpkg.com/pdfjs-dist@2.10.377/es5/build/pdf.worker.min.js`}>
-            <Viewer fileUrl={currentFile.url} />
-          </Worker>
-        </Modal>
-      )}
-
-      {step === 5 && (
-        <Box>
-          <Header variant="h2">Solicitud Enviada</Header>
-          <p>Su solicitud ha sido enviada con éxito. Número de solicitud: XYZ123</p>
-          <Button onClick={() => setStep(1)}>Aceptar</Button>
-        </Box>
-      )}
-
-
-
     </Container>
   );
 };
