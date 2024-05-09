@@ -11,6 +11,15 @@ COPY package*.json ./
 RUN npm install
 RUN npm install nodemon --save-dev
 RUN npm install minio
+RUN npm install dotenv
+
+
+# Definir variables de entorno para las credenciales sensibles
+ENV DB_HOST=sql.freedb.tech
+ENV DB_USER=freedb_marcelasdasd
+ENV DB_PASSWORD=tCADemhZRPF39d!
+ENV DB_DATABASE=freedb_Cybertesis
+
 
 # Copiar todos los archivos del proyecto al directorio de trabajo del contenedor
 COPY . .
