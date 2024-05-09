@@ -53,19 +53,12 @@ export async function handleLogout() {
 
 //CONTROL DE DOCUMENTOS ESTUDIANTE
 
-export const previewDocument = async (file) => {
-  const formData = new FormData();
-  formData.append('file', file);
-  
+export const previewDocument = async (fileId) => {
   try {
-    const response = await fetch('http://localhost:3000/api/files/preview', {
-      method: 'POST',
-      body: formData
-    });
-
+    const response = await fetch(`http://localhost:3000/api/files/preview/${fileId}`);
     if (response.ok) {
-      const data = await response.blob();
-      return URL.createObjectURL(data);
+      const blob = await response.blob();
+      return URL.createObjectURL(blob);
     } else {
       throw new Error('No se pudo previsualizar el documento');
     }
