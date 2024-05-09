@@ -1,69 +1,43 @@
-import {
-  S3Client,
-  DeleteObjectCommand,
-  PutObjectCommand,
-  GetObjectCommand
-} from "@aws-sdk/client-s3";
+import { PutObjectCommand, GetObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import s3Client from "../config/minioClient.js";
+import s3Client from '../config/minioClient.js';
 
-// Subir archivo
-export const uploadFile = async (bucketName, fileKey, fileBody) => {
-  try {
-    const data = await s3Client.send(new PutObjectCommand({
-      Bucket: bucketName,
-      Key: fileKey,
-      Body: fileBody
-    }));
-    console.log("Archivo subido con éxito:", data);
-    return data;
-  } catch (err) {
-    console.error("Error al subir el archivo:", err);
-    throw err;
+// Función para subir un archivo PDF a MinIO
+export const uploadFileToMinIO = async (file, bucketName, fileName) => {
+  if (file.mimetype !== 'application/pdf' || file.size > 10485760) {
+    throw new Error('Archivo debe ser PDF y menor a 10 MB.');
   }
+
+  const params = {
+    Bucket: bucketName,
+    Key: fileName,
+    Body: file.buffer,
+    ContentType: file.mimetype,
+  };
+
+  const command = new PutObjectCommand(params);
+  await s3Client.send(command);
+  return `Archivo ${fileName} subido correctamente.`;
 };
 
-// Descargar archivo
-export const downloadFile = async (bucketName, fileKey) => {
-  try {
-    const data = await s3Client.send(new GetObjectCommand({
-      Bucket: bucketName,
-      Key: fileKey
-    }));
-    console.log("Archivo descargado con éxito");
-    return data.Body;
-  } catch (err) {
-    console.error("Error al descargar el archivo:", err);
-    throw err;
-  }
+// Función para obtener un URL de descarga temporal
+export const getDownloadUrlFromMinIO = async (bucketName, fileName) => {
+  const command = new GetObjectCommand({
+    Bucket: bucketName,
+    Key: fileName,
+  });
+
+  const url = await getSignedUrl(s3Client, command, { expiresIn: 3600 }); // URL expira en 1 hora
+  return url;
 };
 
-// Generar URL firmada para descargar
-export const getDownloadUrl = async (bucketName, fileKey) => {
-  try {
-    const command = new GetObjectCommand({
-      Bucket: bucketName,
-      Key: fileKey
-    });
-    const url = await getSignedUrl(s3Client, command, { expiresIn: 3600 });
-    return url;
-  } catch (err) {
-    console.error("Error al generar URL firmada:", err);
-    throw err;
-  }
-};
+// Función para eliminar un archivo
+export const deleteFileFromMinIO = async (bucketName, fileName) => {
+  const command = new DeleteObjectCommand({
+    Bucket: bucketName,
+    Key: fileName
+  });
 
-// Eliminar archivo
-export const deleteFile = async (bucketName, fileKey) => {
-  try {
-    const data = await s3Client.send(new DeleteObjectCommand({
-      Bucket: bucketName,
-      Key: fileKey
-    }));
-    console.log("Archivo eliminado con éxito:", data);
-    return data;
-  } catch (err) {
-    console.error("Error al eliminar el archivo:", err);
-    throw err;
-  }
+  await s3Client.send(command);
+  return `Archivo ${fileName} eliminado correctamente.`;
 };
