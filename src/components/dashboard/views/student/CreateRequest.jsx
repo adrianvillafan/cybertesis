@@ -1,8 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { Button, Box, Container, Header, SpaceBetween, Link, Select, FileUpload, FormField, Form } from '@cloudscape-design/components';
 import UserContext from '../../contexts/UserContext';
-import { Worker, Viewer } from '@react-pdf-viewer/core';
-import '@react-pdf-viewer/core/lib/styles/index.css';
 import { uploadDocument, confirmUploadDocument , submitSolicitud} from '../../../../../api';
 
 const CreateRequest = () => {
@@ -13,6 +11,7 @@ const CreateRequest = () => {
   const [canProceed, setCanProceed] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [fileIds, setFileIds] = useState([]);
+  const [solicitudId, setSolicitudId] = useState('');  // ID de la solicitud creada [1
   const documentosRequeridos = {
     regular: [
       { id: 1, nombre: 'Tesis' },
@@ -105,10 +104,11 @@ const CreateRequest = () => {
         const solicitudData = {
             estudianteId: user.id, // ID del estudiante desde el contexto
             tipoSolicitudId: tipoSolicitud === 'regular' ? 1 : 2 , // Este valor debería obtenerse de la UI
-            estadoId: 1, // Suponiendo un valor por defecto o obtenido de la UI
+            estadoId: 3, // Suponiendo un valor por defecto o obtenido de la UI
         };
 
         const solicitudResult = await submitSolicitud(solicitudData);
+        setSolicitudId(solicitudResult);
         console.log('Request sent successfully, request ID:', solicitudResult);
 
         await Promise.all(
@@ -234,14 +234,11 @@ const CreateRequest = () => {
 
           {step === 4 && (
             <Box>
-              <Header variant="h2">Paso 3: Confirmar Documentos</Header>
+              <Header variant="h2">Paso 3: Declaracion Jurada</Header>
               <Box>
-                {uploadedFiles.map(doc => (
-                  <Box key={doc.tipo} padding={{ vertical: 'xxs' }}>
-                    <p>{doc.fileId}</p>
-                    <Button>Ver Documento</Button>
-                  </Box>
-                ))}
+                <p>Declaro bajo juramento que los documentos presentados son auténticos y no han sido alterados de ninguna manera.</p>
+                <p>Asimismo, declaro que los documentos presentados son de mi autoría y no infringen derechos de autor de terceros.</p>
+                <p>Entiendo que cualquier falsificación o alteración de documentos será sancionada de acuerdo a las normas de la institución.</p>
               </Box>
               <Box>
                 <Button onClick={() => setStep(3)}>Atrás</Button>
@@ -253,7 +250,7 @@ const CreateRequest = () => {
           {step === 5 && (
             <Box>
               <Header variant="h2">Solicitud Enviada</Header>
-              <p>Su solicitud ha sido enviada con éxito. Número de solicitud: XYZ123</p>
+              <p>Su solicitud ha sido enviada con éxito. Número de solicitud: {solicitudId}</p>
               <Button onClick={() => setStep(1)}>Aceptar</Button>
             </Box>
           )}

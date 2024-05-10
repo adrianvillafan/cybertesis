@@ -145,4 +145,18 @@ export const submitSolicitud = async (solicitudData) => {
   }
 };
 
+export async function fetchSolicitudesByStudentId(studentId) {
+  try {
+    const response = await fetch(`http://localhost:3000/api/files/solicitudes/${studentId}`);
+    if (!response.ok) {
+      throw new Error('Algo salió mal al cargar las solicitudes');
+    }
+    const data = await response.json();
+    return data;  // Devuelve los datos directamente
+  } catch (error) {
+    throw error;  // Lanza el error para que pueda ser capturado y manejado por el componente
+  }
+}
+
+
 

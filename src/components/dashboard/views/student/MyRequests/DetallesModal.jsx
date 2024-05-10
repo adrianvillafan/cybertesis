@@ -1,56 +1,53 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Modal,
   Table,
   Button,
   Icon,
   Box,
-  SpaceBetween
+  SpaceBetween,
+  Spinner
 } from '@cloudscape-design/components';
-
-// Tipos de documentos como ejemplo
-const tiposDocumentos = {
-  1: 'Tesis',
-  2: 'Acta de Sustentacion',
-  3: 'Certificado de Similitud',
-  4: 'Autorizacion para el deposito de obra en Cybertesis',
-  5: 'Hoja de Metadatos',
-  6: 'Reporte de Turnitin',
-  7: 'Solicitud de Postergacion'
-};
+import { fetchDocumentosBySolicitudId } from '../../../../../../api'; // Asegúrate de que la ruta es correcta
 
 const DetallesModal = ({ solicitud, onClose }) => {
+  const [documentos, setDocumentos] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    if (!solicitud) return;
+
+    const cargarDocumentos = async () => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const docs = await fetchDocumentosBySolicitudId(solicitud.id);
+        setDocumentos(docs);
+      } catch (err) {
+        setError(err.message);
+        console.error('Error al cargar documentos:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    cargarDocumentos();
+  }, [solicitud]);
+
   if (!solicitud) return null;
 
-  //const documentos = solicitud.documentos || [];
-  const documentos = [
-    {
-      id: 1,
-      nombre: "Tesis_Final.pdf",
-      url: "http://example.com/tesis_final.pdf",
-      tipoDocumentoId: 1,
-      fechaSubida: "2024-04-12T12:34:56"
-    },
-    {
-      id: 2,
-      nombre: "Acta_Sustentacion.pdf",
-      url: "http://example.com/acta_sustentacion.pdf",
-      tipoDocumentoId: 2,
-      fechaSubida: "2024-04-15T15:48:22"
-    },
-    {
-      id: 3,
-      nombre: "Certificado_Similitud.pdf",
-      url: "http://example.com/certificado_similitud.pdf",
-      tipoDocumentoId: 3,
-      fechaSubida: "2024-04-20T09:30:00"
-    }
-  ];
+  if (isLoading) {
+    return <Spinner size="normal" />;
+  }
+
+  if (error) {
+    return <p>Error al cargar documentos: {error}</p>;
+  }
 
   const descargarTodos = () => {
     documentos.forEach(doc => {
-      // Lógica para descargar cada archivo
-      console.log("Descargando:", doc.url);
+      window.open(doc.url, '_blank');
     });
   };
 
@@ -61,13 +58,11 @@ const DetallesModal = ({ solicitud, onClose }) => {
       onDismiss={onClose}
       size="large"
       footer={
-
         <Box float="right">
           <SpaceBetween direction="horizontal" size="xs">
             <Button onClick={descargarTodos}>Descargar todos</Button>
             <Button onClick={onClose}>Cerrar</Button>
           </SpaceBetween>
-
         </Box>
       }
     >
@@ -76,21 +71,13 @@ const DetallesModal = ({ solicitud, onClose }) => {
         columnDefinitions={[
           {
             header: 'Tipo',
-            cell: item => tiposDocumentos[item.tipoDocumentoId] || 'Desconocido'
+            cell: item => item.tipo // Asegúrate de que este campo exista en la respuesta del servidor
           },
           {
             header: 'Documento',
             cell: item => (
               <span style={{ display: 'flex', alignItems: 'center' }}>
-                <Icon
-                  size="normal"
-                  svg={
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                      <path fill="none" d="M0 0h24v24H0z" />
-                      <path d="M19 2H8c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-4.5 14h-2v3H4V4h2v9h11v3h-2.5zM23 11h-3V8h-3V5h3V2h3v3h3v3h-3v3z" />
-                    </svg>
-                  }
-                />
+                <Icon name="document" />
                 {item.nombre}
               </span>
             )
@@ -99,15 +86,8 @@ const DetallesModal = ({ solicitud, onClose }) => {
             header: 'Acciones',
             cell: item => (
               <div style={{ display: 'flex', gap: '10px' }}>
-                <SpaceBetween direction="horizontal" size="xs">
-                  <Button onClick={() => window.open(item.url, '_blank')}>
-                    Descargar
-                  </Button>
-                  <Button onClick={() => window.open(item.url, '_blank')}>
-                    Visualizar
-                  </Button>
-                </SpaceBetween>
-
+                <Button onClick={() => window.open(item.url, '_blank')}>Descargar</Button>
+                <Button onClick={() => window.open(item.url, '_blank')}>Visualizar</Button>
               </div>
             )
           }

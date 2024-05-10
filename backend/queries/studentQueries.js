@@ -38,25 +38,25 @@ export function insertDocument(documentDetails, callback) {
                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
   const values = [
-      documentDetails.tipo,
-      documentDetails.urlDocumento,
-      documentDetails.estudianteId,
-      documentDetails.estadoId,
-      documentDetails.tamano,
-      documentDetails.fechaCarga,
-      documentDetails.usuarioCargaId,
-      documentDetails.ultimaModificacion,
-      documentDetails.solicitudId
+    documentDetails.tipo,
+    documentDetails.urlDocumento,
+    documentDetails.estudianteId,
+    documentDetails.estadoId,
+    documentDetails.tamano,
+    documentDetails.fechaCarga,
+    documentDetails.usuarioCargaId,
+    documentDetails.ultimaModificacion,
+    documentDetails.solicitudId
   ];
 
   executeQuery(query, values, (err, results) => {
-      if (err) {
-          console.error('Error al ejecutar la consulta:', err);
-          callback(err, null);  // Llama al callback con error
-      } else {
-          // Asumimos que 'results' contiene la propiedad 'insertId'
-          callback(null, results.insertId);  // Llama al callback con el ID del documento insertado
-      }
+    if (err) {
+      console.error('Error al ejecutar la consulta:', err);
+      callback(err, null);  // Llama al callback con error
+    } else {
+      // Asumimos que 'results' contiene la propiedad 'insertId'
+      callback(null, results.insertId);  // Llama al callback con el ID del documento insertado
+    }
   });
 }
 
@@ -82,4 +82,33 @@ export const createSolicitud = (solicitud, callback) => {
     }
   });
 };
+
+export function getSolicitudesByEstudianteId(estudianteId, callback) {
+  const sql = `
+    SELECT 
+      solicitud.id,
+      solicitud.tipoSolicitud_id,
+      solicitud.estado_id,
+      solicitud.fechaRegistro,
+      tiposolicitud.nombre AS tipoSolicitud,
+      estado.nombre AS estado
+    FROM solicitud
+    LEFT JOIN tiposolicitud ON solicitud.tipoSolicitud_id = tiposolicitud.id
+    LEFT JOIN estado ON solicitud.estado_id = estado.id
+    WHERE solicitud.estudiante_id = ?;
+  `;
+
+  executeQuery(sql, [estudianteId], (error, results) => {
+    if (error) {
+      console.error('Error al obtener las solicitudes:', error);
+      callback(error, null);
+    } else {
+      console.log('Solicitudes obtenidas:', results);
+      callback(null, results);
+    }
+  });
+}
+
+
+
 

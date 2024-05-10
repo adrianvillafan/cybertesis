@@ -8,7 +8,7 @@ router.post('/create', (req, res) => {
   createSolicitud({
     estudianteId: estudianteId,
     tipoSolicitudId: tipoSolicitudId,
-    estadoId: estadoId || 1, // Estado por defecto si no se proporciona
+    estadoId: estadoId || 3, // Estado por defecto si no se proporciona
     fechaRegistro: new Date() // Fecha actual
   }, (err, result) => {
     if (err) {

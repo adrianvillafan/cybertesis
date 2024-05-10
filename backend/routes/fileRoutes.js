@@ -1,7 +1,7 @@
 import express from 'express';
 import multer from 'multer';
 import { uploadFileToMinIO, getDownloadUrlFromMinIO, deleteFileFromMinIO } from '../minio/controllers/minioController.js';
-import { insertDocument } from '../queries/studentQueries.js';
+import { insertDocument, getSolicitudesByEstudianteId } from '../queries/studentQueries.js';
 const router = express.Router();
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage, limits: { fileSize: 10 * 1024 * 1024 } }); // Límite de 10 MB
@@ -89,4 +89,18 @@ router.delete('/delete/:filename', async (req, res) => {
   }
 });
 
+// Endpoint para obtener las solicitudes de un estudiante por su ID
+router.get('/solicitudes/:estudianteId', (req, res) => {
+  const { estudianteId } = req.params;
+  getSolicitudesByEstudianteId(estudianteId, (err, solicitudes) => {
+    if (err) {
+      res.status(500).send('Error al consultar las solicitudes del estudiante');
+    } else {
+      res.json(solicitudes);
+    }
+  });
+});
+
 export default router;
+
+
