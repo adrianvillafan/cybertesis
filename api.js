@@ -158,5 +158,19 @@ export async function fetchSolicitudesByStudentId(studentId) {
   }
 }
 
+export async function fetchDocumentosBySolicitudId(solicitudId) {
+  try {
+    const response = await fetch(`http://localhost:3000/api/solicitudes/documentos/${solicitudId}`);
+    if (!response.ok) {
+      throw new Error('No se pudo obtener los documentos');
+    }
+    const documentos = await response.json();
+    return documentos;
+  } catch (error) {
+    console.error('Error al obtener documentos:', error);
+    throw error; // Lanzar el error para manejarlo en el componente
+  }
+}
+
 
 

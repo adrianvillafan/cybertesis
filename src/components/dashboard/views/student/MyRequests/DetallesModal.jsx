@@ -3,7 +3,6 @@ import {
   Modal,
   Table,
   Button,
-  Icon,
   Box,
   SpaceBetween,
   Spinner
@@ -16,34 +15,46 @@ const DetallesModal = ({ solicitud, onClose }) => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (!solicitud) return;
-
-    const cargarDocumentos = async () => {
+    if (solicitud && solicitud.id) {
       setIsLoading(true);
-      setError(null);
-      try {
-        const docs = await fetchDocumentosBySolicitudId(solicitud.id);
-        setDocumentos(docs);
-      } catch (err) {
-        setError(err.message);
-        console.error('Error al cargar documentos:', err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    cargarDocumentos();
+      fetchDocumentosBySolicitudId(solicitud.id)
+        .then(data => {
+          setDocumentos(data);
+          setIsLoading(false);
+        })
+        .catch(err => {
+          console.error('Error al cargar documentos:', err);
+          setError('Error al cargar documentos');
+          setIsLoading(false);
+        });
+    }
   }, [solicitud]);
 
   if (!solicitud) return null;
 
-  if (isLoading) {
-    return <Spinner size="normal" />;
-  }
+  const verDocumento = async (documento) => {
+    try {
+      // Lógica para obtener el URL de vista del documento, podría ser similar a la lógica de obtener un URL de descarga temporal
+      const viewUrl = await getViewUrlForDocument(documento);
+      window.open(viewUrl, '_blank'); // Abre el documento en una nueva pestaña
+    } catch (error) {
+      console.error('Error al ver el documento:', error);
+      // Maneja el error de manera adecuada, posiblemente mostrando un mensaje al usuario
+    }
+  };
+  
+  const descargarDocumento = async (documento) => {
+    try {
+      // Lógica para obtener el URL de descarga del documento
+      const downloadUrl = await getDownloadUrlFromMinIO(BUCKET_NAME, documento.fileName);
+      window.open(downloadUrl, '_blank'); // Descarga el documento
+    } catch (error) {
+      console.error('Error al descargar el documento:', error);
+      // Maneja el error de manera adecuada, posiblemente mostrando un mensaje al usuario
+    }
+  };
 
-  if (error) {
-    return <p>Error al cargar documentos: {error}</p>;
-  }
+  
 
   const descargarTodos = () => {
     documentos.forEach(doc => {
@@ -66,34 +77,69 @@ const DetallesModal = ({ solicitud, onClose }) => {
         </Box>
       }
     >
-      <Table
-        items={documentos}
-        columnDefinitions={[
-          {
-            header: 'Tipo',
-            cell: item => item.tipo // Asegúrate de que este campo exista en la respuesta del servidor
-          },
-          {
-            header: 'Documento',
-            cell: item => (
-              <span style={{ display: 'flex', alignItems: 'center' }}>
-                <Icon name="document" />
-                {item.nombre}
-              </span>
-            )
-          },
-          {
-            header: 'Acciones',
-            cell: item => (
-              <div style={{ display: 'flex', gap: '10px' }}>
-                <Button onClick={() => window.open(item.url, '_blank')}>Descargar</Button>
-                <Button onClick={() => window.open(item.url, '_blank')}>Visualizar</Button>
-              </div>
-            )
-          }
-        ]}
-      />
+      {isLoading && (
+        <div style={{ textAlign: 'center', margin: '20px 0' }}>
+          <Spinner size="large" />
+        </div>
+      )}
+      {!isLoading && !error && (
+        <Table
+          items={documentos}
+          resizableColumns
+          columnDefinitions={[
+            {
+              header: 'ID',
+              cell: item => item.id,
+              minWidth: 40, // Puedes ajustar según tus necesidades
+              width: 50,
+              maxWidth: 60 // Asegura que esta columna siempre tenga el mismo tamaño
+            },
+            {
+              header: 'Documento',
+              cell: item => (
+                <span style={{ display: 'flex', alignItems: 'left' }}>
+                  {item.tipo_documento}
+                </span>
+              ),
+              width: 200,
+              minWidth: 160, // Ancho mínimo necesario para evitar que se comprima demasiado
+              maxWidth: 250 // Asegura que esta columna no crezca más allá de 200px
+            },
+            {
+              header: 'Fecha de Carga',
+              cell: item => {
+                const date = new Date(item.fecha_carga);
+                return `${date.toLocaleDateString('es-ES')} ${date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}`;
+              },
+              width: 150,
+              minWidth: 120, // Ajusta según lo que consideres adecuado para la fecha
+              maxWidth: 180
+            },
+            {
+              header: 'Estado',
+              cell: item => "Activo", // Cambia "Activo" por item.estado si tienes esa data
+              minWidth: 60,
+              width: 90,
+              maxWidth: 120
+            },
+            
+            {
+              header: 'Acciones',
+              cell: item => (
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <Button onClick={() => verDocumento(item)}>Ver</Button>
+                  <Button onClick={() => descargarDocumento(item)}>Descargar</Button>
+                </div>
+              ),
+              minWidth: 235, // Suficiente para acomodar los botones sin apretar
+              width: 240,
+              maxWidth: 300
+            }
+          ]}
+        />)}
+      {error && <p>Error al cargar documentos: {error}</p>}
     </Modal>
+
   );
 };
 

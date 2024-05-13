@@ -1,5 +1,5 @@
 import express from 'express';
-import { createSolicitud } from '../queries/studentQueries.js'; // Asegúrate de tener esta función definida
+import { createSolicitud, getDocumentosBySolicitudId } from '../queries/studentQueries.js'; // Asegúrate de tener esta función definida
 
 const router = express.Router();
 
@@ -18,5 +18,18 @@ router.post('/create', (req, res) => {
     }
   });
 });
+
+router.get('/documentos/:solicitudId', (req, res) => {
+  const { solicitudId } = req.params;
+  getDocumentosBySolicitudId(solicitudId, (error, documentos) => {
+    if (error) {
+      res.status(500).send({ message: "Error al recuperar los documentos", error: error.toString() });
+    } else {
+      res.json(documentos);
+    }
+  });
+});
+
+
 
 export default router;

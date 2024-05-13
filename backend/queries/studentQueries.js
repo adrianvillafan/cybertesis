@@ -110,5 +110,27 @@ export function getSolicitudesByEstudianteId(estudianteId, callback) {
 }
 
 
+export const getDocumentosBySolicitudId = (solicitudId, callback) => {
+  const sql = `
+    SELECT documentos.id, documentos.tipo, documentos.url_documento, documentos.fecha_carga, tipodocumento.nombre AS tipo_documento
+    FROM documentos
+    INNER JOIN tipodocumento ON documentos.tipo = tipodocumento.id
+    WHERE documentos.solicitud_id = ?;
+  `;
+
+  executeQuery(sql, [solicitudId], (error, results) => {
+    if (error) {
+      console.error('Error al ejecutar la consulta para obtener documentos:', error);
+      callback(error, null);
+    } else {
+      console.log('Documentos obtenidos:', results);
+      callback(null, results);
+    }
+  });
+};
+
+
+
+
 
 
