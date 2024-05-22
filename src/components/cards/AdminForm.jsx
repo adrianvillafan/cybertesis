@@ -9,9 +9,14 @@ import Checkbox from "@cloudscape-design/components/checkbox";
 import Select from "@cloudscape-design/components/select";
 import { handleSubmit } from '../../../api';
 import { useUser } from '../../hooks/useUser';
+import Alert from "@cloudscape-design/components/alert"; // Importa el componente Alert para mostrar mensajes de advertencia
+import Spinner from "@cloudscape-design/components/spinner"; // Importa el componente Spinner para indicar carga
 
 const AdminForm = ({ handleBack }) => {
   const [form, setForm] = useState({ role: null, email: '', password: '', rememberMe: false });
+  const [error, setError] = useState(null); // Estado para manejar el mensaje de error
+  const [isLoading, setIsLoading] = useState(false); // Estado para manejar la carga
+  const { setUser } = useUser();
 
   const handleRoleChange = (selectedOption) => {
     setForm(prev => ({ ...prev, role: selectedOption }));
@@ -21,14 +26,16 @@ const AdminForm = ({ handleBack }) => {
     setForm(prev => ({ ...prev, [key]: value }));
   };
 
-  const { setUser } = useUser();
-
   const handleFormSubmit = async (e) => {
     e.preventDefault();
+    setIsLoading(true); // Indica que la carga está en curso
     try {
       await handleSubmit(form, handleLoginSuccess);
     } catch (error) {
+      setError('Error: Credenciales incorrectas.'); // Establece el mensaje de error
       console.error('Error al iniciar sesión:', error);
+    } finally {
+      setIsLoading(false); // Indica que la carga ha terminado
     }
   };
 
@@ -47,53 +54,59 @@ const AdminForm = ({ handleBack }) => {
           <Button onClick={handleBack} variant="primary">Atrás</Button>
         </div>
 
-        <Container
-          header={<Header variant="h2">Ingrese sus credenciales</Header>}
-        >
-          <form onSubmit={(e) => e.preventDefault()}><Form
-            variant="embedded"
-            actions={
-              <SpaceBetween direction="horizontal" size="xs">
-                <Button onClick={handleFormSubmit} variant="primary">Ingresar</Button>
+        <Container header={<Header variant="h2">Ingrese sus credenciales</Header>}>
+          
+          <form onSubmit={(e) => e.preventDefault()}>
+            <Form
+              variant="embedded"
+              actions={
+                <SpaceBetween direction="horizontal" size="xs">
+                  {isLoading ? (
+                    <Spinner /> // Muestra el spinner si isLoading es true
+                  ) : (
+                    <Button onClick={handleFormSubmit} variant="primary">Ingresar</Button>
+                  )}
+                </SpaceBetween>
+              }
+            >
+              <SpaceBetween direction="vertical" size="l">
+                {error && <Alert type="error" onDismiss={() => setError(null)}>{error}</Alert>} 
+                <Select
+                  placeholder="Personal administrativo"
+                  selectedOption={form.role}
+                  onChange={({ detail }) => handleRoleChange(detail.selectedOption)}
+                  options={[
+                    { label: "UOARI", value: 5 },
+                    { label: "Recepción Documentos", value: 4 },
+                    { label: "Escuela-UPG", value: 3 },
+                    { label: "Administrador", value: 1 }
+                  ]}
+                />
+                <Input
+                  controlId='email'
+                  type="email"
+                  placeholder="Correo electrónico"
+                  value={form.email}
+                  onChange={({ detail }) => handleChange('email', detail.value)}
+                  required
+                />
+                <Input
+                  controlId='password'
+                  type="password"
+                  placeholder="Contraseña"
+                  value={form.password}
+                  onChange={({ detail }) => handleChange('password', detail.value)}
+                  required
+                />
+                <Checkbox
+                  checked={form.rememberMe}
+                  onChange={({ detail }) => handleChange('rememberMe', detail.checked)}
+                >
+                  Recuérdame
+                </Checkbox>
               </SpaceBetween>
-            }
-          >
-            <SpaceBetween direction="vertical" size="l">
-              <Select
-                placeholder="Personal administrativo"
-                selectedOption={form.role}
-                onChange={({ detail }) => handleRoleChange(detail.selectedOption)}
-                options={[
-                  { label: "UOARI", value: 5 },
-                  { label: "Recepción Documentos", value: 4 },
-                  { label: "Escuela-UPG", value: 3 },
-                  { label: "Administrador", value: 1 }
-                ]}
-              />
-              <Input
-                controlId='email'
-                type="email"
-                placeholder="Correo electrónico"
-                value={form.email}
-                onChange={({ detail }) => handleChange('email', detail.value)}
-                required
-              />
-              <Input
-                controlId='password'
-                type="password"
-                placeholder="Contraseña"
-                value={form.password}
-                onChange={({ detail }) => handleChange('password', detail.value)}
-                required
-              />
-              <Checkbox
-                checked={form.rememberMe}
-                onChange={({ detail }) => handleChange('rememberMe', detail.checked)}
-              >
-                Recuérdame
-              </Checkbox>
-            </SpaceBetween>
-          </Form></form>
+            </Form>
+          </form>
         </Container>
       </div>
     </div>

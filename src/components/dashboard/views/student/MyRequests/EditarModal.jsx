@@ -1,70 +1,73 @@
-import React, { useState, useEffect } from 'react';
-import { Modal, Button, Table, Icon, Input, Box, FormField, FileUpload, SpaceBetween } from '@cloudscape-design/components';
+import React, { useEffect, useState } from 'react';
+import { Modal, Table, Button, Box, SpaceBetween, Spinner, TextContent, FileUpload, FormField } from '@cloudscape-design/components';
+import { fetchDocumentosBySolicitudId, getDownloadUrlFromMinIO } from '../../../../../../api';
 
-const EditarModal = ({ solicitudId, onSave, onClose }) => {
+const EditarModal = ({ solicitud, onClose }) => {
     const [documentos, setDocumentos] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState(null);
+    const [mensaje, setMensaje] = useState('');
+    const [documentoSeleccionado, setDocumentoSeleccionado] = useState(null);
+    const [documentoActual, setDocumentoActual] = useState(null);
+    const [documentoActual2, setDocumentoActual2] = useState(null);
 
     useEffect(() => {
-        const fetchDocumentos = async () => {
-            try {
-                //const response = await fetch(`/api/documentos/${solicitudId}`); // Asume una API que devuelve documentos
-                //const data = await response.json();
-                const data = [
-                    {
-                        "id": 1,
-                        "tipo": "Tesis",
-                        "nombre": "Tesis_de_Grado.pdf",
-                        "url": "/documentos/tesis_de_grado.pdf"
-                    },
-                    {
-                        "id": 2,
-                        "tipo": "Acta de Sustentacion",
-                        "nombre": "Acta_Sustentacion_2024.pdf",
-                        "url": "/documentos/acta_sustentacion_2024.pdf"
-                    },
-                    {
-                        "id": 3,
-                        "tipo": "Certificado de Similitud",
-                        "nombre": "Certificado_Similitud_2024.pdf",
-                        "url": "/documentos/certificado_similitud_2024.pdf"
-                    }
-                ]
-
+        setIsLoading(true);
+        // Simular la obtención de documentos por solicitudId
+        console.log(solicitud);
+        fetchDocumentosBySolicitudId(solicitud.id)
+            .then(data => {
                 setDocumentos(data);
-            } catch (error) {
-                console.error("Error al cargar los documentos:", error);
-                // Manejar errores, por ejemplo, mostrar un mensaje al usuario
-            }
-            setLoading(false);
-        };
+                setIsLoading(false);
+            })
+            .catch(err => {
+                console.error('Error al cargar documentos:', err);
+                setError('Error al cargar documentos');
+                setIsLoading(false);
+            });
+    }, [solicitud]);
 
-        fetchDocumentos();
-    }, [solicitudId]);
-
-    const handleFileChange = (event, id) => {
-        const file = event.target.files[0];
-        const nuevosDocumentos = documentos.map(doc => {
-            if (doc.id === id) {
-                return { ...doc, file }; // Actualiza el archivo
-            }
-            return doc;
-        });
+    const handleFileChange = (index, newFile) => {
+        const nuevosDocumentos = [...documentos];
+        nuevosDocumentos[index].file = newFile;
         setDocumentos(nuevosDocumentos);
+        // Aquí puedes realizar otras acciones, como la subida del archivo
+        // Mostrar el archivo en un iframe
+        if (newFile) {
+            const reader = new FileReader();
+            reader.onload = function (event) {
+                const fileUrl = event.target.result;
+                setDocumentoActual2(fileUrl); // Actualizar el estado con la URL del archivo
+            };
+            reader.readAsDataURL(newFile);
+        } else {
+            setDocumentoActual2(null); // Limpiar el estado si no hay archivo seleccionado
+        }
     };
 
-    const handleDelete = (id) => {
-        const nuevosDocumentos = documentos.filter(doc => doc.id !== id);
-        setDocumentos(nuevosDocumentos);
+    const handleSave = () => {
+        setMensaje('Se ha enviado la solicitud de modificación de documentos. El proceso será revisado y comenzará desde el inicio.');
+        // Aquí puedes realizar la lógica para enviar la solicitud de modificación al backend
+        setTimeout(() => {
+            setMensaje('');
+            onClose();
+        }, 3000);
     };
 
-    const handleSave = async () => {
-        // Lógica para guardar los cambios en el servidor
-        onSave(documentos);
-        onClose();
+    const verDocumento = async (documento) => {
+        if (!documento) {
+            console.error('Documento no definido');
+            return;
+        }
+        try {
+            const viewUrl = await getDownloadUrlFromMinIO(documento.url_documento);
+            setDocumentoActual(viewUrl);
+        } catch (error) {
+            console.error('Error al ver el documento:', error);
+            // Maneja el error de manera adecuada
+        }
     };
 
-    if (loading) return <div>Cargando documentos...</div>;
 
     return (
         <Modal
@@ -74,44 +77,94 @@ const EditarModal = ({ solicitudId, onSave, onClose }) => {
             onDismiss={onClose}
             footer={
                 <Box float="right">
-                    <SpaceBetween direction="horizontal" size='xs' ><Button onClick={handleSave}>Guardar Cambios</Button>
-                    <Button onClick={onClose}>Cerrar</Button></SpaceBetween>
-                    
+                    <SpaceBetween direction="horizontal" size='xs' >
+                        {documentoActual2 && <Button onClick={handleSave}>Solicitar cambios</Button>}
+                        <Button onClick={() => (onClose, setDocumentoActual(null), setDocumentoActual2(null), setDocumentoSeleccionado(null))}>Cerrar</Button>
+                    </SpaceBetween>
                 </Box>
             }
         >
-            <Table
-                items={documentos}
-                columnDefinitions={[
-                    { header: 'Tipo de Documento', cell: item => item.tipo },
-                    { header: 'Nombre del Documento', cell: item => item.nombre },
-                    {
-                        header: 'Acciones',
-                        cell: item => (
-                            <React.Fragment>
-                                
-                                    <FormField>
-                                    <SpaceBetween direction="horizontal" size='xs' >
-                                        <FileUpload
-                                            onChange={e => handleFileChange(e, item.id)}
-                                            value={item.file ? [item.file] : []}
-                                            i18nStrings={{
-                                                uploadButtonText: () => "Reemplazar",
-                                                dropzoneText: "Arrastra un archivo aquí o clic para subir",
-                                                removeFileAriaLabel: (e) => `Eliminar archivo ${e + 1}`
-                                            }}
-                                        />
-                                        <Button onClick={() => handleDelete(item.id)}>Eliminar</Button>
-                                        </SpaceBetween>
-                                    </FormField>
-                                    
-                                
-                            </React.Fragment>
-
-                        )
-                    }
-                ]}
-            />
+            {mensaje && <TextContent>{mensaje}</TextContent>}
+            {isLoading && (
+                <div style={{ textAlign: 'center', margin: '20px 0' }}>
+                    <Spinner size="large" />
+                </div>
+            )}
+            {!isLoading && !error && (
+                <>
+                    {documentoSeleccionado ? (
+                        <>
+                            <SpaceBetween direction="vertical" size="s">
+                                <TextContent><h3>{documentoSeleccionado.id} - {documentoSeleccionado.tipo_documento}</h3></TextContent>
+                                <iframe id="documentoIframe" width="100%" height="600" src={documentoActual}></iframe>
+                                <Button onClick={() => (setDocumentoSeleccionado(null), setDocumentoActual2(null))}>Volver</Button>
+                            </SpaceBetween>
+                        </>
+                    ) : (
+                        <Table
+                            items={documentos}
+                            resizableColumns
+                            columnDefinitions={[
+                                { header: 'ID', cell: item => item.id, minWidth: 40, width: 50, maxWidth: 60 },
+                                { header: 'Documento', cell: item => <span style={{ display: 'flex', alignItems: 'left' }}>{item.tipo_documento}</span>, width: 200, minWidth: 160, maxWidth: 250 },
+                                {
+                                    header: 'Fecha de Carga',
+                                    cell: item => {
+                                        const date = new Date(item.fecha_carga);
+                                        return `${date.toLocaleDateString('es-ES')} ${date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}`;
+                                    },
+                                    width: 150,
+                                    minWidth: 120,
+                                    maxWidth: 180
+                                },
+                                { header: 'Estado', cell: item => "Activo", minWidth: 60, width: 90, maxWidth: 120 },
+                                {
+                                    header: 'Acciones',
+                                    cell: item => (
+                                        <div style={{ display: 'flex', gap: '8px' }}>
+                                            {item.tipo} {item.url_documento}
+                                            <Button onClick={() => { setDocumentoSeleccionado(item); verDocumento(item); }}>Editar</Button>
+                                        </div>
+                                    ),
+                                    minWidth: 235,
+                                    width: 240,
+                                    maxWidth: 300
+                                }
+                            ]}
+                        />
+                    )}
+                </>
+            )}
+            {documentoSeleccionado && (
+                <>
+                    <FormField>
+                        <FileUpload
+                            onChange={({ detail }) => { handleFileChange(documentoSeleccionado.tipo, detail.value[0]) }}
+                            value={documentoSeleccionado.file ? [documentoSeleccionado.file] : []}
+                            accept="application/pdf"
+                            multiple={false}
+                            tokenLimit={1}
+                            i18nStrings={{
+                                uploadButtonText: () => "Reemplazar",
+                                dropzoneText: () => "Arrastra un archivo aquí o haz clic para subirlo",
+                                removeFileAriaLabel: (e) => `Eliminar archivo ${e + 1}`,
+                                formatFileSize: (sizeInBytes) => {
+                                    // Formatear el tamaño del archivo en MB
+                                    const fileSizeInMB = sizeInBytes / (1024 * 1024);
+                                    return `${fileSizeInMB.toFixed(2)} MB`;
+                                },
+                            }}
+                            showFileSize={true}
+                            showFileThumbnail={false}
+                        />
+                    </FormField>
+                </>
+            )}
+            {documentoSeleccionado && documentoActual2 && <div>
+                <TextContent><h3>Archivo cargado</h3></TextContent>
+                <iframe id="documentoIframe2" width="100%" height="600" src={documentoActual2}></iframe>
+            </div>}
+            {error && <p>Error al cargar documentos: {error}</p>}
         </Modal>
     );
 };

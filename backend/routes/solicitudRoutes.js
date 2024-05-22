@@ -1,5 +1,6 @@
 import express from 'express';
-import { createSolicitud, getDocumentosBySolicitudId } from '../queries/studentQueries.js'; // Asegúrate de tener esta función definida
+import { getDocumentosBySolicitudId } from '../queries/documentQueries.js'
+import { createSolicitud } from '../queries/solicitudQueries.js';
 
 const router = express.Router();
 

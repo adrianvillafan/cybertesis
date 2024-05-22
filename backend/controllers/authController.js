@@ -3,6 +3,9 @@ import jwt from 'jsonwebtoken';
 import { executeQuery } from '../config/db.js';
 import { fetchStudentData } from '../queries/studentQueries.js';
 import { fetchAdminData } from '../queries/adminQueries.js';
+import { fetchEscuelaUpgData } from '../queries/escuelaUpgQueries.js';
+import { fetchRecepDocsData } from '../queries/recepDocsQueries.js';
+import { fetchUoariData } from '../queries/uoariQueries.js';
 
 const secretKey = 'mi_secreto_super_secreto';
 
@@ -32,25 +35,46 @@ export const loginUser = (req, res) => {
         const newToken = jwt.sign({ userId: user.id, email: user.email, role: user.role }, secretKey, { expiresIn: '1h' });
 
         // Decide qué función llamar basada en el rol del usuario
-        if (role === 2) {
-            fetchStudentData(user.id, (err, userData) => {
-                if (err) {
-                    return res.status(500).json({ error: err.message });
-                }
-                res.json({ token: newToken, userData });
-            });
-        } else if (role === 1) {
+        if (role === 1) {
             fetchAdminData(user.id, (err, userData) => {
                 if (err) {
                     return res.status(500).json({ error: err.message });
                 }
                 res.json({ token: newToken, userData });
             });
+        } else if (role === 2) {
+            fetchStudentData(user.id, (err, userData) => {
+                if (err) {
+                    return res.status(500).json({ error: err.message });
+                }
+                res.json({ token: newToken, userData });
+            });
+        } else if (role === 3) {
+            fetchEscuelaUpgData(user.id, (err, userData) => {
+                if (err) {
+                    return res.status(500).json({ error: err.message });
+                }
+                res.json({ token: newToken, userData });
+            });
+        } else if (role === 4) {
+            fetchRecepDocsData(user.id, (err, userData) => {
+                if (err) {
+                    return res.status(500).json({ error: err.message });
+                }
+                res.json({ token: newToken, userData });
+            });
+        } else if (role === 5) {
+            fetchUoariData(user.id, (err, userData) => {
+                if (err) {
+                    return res.status(500).json({ error: err.message });
+                }
+                res.json({ token: newToken, userData });
+            });
         }
-        // Añadir otros roles según sea necesario
+
     });
 };
 
 export const logoutUser = (req, res) => {
     res.send('Cierre de sesión exitoso');
-  };
+};

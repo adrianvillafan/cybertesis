@@ -1,3 +1,5 @@
+const getToken = () => localStorage.getItem('token');
+
 //CONTROL DE INICIO/FIN SESION
 
 export async function handleSubmit(form, handleLoginSuccess) {
@@ -95,33 +97,23 @@ export const confirmUploadDocument = async (fileId, tipo, estudianteId, solicitu
   }
 };
 
-export const downloadDocument = async (filename) => {
-  try {
-    const response = await fetch(`http://localhost:3000/api/files/download/${filename}`);
-    if (response.ok) {
-      return response.json();
-    } else {
-      throw new Error('No se pudo descargar el documento');
-    }
-  } catch (error) {
-    console.error('Error al descargar el documento:', error);
-    throw error;
-  }
-};
 
-export const deleteDocument = async (filename) => {
+
+// Función para obtener la URL de descarga de un documento
+export const getDownloadUrlFromMinIO = async (fileName) => {
   try {
-    const response = await fetch(`http://localhost:3000/api/files/delete/${filename}`, {
-      method: 'DELETE'
+    const response = await fetch(`http://localhost:3000/api/files/download/${fileName}`, {
+      method: 'GET',
+      headers: { 'Authorization': `Bearer ${getToken()}` }
     });
-
     if (response.ok) {
-      return response.json();  // Podrías retornar el mensaje de confirmación desde el servidor
+      const data = await response.json();
+      return data.downloadUrl;
     } else {
-      throw new Error('No se pudo eliminar el documento');
+      throw new Error('No se pudo obtener la URL de descarga');
     }
   } catch (error) {
-    console.error('Error al eliminar el documento:', error);
+    console.error('Error al obtener la URL de descarga:', error);
     throw error;
   }
 };
@@ -156,7 +148,7 @@ export async function fetchSolicitudesByStudentId(studentId) {
   } catch (error) {
     throw error;  // Lanza el error para que pueda ser capturado y manejado por el componente
   }
-}
+};
 
 export async function fetchDocumentosBySolicitudId(solicitudId) {
   try {
@@ -172,5 +164,19 @@ export async function fetchDocumentosBySolicitudId(solicitudId) {
   }
 }
 
+export async function fetchAlumnadoByEscuelaId(escuelaId, gradoId) {
+  try {
+    const response = await fetch(`http://localhost:3000/api/estudiantes/alumnosunidades/${escuelaId}/${gradoId}`);
+    if (!response.ok) {
+      throw new Error('No se pudo obtener los alumnos');
+    }
+    const alumnado = await response.json();
+    console.log(alumnado)
+    return alumnado;
+  } catch (error) {
+    console.error('Error al obtener lista de alumnado de la escuela:', error);
+    throw error; // Lanzar el error para manejarlo en el componente
+  }
+}
 
 

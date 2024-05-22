@@ -15,11 +15,10 @@ const MyRequests = () => {
   const [isEliminarModalOpen, setIsEliminarModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [filteredSolicitudes, setFilteredSolicitudes] = useState([]); // Estado para almacenar las solicitudes filtradas
-  const [pageNumber, setPageNumber] = useState(1); // Estado para almacenar el número de página actual
-  const [pageSize, setPageSize] = useState(10); // Estado para el número de elementos por página
-  const [filteringText, setFilteringText] = useState(""); // Estado para el texto de filtrado
-
+  const [filteredSolicitudes, setFilteredSolicitudes] = useState([]);
+  const [pageNumber, setPageNumber] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [filteringText, setFilteringText] = useState("");
 
   useEffect(() => {
     setIsLoading(true);
@@ -38,31 +37,24 @@ const MyRequests = () => {
   }, [user]);
 
   useEffect(() => {
-    // Función para ajustar el número de elementos mostrados en función del tamaño de la pantalla
     const ajustarElementosMostrados = () => {
       const screenHeight = window.innerHeight;
-      const tablePadding = 25; // Ajusta según el padding de tu tabla
-      const availableHeight = screenHeight*0.70 - tablePadding;
-      const averageRowHeight = 50; // Altura promedio de una fila en píxeles (ajusta según tu diseño)
+      const tablePadding = 25;
+      const availableHeight = screenHeight * 0.70 - tablePadding;
+      const averageRowHeight = 50;
       const rowsPerPage = Math.floor(availableHeight / averageRowHeight);
-      
       const elementosPorPagina = Math.max(rowsPerPage, 1);
-      console.log("PageSize:", elementosPorPagina);
       setPageSize(elementosPorPagina);
     };
-    
 
-    // Llama a la función de ajuste cuando se carga la página o cambia el tamaño de la ventana
     window.addEventListener('load', ajustarElementosMostrados);
     window.addEventListener('resize', ajustarElementosMostrados);
 
-    // Limpia el event listener al desmontar el componente
     return () => {
       window.removeEventListener('load', ajustarElementosMostrados);
       window.removeEventListener('resize', ajustarElementosMostrados);
     };
   }, []);
-
 
   const handleTextFilter = (text) => {
     setFilteringText(text);
@@ -70,24 +62,15 @@ const MyRequests = () => {
       solicitud.tipoSolicitud.toLowerCase().includes(text.toLowerCase())
     );
     setFilteredSolicitudes(filteredData);
-    setPageNumber(1); // Reiniciar la página a la primera cuando se aplica un filtro
+    setPageNumber(1);
   };
 
-
-
-  const handlePageChange = async (requestedPageIndex) => {
-    if (requestedPageIndex !== pageNumber && requestedPageIndex.detail.currentPageIndex ) {
-      console.log(requestedPageIndex);
-      //console.log(requestedPageIndex.detail.currentPageIndex);
-      //console.log(pageNumber);
-      setPageNumber(requestedPageIndex.detail.currentPageIndex);
-    }
+  const handlePageChange = ({ detail }) => {
+    setPageNumber(detail.currentPageIndex);
   };
-  
 
-  const startIndex = (pageNumber - 1) * pageSize; // Índice inicial para la paginación
-  const endIndex = Math.min(startIndex + pageSize, filteredSolicitudes.length); // Índice final para la paginación
-  const paginatedSolicitudes = filteredSolicitudes.slice(startIndex, endIndex);
+  const startIndex = (pageNumber - 1) * pageSize;
+  const paginatedSolicitudes = filteredSolicitudes.slice(startIndex, startIndex + pageSize);
 
   if (error) {
     return <p>Error al cargar solicitudes: {error}</p>;
@@ -138,15 +121,15 @@ const MyRequests = () => {
             id: 'id',
             header: 'ID',
             cell: item => item.id,
-            minWidth: 40, // Puedes ajustar según tus necesidades
+            minWidth: 40,
             width: 50,
-            maxWidth: 60 // Asegura que esta columna siempre tenga el mismo tamaño
+            maxWidth: 60
           },
           {
             id: 'descripcion',
             header: 'Descripción',
             cell: item => item.tipoSolicitud,
-            minWidth: 235, // Suficiente para acomodar los botones sin apretar
+            minWidth: 235,
             width: 240,
             maxWidth: 300
           },
@@ -171,47 +154,28 @@ const MyRequests = () => {
             minWidth: 300,
             width: 350,
             maxWidth: 400
-
           }
         ]}
         ariaLabels={{ tableLabel: 'Tabla de solicitudes' }}
-        //onRowClick={({ item }) => abrirDetallesModal(item)}
-        //onRowContextMenu={({ item }) => abrirEditarModal(item)}
         filter={
           <TextFilter
             filteringText={filteringText}
             filteringPlaceholder="Buscar solicitud..."
             onChange={({ detail }) => {
-              handleTextFilter(detail.filteringText)
+              handleTextFilter(detail.filteringText);
             }}
           />
         }
         header={
-          <Header
-            counter={
-              " (" + filteredSolicitudes.length + ")"
-            }
-          >
+          <Header counter={`(${filteredSolicitudes.length})`}>
             Mis Solicitudes
           </Header>
         }
         pagination={
           <Pagination
-            totalItemsCount={filteredSolicitudes.length}
-            pageSize={pageSize}
-            activePage={pageNumber}
-            onChange={handlePageChange}
-            onNextPageClick={() => {
-              if (pageNumber < Math.ceil(filteredSolicitudes.length / pageSize)) {
-                setPageNumber(pageNumber + 1);
-              }
-            }}
-            onPreviousPageClick={() => {
-              if (pageNumber > 1) {
-                setPageNumber(pageNumber - 1);
-              }
-            }}
+            currentPageIndex={pageNumber}
             pagesCount={Math.ceil(filteredSolicitudes.length / pageSize)}
+            onChange={handlePageChange}
           />
         }
       />
@@ -226,7 +190,6 @@ const MyRequests = () => {
         <EliminarModal solicitud={currentSolicitud} onClose={cerrarModal} onConfirm={() => handleDeleteUser(currentSolicitud.id)} />
       )}
     </div>
-    
   );
 };
 

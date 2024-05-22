@@ -1,7 +1,6 @@
 import { executeQuery } from '../config/db.js';
 
 export function fetchAdminData(userId, callback) {
-    // Asumiendo que tienes una estructura de base de datos donde también guardas información relevante del administrador
     const sql = `
         SELECT 
             users.id, 
@@ -11,7 +10,12 @@ export function fetchAdminData(userId, callback) {
         WHERE users.id = ? AND users.current_team_id = 1;
     `;
     executeQuery(sql, [userId], (err, results) => {
-        console.log('Resultados de la consulta:', results[0]);
-        callback(err, results[0]);
+        if (err || results.length === 0) {
+            console.error('Error al buscar datos del administrador:', err);
+            callback({ message: 'Error al buscar datos del administrador' }, null);
+        } else {
+            console.log('Datos del administrador encontrados:', results[0]);
+            callback(null, results[0]);
+        }
     });
 }

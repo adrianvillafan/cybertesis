@@ -5,14 +5,22 @@ import {
   Button,
   Box,
   SpaceBetween,
-  Spinner
+  Spinner,
+  TextContent
 } from '@cloudscape-design/components';
-import { fetchDocumentosBySolicitudId } from '../../../../../../api'; // Asegúrate de que la ruta es correcta
+
+import {
+  fetchDocumentosBySolicitudId,
+  getDownloadUrlFromMinIO,
+} from '../../../../../../api'; // Asegúrate de que la ruta es correcta
 
 const DetallesModal = ({ solicitud, onClose }) => {
   const [documentos, setDocumentos] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [documentoActual, setDocumentoActual] = useState(null);
+  const [datoDocumento, setDatoDocumento] = useState(null);
+
 
   useEffect(() => {
     if (solicitud && solicitud.id) {
@@ -33,33 +41,56 @@ const DetallesModal = ({ solicitud, onClose }) => {
   if (!solicitud) return null;
 
   const verDocumento = async (documento) => {
+    if (!documento) {
+      console.error('Documento no definido');
+      return;
+    }
     try {
-      // Lógica para obtener el URL de vista del documento, podría ser similar a la lógica de obtener un URL de descarga temporal
-      const viewUrl = await getViewUrlForDocument(documento);
-      window.open(viewUrl, '_blank'); // Abre el documento en una nueva pestaña
+      const viewUrl = await getDownloadUrlFromMinIO(documento);
+      setDocumentoActual(viewUrl);
     } catch (error) {
       console.error('Error al ver el documento:', error);
-      // Maneja el error de manera adecuada, posiblemente mostrando un mensaje al usuario
+      // Maneja el error de manera adecuada
     }
   };
   
+  const cerrarDocumento = () => {
+    setDocumentoActual(null);
+  };
+
+
   const descargarDocumento = async (documento) => {
+    if (!documento) {
+      console.error('Documento o nombre de archivo no definido');
+      return;
+    }
     try {
-      // Lógica para obtener el URL de descarga del documento
-      const downloadUrl = await getDownloadUrlFromMinIO(BUCKET_NAME, documento.fileName);
-      window.open(downloadUrl, '_blank'); // Descarga el documento
+      const downloadUrl = await getDownloadUrlFromMinIO(documento);
+      const response = await fetch(downloadUrl);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = documento.nombre; // Asume que el documento tiene una propiedad 'nombre'
+      link.click();
     } catch (error) {
       console.error('Error al descargar el documento:', error);
-      // Maneja el error de manera adecuada, posiblemente mostrando un mensaje al usuario
+      // Maneja el error de manera adecuada
     }
   };
 
-  
 
-  const descargarTodos = () => {
-    documentos.forEach(doc => {
-      window.open(doc.url, '_blank');
-    });
+  const descargarTodos = async () => {
+    try {
+      for (const documento of documentos) {
+        await descargarDocumento(documento.url_documento);
+        // Esperar 1 segundo antes de descargar el siguiente documento
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+    } catch (error) {
+      console.error('Error al descargar todos los documentos:', error);
+      // Manejar el error de manera adecuada (por ejemplo, mostrar un mensaje al usuario)
+    }
   };
 
   return (
@@ -71,7 +102,7 @@ const DetallesModal = ({ solicitud, onClose }) => {
       footer={
         <Box float="right">
           <SpaceBetween direction="horizontal" size="xs">
-            <Button onClick={descargarTodos}>Descargar todos</Button>
+            <Button onClick={descargarTodos}>Descargar todo</Button>
             <Button onClick={onClose}>Cerrar</Button>
           </SpaceBetween>
         </Box>
@@ -83,6 +114,16 @@ const DetallesModal = ({ solicitud, onClose }) => {
         </div>
       )}
       {!isLoading && !error && (
+        <>
+          {documentoActual ? (
+            <>
+            <SpaceBetween direction="vertical" size="s">
+            {datoDocumento && <TextContent><h3>{datoDocumento.id} - {datoDocumento.tipo_documento}</h3></TextContent>}
+              <iframe id="documentoIframe" width="100%" height="600" src={documentoActual}></iframe>
+              <Button onClick={cerrarDocumento}>Volver</Button>
+            </SpaceBetween>
+            </>
+          ) : (
         <Table
           items={documentos}
           resizableColumns
@@ -122,13 +163,14 @@ const DetallesModal = ({ solicitud, onClose }) => {
               width: 90,
               maxWidth: 120
             },
-            
+
             {
               header: 'Acciones',
               cell: item => (
                 <div style={{ display: 'flex', gap: '8px' }}>
-                  <Button onClick={() => verDocumento(item)}>Ver</Button>
-                  <Button onClick={() => descargarDocumento(item)}>Descargar</Button>
+                 
+                  <Button onClick={() => (verDocumento(item.url_documento) , setDatoDocumento(item))}>Ver</Button>
+                  <Button onClick={() => descargarDocumento(item.url_documento)}>Descargar</Button>
                 </div>
               ),
               minWidth: 235, // Suficiente para acomodar los botones sin apretar
@@ -136,9 +178,12 @@ const DetallesModal = ({ solicitud, onClose }) => {
               maxWidth: 300
             }
           ]}
-        />)}
-      {error && <p>Error al cargar documentos: {error}</p>}
-    </Modal>
+        />
+      )}
+    </>
+  )}
+  {error && <p>Error al cargar documentos: {error}</p>}
+</Modal>
 
   );
 };

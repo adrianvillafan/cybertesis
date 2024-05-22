@@ -15,6 +15,8 @@ import RegisterCyberthesis from './views/uoari/RegisterCyberthesis';
 import MyReports from './views/uoari/MyReports';
 import Inicio from './views/Inicio';
 import Notif from './views/Notif';
+import Alumnos from './views/escuela_upg/Alumnos';
+import IngresarDoc from './views/escuela_upg/IngresarDoc';
 
 const Profile = ({ isLoggedIn, setIsLoggedIn }) => {
   const navigate = useNavigate();
@@ -32,6 +34,8 @@ const Profile = ({ isLoggedIn, setIsLoggedIn }) => {
       case 'register-cyberthesis': return 'Registrar CYBERTESIS';
       case 'my-reports': return 'Mis Reportes';
       case 'notifications': return 'Notificaciones';
+      case 'ingreso-docs': return 'Ingresar Documentos';
+      case 'alumnos': return 'Estudiantes';
       default: return 'Perfil de Usuario';
     }
   };
@@ -65,6 +69,8 @@ const Profile = ({ isLoggedIn, setIsLoggedIn }) => {
         ];
       case 3: // Escuela UPG
         return [
+          { type: "link", text: <a onClick={() => setActiveView('alumnos')}>Estudiantes</a>, href: '#reports' },
+          { type: "link", text: <a onClick={() => setActiveView('ingreso-docs')}>Ingresar Documentos</a>, href: '#reports' },
           { type: "link", text: <a onClick={() => setActiveView('reports')}>Reportes</a>, href: '#reports' }
         ];
       case 4: // RecepDocs
@@ -115,6 +121,16 @@ const Profile = ({ isLoggedIn, setIsLoggedIn }) => {
       case 'reports':
         if (user.current_team_id === 3) {
           return <Reports />;
+        }
+        break;
+      case 'alumnos':
+        if (user.current_team_id === 3) {
+          return <Alumnos />;
+        }
+        break;
+      case 'ingreso-docs':
+        if (user.current_team_id === 3) {
+          return <IngresarDoc />;
         }
         break;
       case 'requests':

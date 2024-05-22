@@ -1,7 +1,8 @@
 import express from 'express';
 import multer from 'multer';
-import { uploadFileToMinIO, getDownloadUrlFromMinIO, deleteFileFromMinIO } from '../minio/controllers/minioController.js';
-import { insertDocument, getSolicitudesByEstudianteId } from '../queries/studentQueries.js';
+import { uploadFileToMinIO, getDownloadUrlFromMinIO, deleteFileFromMinIO, getViewUrlForDocument } from '../minio/controllers/minioController.js';
+import { getSolicitudesByEstudianteId } from '../queries/solicitudQueries.js';
+import  {insertDocument} from '../queries/documentQueries.js';
 const router = express.Router();
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage, limits: { fileSize: 10 * 1024 * 1024 } }); // Límite de 10 MB
@@ -71,12 +72,25 @@ router.post('/confirm-upload', async (req, res) => {
 // Ruta para descargar archivos
 router.get('/download/:filename', async (req, res) => {
   try {
-    const downloadUrl = await getDownloadUrlFromMinIO(BUCKET_NAME, req.params.filename);
+    const fileName = req.params.filename;
+    const downloadUrl = await getDownloadUrlFromMinIO(BUCKET_NAME, fileName);
     res.send({ downloadUrl });
   } catch (error) {
     res.status(500).send('Error al obtener el link de descarga: ' + error.message);
   }
 });
+
+// Ruta para obtener la URL de vista de un documento
+router.get('/view/:filename', async (req, res) => {
+  try {
+    const blob = await getViewUrlForDocument(BUCKET_NAME, req.params.filename);
+    res.send(blob);
+  } catch (error) {
+    res.status(500).send('Error al obtener el blob del documento:' + error.message);
+  }
+});
+
+
 
 // Ruta para eliminar archivos
 router.delete('/delete/:filename', async (req, res) => {
