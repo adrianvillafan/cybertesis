@@ -7,10 +7,8 @@ export const UserProvider = ({ children }) => {
   const [user, setUser] = useState(null);
 
   useEffect(() => {
-    // Simular la recuperación del usuario desde localStorage o llamada al API
     const userInfo = localStorage.getItem('userData');
     if (userInfo) {
-      console.log(JSON.parse(userInfo));
       setUser(JSON.parse(userInfo));
     }
   }, []);

@@ -40,6 +40,8 @@ const Profile = ({ isLoggedIn, setIsLoggedIn }) => {
     }
   };
 
+  console.log(user);
+
   const contentHeader = getContentHeader();
 
   const handleLogoutSuccess = () => {

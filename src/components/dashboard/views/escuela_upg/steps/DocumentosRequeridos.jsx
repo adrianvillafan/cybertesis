@@ -29,6 +29,8 @@ const DocumentosRequeridos = ({
     setSelectedDoc(docType);
   };
 
+  console.log(alumnoData)
+
   return (
     <Box>
       <Header variant="h2">Paso 2: Subir Documentos</Header>

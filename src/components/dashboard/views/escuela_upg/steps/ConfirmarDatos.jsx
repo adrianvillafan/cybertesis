@@ -32,12 +32,15 @@ const ConfirmarDatos = ({ setStep, handleAlumnoSelection }) => {
           nombre: alumnoSeleccionado.name,
           apellidos: alumnoSeleccionado.name,
           codigo: alumnoSeleccionado.codigo_estudiante,
-          facultad: alumnoSeleccionado.dni,
+          facultad: user.nombre_facultad, //Por el momento hasta que habilitemos la api
+          dni: alumnoSeleccionado.dni,
+          escuela: user.nombre_escuela, //Por el momento hasta que habilitemos la api
           especialidad: alumnoSeleccionado.especialidad,
-          anioEgreso: 2020,
+          anioEgreso: 2020, //Por el momento hasta que habilitemos la api
           foto: 'https://via.placeholder.com/150'
         };
         setAlumnoData(alumnoInfo);
+        console.log(alumnoData)
         handleAlumnoSelection(alumnoInfo); // Pass the selected alumno data back to IngresarDoc
       }
     }
@@ -80,10 +83,12 @@ const ConfirmarDatos = ({ setStep, handleAlumnoSelection }) => {
                   <img src={alumnoData.foto} alt="Foto del alumno" style={{ width: 150, height: 150 }} />
                 </Box>
                 <Box margin="s">
+                  <p><strong>DNI:</strong> {alumnoData.dni}</p>
                   <p><strong>Nombre:</strong> {alumnoData.nombre}</p>
                   <p><strong>Apellidos:</strong> {alumnoData.apellidos}</p>
                   <p><strong>Código:</strong> {alumnoData.codigo}</p>
                   <p><strong>Facultad:</strong> {alumnoData.facultad}</p>
+                  <p><strong>Escuela:</strong> {alumnoData.escuela}</p>
                   <p><strong>Especialidad:</strong> {alumnoData.especialidad}</p>
                   <p><strong>Año de Egreso:</strong> {alumnoData.anioEgreso}</p>
                 </Box>

@@ -1,5 +1,5 @@
 import express from 'express';
-import { fetchAlumnosData } from '../queries/escuelaUpgQueries.js'
+import { fetchAlumnosData, fetchEscuelaUpgData } from '../queries/escuelaUpgQueries.js'
 
 const router = express.Router();
 
@@ -14,6 +14,15 @@ router.get('/alumnosunidades/:escuelaId/:gradoId', (req, res) => {
   });
 });
 
-
+router.get('/datosunidades/:userId', (req, res) => {
+  const { userId } = req.params;
+  fetchEscuelaUpgData(userId, (error, escuelaData) => {
+    if (error) {
+      res.status(500).send({ message: "Error al recuperar los datos", error: error.toString() });
+    } else {
+      res.json(escuelaData);
+    }
+  });
+});
 
 export default router;

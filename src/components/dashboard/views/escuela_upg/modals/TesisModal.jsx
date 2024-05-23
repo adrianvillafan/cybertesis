@@ -104,7 +104,7 @@ const TesisModal = ({ onClose, onSubmit, alumnoData }) => {
       visible={true}
       closeAriaLabel="Cerrar modal"
       header="Subir Tesis"
-      size={!showForm ? 's' : 'max'}
+      size='max'
       footer={
         <Box float='right'>
           <SpaceBetween direction="horizontal" size="m">

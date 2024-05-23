@@ -180,3 +180,18 @@ export async function fetchAlumnadoByEscuelaId(escuelaId, gradoId) {
 }
 
 
+export async function fetchEscuelaByuserId(userId) {
+  try {
+    const response = await fetch(`http://localhost:3000/api/estudiantes/datosunidades/${userId}`);
+    if (!response.ok) {
+      throw new Error('No se pudo obtener los datos de la escuela o upg');
+    }
+    const datos = await response.json();
+    console.log(datos);
+    return datos;
+  } catch (error) {
+    console.error('Error al obtener lista de la escuela:', error);
+    throw error; // Lanzar el error para manejarlo en el componente
+  }
+}
+
