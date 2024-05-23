@@ -5,6 +5,7 @@ import { fetchAlumnadoByEscuelaId } from '../../../../../../api';
 
 const ConfirmarDatos = ({ setStep, handleAlumnoSelection }) => {
   const { user } = useContext(UserContext);
+  const [selectedEscuela, setSelectedEscuela] = useState(null);
   const [selectedAlumno, setSelectedAlumno] = useState(null);
   const [alumnos, setAlumnos] = useState([]);
   const [alumnoData, setAlumnoData] = useState(null);
@@ -12,17 +13,19 @@ const ConfirmarDatos = ({ setStep, handleAlumnoSelection }) => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    setIsLoading(true);
-    fetchAlumnadoByEscuelaId(user.escuela_id, user.grado_id)
-      .then(data => {
-        setAlumnos(data);
-        setIsLoading(false);
-      })
-      .catch(err => {
-        setError(err.message);
-        setIsLoading(false);
-      });
-  }, [user]);
+    if (selectedEscuela) {
+      setIsLoading(true);
+      fetchAlumnadoByEscuelaId(selectedEscuela.value, user.grado_id)
+        .then(data => {
+          setAlumnos(data);
+          setIsLoading(false);
+        })
+        .catch(err => {
+          setError(err.message);
+          setIsLoading(false);
+        });
+    }
+  }, [selectedEscuela, user.grado_id]);
 
   useEffect(() => {
     if (selectedAlumno) {
@@ -32,19 +35,18 @@ const ConfirmarDatos = ({ setStep, handleAlumnoSelection }) => {
           nombre: alumnoSeleccionado.name,
           apellidos: alumnoSeleccionado.name,
           codigo: alumnoSeleccionado.codigo_estudiante,
-          facultad: user.nombre_facultad, //Por el momento hasta que habilitemos la api
+          facultad: user.nombre_facultad, // Por el momento hasta que habilitemos la API
           dni: alumnoSeleccionado.dni,
-          escuela: user.nombre_escuela, //Por el momento hasta que habilitemos la api
+          escuela: selectedEscuela ? selectedEscuela.label : user.nombre_escuela, // Por el momento hasta que habilitemos la API
           especialidad: alumnoSeleccionado.especialidad,
-          anioEgreso: 2020, //Por el momento hasta que habilitemos la api
+          anioEgreso: 2020, // Por el momento hasta que habilitemos la API
           foto: 'https://via.placeholder.com/150'
         };
         setAlumnoData(alumnoInfo);
-        console.log(alumnoData)
         handleAlumnoSelection(alumnoInfo); // Pass the selected alumno data back to IngresarDoc
       }
     }
-  }, [selectedAlumno, alumnos, handleAlumnoSelection]);
+  }, [selectedAlumno, alumnos, handleAlumnoSelection, user.nombre_facultad, user.nombre_escuela]);
 
   const handleCancelar = () => {
     setStep(1);
@@ -54,7 +56,14 @@ const ConfirmarDatos = ({ setStep, handleAlumnoSelection }) => {
     setStep(3);
   };
 
-  const handleSelectChange = (event) => {
+  const handleEscuelaChange = (event) => {
+    const selectedOption = event.detail.selectedOption;
+    setSelectedEscuela(selectedOption);
+    setSelectedAlumno(null); // Reset selectedAlumno when a new school is selected
+    setAlumnoData(null); // Reset alumnoData when a new school is selected
+  };
+
+  const handleAlumnoChange = (event) => {
     const selectedOption = event.detail.selectedOption;
     setSelectedAlumno(selectedOption);
   };
@@ -66,16 +75,26 @@ const ConfirmarDatos = ({ setStep, handleAlumnoSelection }) => {
         <p>Error al cargar los alumnos: {error}</p>
       ) : (
         <>
-          <Select
-            selectedOption={selectedAlumno}
-            onChange={handleSelectChange}
-            placeholder="Seleccione un alumno"
-            options={alumnos.map(alumno => ({ label: alumno.name, value: alumno.codigo_estudiante }))}
-            loadingText="Cargando alumnos..."
-            empty="No hay alumnos disponibles"
-            statusType={isLoading ? 'loading' : undefined}
-            loading={isLoading}
-          />
+          {user.grado_id === 2 && (
+            <Select
+              selectedOption={selectedEscuela}
+              onChange={handleEscuelaChange}
+              placeholder="Seleccione una escuela"
+              options={user.escuelas.map(escuela => ({ label: escuela.nombre_escuela, value: escuela.id_escuela }))}
+            />
+          )}
+          {(user.grado_id === 1 || selectedEscuela) && (
+            <Select
+              selectedOption={selectedAlumno}
+              onChange={handleAlumnoChange}
+              placeholder="Seleccione un alumno"
+              options={alumnos.map(alumno => ({ label: alumno.name, value: alumno.codigo_estudiante }))}
+              loadingText="Cargando alumnos..."
+              empty="No hay alumnos disponibles"
+              statusType={isLoading ? 'loading' : undefined}
+              loading={isLoading}
+            />
+          )}
           {alumnoData && (
             <Container margin={{ top: 'l' }} header={<Header variant="h3">Datos del Alumno</Header>}>
               <ColumnLayout columns={2} variant="default">
