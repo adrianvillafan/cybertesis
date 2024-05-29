@@ -16,7 +16,7 @@ const Alumnos = () => {
 
   useEffect(() => {
     setIsLoading(true);
-    fetchAlumnadoByEscuelaId(user.escuela_id, user.grado_id)
+    fetchAlumnadoByEscuelaId(user.escuelas.id_escuela, user.grado_id)
       .then(data => {
         setAlumnos(data);
         setIsLoading(false);
