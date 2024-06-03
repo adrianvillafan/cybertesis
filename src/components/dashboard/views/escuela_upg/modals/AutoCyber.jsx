@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Modal, Button, Box, SpaceBetween, FileUpload } from '@cloudscape-design/components';
 import { Document, Page, pdfjs } from 'react-pdf';
 import 'pdfjs-dist/web/pdf_viewer.css';
@@ -13,6 +13,7 @@ const AutoCyber = ({ onClose, onSave }) => {
   const [fileUrl, setFileUrl] = useState('');
   const [numPages, setNumPages] = useState(null);
   const [showForm, setShowForm] = useState(false);
+  const fileInputRef = useRef(null);
 
   const handleFileChange = ({ detail }) => {
     const selectedFile = detail.value[0];
@@ -30,6 +31,33 @@ const AutoCyber = ({ onClose, onSave }) => {
         reader.readAsDataURL(selectedFile);
       }
     }
+  };
+
+  const handleDrop = (event) => {
+    event.preventDefault();
+    const selectedFile = event.dataTransfer.files[0];
+    if (selectedFile.size > 15000000) {
+      alert("El tamaño del archivo excede los 15MB.");
+    } else {
+      setFile(selectedFile);
+      setShowForm(!!selectedFile);
+      if (selectedFile) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          const fileContent = event.target.result;
+          setFileUrl(fileContent);
+        };
+        reader.readAsDataURL(selectedFile);
+      }
+    }
+  };
+
+  const handleDragOver = (event) => {
+    event.preventDefault();
+  };
+
+  const handleClick = () => {
+    fileInputRef.current.querySelector('input[type="file"]').click();
   };
 
   const handleSubmit = () => {
@@ -61,8 +89,8 @@ const AutoCyber = ({ onClose, onSave }) => {
       onDismiss={handleClose}
       visible={true}
       closeAriaLabel="Cerrar modal"
-      header="Subir Autorización para el depósito de obra en Cybertesis"
-      size={showForm ? 'large' : 'small'}
+      header="Autorización para el depósito de obra en Cybertesis"
+      size={showForm ? 'large' : 'medium'}
       footer={
         <Box float='right'>
           <SpaceBetween direction="horizontal" size="m">
@@ -74,19 +102,26 @@ const AutoCyber = ({ onClose, onSave }) => {
     >
       <SpaceBetween direction="vertical" size="xl" content="div">
         {!showForm ? (
-          <Box display="flex" justifyContent="center">
-            <FileUpload
-              accept="application/pdf"
-              value={file ? [file] : []}
-              onChange={handleFileChange}
-              constraintText="El tamaño máximo del archivo es de 15MB."
-              i18nStrings={{
-                dropzoneText: () => 'Arrastra los archivos aquí o haz clic para seleccionar',
-                uploadButtonText: () => 'Seleccionar archivo',
-                removeFileAriaLabel: (fileIndex) => `Eliminar archivo ${fileIndex}`,
-              }}
-            />
-          </Box>
+          <div
+            style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap', alignItems: 'center', height: '30vh', border: '2px dashed #aaa', borderRadius: '10px', padding: '20px', backgroundColor: '#f9f9f9', cursor: 'pointer' }}
+            onClick={handleClick}
+            onDrop={handleDrop}
+            onDragOver={handleDragOver}
+          >
+            <div ref={fileInputRef}>
+              <FileUpload
+                accept="application/pdf"
+                value={file ? [file] : []}
+                onChange={handleFileChange}
+                constraintText="El tamaño máximo del archivo es de 15MB."
+                i18nStrings={{
+                  dropzoneText: () => 'Arrastra los archivos aquí',
+                  uploadButtonText: () => <p>Arrastra o selecciona el archivo aquí</p>,
+                  removeFileAriaLabel: (fileIndex) => `Eliminar archivo ${fileIndex}`,
+                }}
+              />
+            </div>
+          </div>
         ) : (
           <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
             <div style={{ maxWidth: '100%', textAlign: 'center' }}>
