@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Modal, Button, Box, SpaceBetween, FileUpload } from '@cloudscape-design/components';
+import { Modal, Button, Box, SpaceBetween, FileUpload, Popover, Icon } from '@cloudscape-design/components';
 import { Document, Page, pdfjs } from 'react-pdf';
 import 'pdfjs-dist/web/pdf_viewer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
@@ -60,6 +60,10 @@ const AutoCyber = ({ onClose, onSave }) => {
     fileInputRef.current.querySelector('input[type="file"]').click();
   };
 
+  const handleButtonClick = (event) => {
+    event.stopPropagation();
+  };
+
   const handleSubmit = () => {
     if (fileUrl) {
       onSave({ fileUrl });
@@ -108,7 +112,7 @@ const AutoCyber = ({ onClose, onSave }) => {
             onDrop={handleDrop}
             onDragOver={handleDragOver}
           >
-            <div ref={fileInputRef}>
+            <div ref={fileInputRef} onClick={handleButtonClick}>
               <FileUpload
                 accept="application/pdf"
                 value={file ? [file] : []}
@@ -116,14 +120,14 @@ const AutoCyber = ({ onClose, onSave }) => {
                 constraintText="El tamaño máximo del archivo es de 15MB."
                 i18nStrings={{
                   dropzoneText: () => 'Arrastra los archivos aquí',
-                  uploadButtonText: () => <p>Arrastra o selecciona el archivo aquí</p>,
+                  uploadButtonText: () => 'Carga el archivo aquí',
                   removeFileAriaLabel: (fileIndex) => `Eliminar archivo ${fileIndex}`,
                 }}
               />
             </div>
           </div>
         ) : (
-          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', flexDirection: 'column', position: 'relative', border: '1px solid #ccc', borderRadius: '10px', padding: '10px', boxShadow: '0 4px 8px rgba(0,0,0,0.1)' }}>
             <div style={{ maxWidth: '100%', textAlign: 'center' }}>
               {fileUrl && (
                 <Document
@@ -136,6 +140,20 @@ const AutoCyber = ({ onClose, onSave }) => {
                   ))}
                 </Document>
               )}
+            </div>
+            <div style={{ position: 'absolute', top: '10px', right: '10px' }}>
+              <Popover
+                position="top"
+                size="small"
+                triggerType="custom"
+                content={
+                  <div>
+                    Solo se están mostrando las 15 primeras páginas del documento.
+                  </div>
+                }
+              >
+                <Icon name="status-info" size="medium" variant="link" />
+              </Popover>
             </div>
           </div>
         )}

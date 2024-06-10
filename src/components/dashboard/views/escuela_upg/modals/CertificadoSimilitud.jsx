@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Modal, Button, Box, SpaceBetween, FileUpload } from '@cloudscape-design/components';
+import React, { useState, useRef } from 'react';
+import { Modal, Button, Box, SpaceBetween, FileUpload, Popover, Icon } from '@cloudscape-design/components';
 import { Document, Page, pdfjs } from 'react-pdf';
 import 'pdfjs-dist/web/pdf_viewer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
@@ -13,6 +13,7 @@ const CertificadoSimilitud = ({ onClose, onSave }) => {
   const [fileUrl, setFileUrl] = useState('');
   const [numPages, setNumPages] = useState(null);
   const [showForm, setShowForm] = useState(false);
+  const fileInputRef = useRef(null);
 
   const handleFileChange = ({ detail }) => {
     const selectedFile = detail.value[0];
@@ -30,6 +31,37 @@ const CertificadoSimilitud = ({ onClose, onSave }) => {
         reader.readAsDataURL(selectedFile);
       }
     }
+  };
+
+  const handleDrop = (event) => {
+    event.preventDefault();
+    const selectedFile = event.dataTransfer.files[0];
+    if (selectedFile.size > 15000000) {
+      alert("El tamaño del archivo excede los 15MB.");
+    } else {
+      setFile(selectedFile);
+      setShowForm(!!selectedFile);
+      if (selectedFile) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          const fileContent = event.target.result;
+          setFileUrl(fileContent);
+        };
+        reader.readAsDataURL(selectedFile);
+      }
+    }
+  };
+
+  const handleDragOver = (event) => {
+    event.preventDefault();
+  };
+
+  const handleClick = () => {
+    fileInputRef.current.querySelector('input[type="file"]').click();
+  };
+
+  const handleButtonClick = (event) => {
+    event.stopPropagation();
   };
 
   const handleSubmit = () => {
@@ -62,7 +94,7 @@ const CertificadoSimilitud = ({ onClose, onSave }) => {
       visible={true}
       closeAriaLabel="Cerrar modal"
       header="Subir Certificado de Similitud"
-      size={showForm ? 'large' : 'small'}
+      size={showForm ? 'large' : 'medium'}
       footer={
         <Box float='right'>
           <SpaceBetween direction="horizontal" size="m">
@@ -74,22 +106,29 @@ const CertificadoSimilitud = ({ onClose, onSave }) => {
     >
       <SpaceBetween direction="vertical" size="xl" content="div">
         {!showForm ? (
-          <Box display="flex" justifyContent="center">
-            <FileUpload
-              accept="application/pdf"
-              value={file ? [file] : []}
-              onChange={handleFileChange}
-              constraintText="El tamaño máximo del archivo es de 15MB."
-              i18nStrings={{
-                dropzoneText: () => 'Arrastra los archivos aquí o haz clic para seleccionar',
-                uploadButtonText: () => 'Seleccionar archivo',
-                removeFileAriaLabel: (fileIndex) => `Eliminar archivo ${fileIndex}`,
-              }}
-            />
-          </Box>
+          <div
+            style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap', alignItems: 'center', height: '30vh', border: '2px dashed #aaa', borderRadius: '10px', padding: '20px', backgroundColor: '#f9f9f9', cursor: 'pointer' }}
+            onClick={handleClick}
+            onDrop={handleDrop}
+            onDragOver={handleDragOver}
+          >
+            <div ref={fileInputRef} onClick={handleButtonClick}>
+              <FileUpload
+                accept="application/pdf"
+                value={file ? [file] : []}
+                onChange={handleFileChange}
+                constraintText="El tamaño máximo del archivo es de 15MB."
+                i18nStrings={{
+                  dropzoneText: () => 'Arrastra los archivos aquí',
+                  uploadButtonText: () => 'Carga el archivo aquí',
+                  removeFileAriaLabel: (fileIndex) => `Eliminar archivo ${fileIndex}`,
+                }}
+              />
+            </div>
+          </div>
         ) : (
-          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center'}}>
-            <div>
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', flexDirection: 'column', position: 'relative', border: '1px solid #ccc', borderRadius: '10px', padding: '10px', boxShadow: '0 4px 8px rgba(0,0,0,0.1)' }}>
+            <div style={{ maxWidth: '100%', textAlign: 'center' }}>
               {fileUrl && (
                 <Document
                   file={fileUrl}
@@ -101,6 +140,20 @@ const CertificadoSimilitud = ({ onClose, onSave }) => {
                   ))}
                 </Document>
               )}
+            </div>
+            <div style={{ position: 'absolute', top: '10px', right: '10px' }}>
+              <Popover
+                position="top"
+                size="small"
+                triggerType="custom"
+                content={
+                  <div>
+                    Solo se están mostrando las 15 primeras páginas del documento.
+                  </div>
+                }
+              >
+                <Icon name="status-info" size="medium" variant="link" />
+              </Popover>
             </div>
           </div>
         )}

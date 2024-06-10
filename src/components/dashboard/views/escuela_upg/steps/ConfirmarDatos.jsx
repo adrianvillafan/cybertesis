@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { Box, Header, Button, Select, Spinner, ColumnLayout, Container } from '@cloudscape-design/components';
+import { Box, Header, Button, Select, Spinner, ColumnLayout, Container, SpaceBetween } from '@cloudscape-design/components';
 import UserContext from '../../../contexts/UserContext';
 import { fetchAlumnadoByEscuelaId } from '../../../../../../api';
 
@@ -70,11 +70,14 @@ const ConfirmarDatos = ({ setStep, handleAlumnoSelection }) => {
 
   return (
     <Box>
+      <SpaceBetween direction="vertical" size="l">
       <Header variant="h2">Paso 1: Confirmar Datos</Header>
       {error ? (
         <p>Error al cargar los alumnos: {error}</p>
       ) : (
+        
         <>
+        <SpaceBetween direction="vertical" size="s">
           {user.grado_id === 2 && (
             <Select
               selectedOption={selectedEscuela}
@@ -95,6 +98,7 @@ const ConfirmarDatos = ({ setStep, handleAlumnoSelection }) => {
               loading={isLoading}
             />
           )}
+          </SpaceBetween>
           {alumnoData && (
             <Container margin={{ top: 'l' }} header={<Header variant="h3">Datos del Alumno</Header>}>
               <ColumnLayout columns={2} variant="default">
@@ -114,12 +118,15 @@ const ConfirmarDatos = ({ setStep, handleAlumnoSelection }) => {
               </ColumnLayout>
             </Container>
           )}
-          <Box margin={{ top: 'l' }}>
+          
+          <Box >
             <Button onClick={handleCancelar}>Cancelar</Button>
             <Button onClick={handleSiguiente} disabled={!selectedAlumno}>Siguiente</Button>
           </Box>
         </>
+        
       )}
+      </SpaceBetween>
     </Box>
   );
 };
