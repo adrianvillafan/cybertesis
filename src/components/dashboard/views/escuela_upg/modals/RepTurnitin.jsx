@@ -1,72 +1,53 @@
-import React, { useState } from 'react';
-import { Modal, FileUpload, Button, Box } from '@cloudscape-design/components';
+import React, { useState, useEffect } from 'react';
+import ModalOneCol from './ModalOneCol'; // Asegúrate de que la ruta sea correcta
+import { Button } from '@cloudscape-design/components';
 
-const RepTurnitinModal = ({ onClose }) => {
-    const [file, setFile] = useState(null);
-    const [fileUrl, setFileUrl] = useState(null);
+const RepTurnitinModal = ({ onClose, onSave, readOnly, fileUrl: initialFileUrl }) => {
+  const [file, setFile] = useState(null);
+  const [fileUrl, setFileUrl] = useState(readOnly ? initialFileUrl : '');
 
-    const handleFileChange = ({ detail }) => {
-        const selectedFile = detail.value[0];
-        setFile(selectedFile);
-        if (selectedFile) {
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                const fileContent = event.target.result;
-                localStorage.setItem('uploadedFile', fileContent);
-                setFileUrl(fileContent);
-            };
-            reader.readAsDataURL(selectedFile);
-        }
-    };
+  useEffect(() => {
+    if (readOnly && initialFileUrl) {
+      setFileUrl(initialFileUrl);
+    }
+  }, [readOnly, initialFileUrl]);
 
-    const handleSubmit = () => {
-        // Lógica para guardar los datos y archivos en el caché
-        localStorage.removeItem('uploadedFile');
-        onClose();
-    };
+  const handleFileChange = (file) => {
+    setFile(file);
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const fileContent = event.target.result;
+        setFileUrl(fileContent);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
-    const handleClose = () => {
-        localStorage.removeItem('uploadedFile');
-        setFile(null);
-        onClose();
-    };
+  const handleSave = () => {
+    onSave({ fileUrl });
+    onClose();
+  };
 
-    return (
-        <Modal
-            onDismiss={handleClose}
-            visible={true}
-            closeAriaLabel="Cerrar modal"
-            header="Subir Reporte de Turnitin"
-            footer={
-                <Box float='right'>
-                    <Button onClick={handleClose} variant="secondary">
-                        Cancelar
-                    </Button>
-                    <Button onClick={handleSubmit} disabled={!file} style={{ marginLeft: '8px' }}>
-                        Guardar
-                    </Button>
-                </Box>}
-        >
-            <FileUpload
-                value={file ? [file] : []}
-                onChange={handleFileChange}
-                errorText="Debe seleccionar un archivo"
-                constraintText="Suba un archivo válido"
-                i18nStrings={{
-                    dropzoneText: (multiple) => "Debe seleccionar un archivo PDF",
-                    uploadButtonText: (multiple) => 'Seleccionar archivo',
-                    removeFileAriaLabel: (fileIndex) => `Eliminar archivo ${fileIndex}`,
-                    limitShowFewer: 'Mostrar menos',
-                    limitShowMore: 'Mostrar más',
-                }}
-            />
-            {fileUrl && (
-                <Box marginY="m">
-                    <iframe src={fileUrl} width="100%" height="600px" title="Visualizador de PDF"></iframe>
-                </Box>
-            )}
-        </Modal>
-    );
+  return (
+    <ModalOneCol
+      onClose={onClose}
+      headerText="Subir Reporte de Turnitin"
+      footerButtons={
+        <>
+          <Button onClick={onClose} variant="secondary">Cancelar</Button>
+          <Button onClick={handleSave} disabled={!fileUrl}>Guardar</Button>
+        </>
+      }
+      file={file}
+      setFile={handleFileChange}
+      fileUrl={fileUrl}
+      setFileUrl={setFileUrl}
+      showForm={Boolean(fileUrl)}
+      setShowForm={() => {}}
+      readOnly={readOnly}
+    />
+  );
 };
 
 export default RepTurnitinModal;

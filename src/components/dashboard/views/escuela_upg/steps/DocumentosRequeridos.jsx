@@ -4,8 +4,8 @@ import TesisModal from '../modals/TesisModal';
 import ActaSustentacionModal from '../modals/ActaSustentacionModal';
 import CertificadoSimilitud from '../modals/CertificadoSimilitud';
 import AutoCyber from '../modals/AutoCyber';
-import MetadatosModal from '../modals/Metadatos'; // Actualiza la importación del nuevo modal
-import RepTurnitin from '../modals/RepTurnitin';
+import MetadatosModal from '../modals/Metadatos';
+import RepTurnitinModal from '../modals/RepTurnitin';
 
 const DocumentosRequeridos = ({
   tipoSolicitud,
@@ -30,8 +30,8 @@ const DocumentosRequeridos = ({
     setSelectedDoc(null);
   };
 
-  const handleModalOpen = (docType) => {
-    setSelectedDoc(docType);
+  const handleModalOpen = (docType, editing = false) => {
+    setSelectedDoc({ type: docType, editing });
   };
 
   const handleSaveDocument = (docType, data) => {
@@ -58,13 +58,18 @@ const DocumentosRequeridos = ({
             { id: 'verModelo', header: 'Ver Modelo', cell: (item) => <Link href={`/path/to/model/${item.nombre}.pdf`} external={true}>Ver modelo</Link> },
             { 
               id: 'cargarEditar', 
-              header: 'Cargar / Editar', 
-              cell: (item) => (
+              header: 'Cargar / Editar / Ver', 
+              cell: (item) => savedDocuments[item.nombre] ? (
+                <SpaceBetween direction="horizontal" size="xs">
+                  <Button onClick={() => handleModalOpen(item.nombre, false)}>Ver</Button>
+                  <Button onClick={() => handleModalOpen(item.nombre, true)}>Editar</Button>
+                </SpaceBetween>
+              ) : (
                 <Button 
                   onClick={() => handleModalOpen(item.nombre)} 
                   disabled={item.nombre === 'Acta de Sustentación' && !tesisCompletada}
                 >
-                  Cargar/Editar
+                  Cargar
                 </Button>
               ) 
             },
@@ -76,12 +81,60 @@ const DocumentosRequeridos = ({
         <Button onClick={() => setStep(1)}>Atrás</Button>
         <Button onClick={handleNextStep} disabled={!canProceed}>Siguiente</Button>
       </Box>
-      {selectedDoc === 'Tesis' && <TesisModal onClose={handleModalClose} alumnoData={alumnoData} onSave={(data) => handleSaveDocument('Tesis', data)} />}
-      {selectedDoc === 'Acta de Sustentación' && <ActaSustentacionModal onClose={handleModalClose} asesores={asesores} onSave={(data) => handleSaveDocument('Acta de Sustentación', data)} />}
-      {selectedDoc === 'Certificado de Similitud' && <CertificadoSimilitud onClose={handleModalClose} alumnoData={alumnoData} onSave={(data) => handleSaveDocument('Certificado de Similitud', data)} />}
-      {selectedDoc === 'Autorización para el depósito de obra en Cybertesis' && <AutoCyber onClose={handleModalClose} alumnoData={alumnoData} onSave={(data) => handleSaveDocument('Autorización para el depósito de obra en Cybertesis', data)} />}
-      {selectedDoc === 'Hoja de Metadatos' && <MetadatosModal onClose={handleModalClose} autores={autores} jurados={jurados} onSave={(data) => handleSaveDocument('Hoja de Metadatos', data)} />}
-      {selectedDoc === 'Reporte de Turnitin' && <RepTurnitin onClose={handleModalClose} alumnoData={alumnoData} onSave={(data) => handleSaveDocument('Reporte de Turnitin', data)} />}
+      {selectedDoc?.type === 'Tesis' && (
+        <TesisModal 
+          onClose={handleModalClose}
+          alumnoData={alumnoData}
+          onSave={(data) => handleSaveDocument('Tesis', data)}
+          readOnly={!selectedDoc.editing}
+          fileUrl={selectedDoc.editing ? '' : savedDocuments['Tesis']?.fileUrl || ''}
+        />
+      )}
+      {selectedDoc?.type === 'Acta de Sustentación' && (
+        <ActaSustentacionModal
+          onClose={handleModalClose}
+          asesores={asesores}
+          onSave={(data) => handleSaveDocument('Acta de Sustentación', data)}
+          readOnly={!selectedDoc.editing}
+          fileUrl={selectedDoc.editing ? '' : savedDocuments['Acta de Sustentación']?.fileUrl || ''}
+        />
+      )}
+      {selectedDoc?.type === 'Certificado de Similitud' && (
+        <CertificadoSimilitud
+          onClose={handleModalClose}
+          alumnoData={alumnoData}
+          onSave={(data) => handleSaveDocument('Certificado de Similitud', data)}
+          readOnly={!selectedDoc.editing}
+          fileUrl={selectedDoc.editing ? '' : savedDocuments['Certificado de Similitud']?.fileUrl || ''}
+        />
+      )}
+      {selectedDoc?.type === 'Autorización para el depósito de obra en Cybertesis' && (
+        <AutoCyber
+          onClose={handleModalClose}
+          alumnoData={alumnoData}
+          onSave={(data) => handleSaveDocument('Autorización para el depósito de obra en Cybertesis', data)}
+          readOnly={!selectedDoc.editing}
+          fileUrl={selectedDoc.editing ? '' : savedDocuments['Autorización para el depósito de obra en Cybertesis']?.fileUrl || ''}
+        />
+      )}
+      {selectedDoc?.type === 'Hoja de Metadatos' && (
+        <MetadatosModal
+          onClose={handleModalClose}
+          autores={autores}
+          jurados={jurados}
+          onSave={(data) => handleSaveDocument('Hoja de Metadatos', data)}
+          readOnly={!selectedDoc.editing}
+          fileUrl={selectedDoc.editing ? '' : savedDocuments['Hoja de Metadatos']?.fileUrl || ''}
+        />
+      )}
+      {selectedDoc?.type === 'Reporte de Turnitin' && (
+        <RepTurnitinModal
+          onClose={handleModalClose}
+          onSave={(data) => handleSaveDocument('Reporte de Turnitin', data)}
+          readOnly={!selectedDoc.editing}
+          fileUrl={selectedDoc.editing ? '' : savedDocuments['Reporte de Turnitin']?.fileUrl || ''}
+        />
+      )}
     </Box>
   );
 };

@@ -15,10 +15,10 @@ RUN npm install dotenv
 
 
 # Definir variables de entorno para las credenciales sensibles
-ENV DB_HOST=sql.freedb.tech
-ENV DB_USER=freedb_marcelasdasd
-ENV DB_PASSWORD=tCADemhZRPF39d!
-ENV DB_DATABASE=freedb_Cybertesis
+ENV DB_HOST=mysql.barra.freskos.com.pe
+ENV DB_USER=quierochicharron
+ENV DB_PASSWORD=carajo123
+ENV DB_DATABASE=pruebaspruebas_db
 
 
 # Copiar todos los archivos del proyecto al directorio de trabajo del contenedor
