@@ -15,7 +15,7 @@ RUN npm install dotenv
 
 
 # Definir variables de entorno para las credenciales sensibles
-ENV DB_HOST=mysql.barra.freskos.com.pe
+ENV DB_HOST=buckhannon.pdx1-mysql-a7-2a.dreamhost.com
 ENV DB_USER=quierochicharron
 ENV DB_PASSWORD=carajo123
 ENV DB_DATABASE=pruebaspruebas_db
