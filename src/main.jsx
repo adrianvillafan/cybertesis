@@ -4,6 +4,7 @@ import "@cloudscape-design/global-styles/index.css"
 import { I18nProvider, importMessages } from "@cloudscape-design/components/i18n";
 import esMessages from '@cloudscape-design/components/i18n/messages/all.es';
 import App from './App.jsx'
+import CustomPanel from './CustomPanel.js';
 import { UserProvider } from './components/dashboard/contexts/UserContext.jsx';
 
 
@@ -12,10 +13,12 @@ const messages = await importMessages(locale);
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
+    <CustomPanel>
     <I18nProvider locale={locale} messages={messages}>
     <UserProvider>
       <App />
     </UserProvider>
     </I18nProvider>
+    </CustomPanel>
   </React.StrictMode>,
 )

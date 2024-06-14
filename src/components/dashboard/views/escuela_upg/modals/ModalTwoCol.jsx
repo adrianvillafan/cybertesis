@@ -111,7 +111,7 @@ const ModalTwoCol = ({ onClose, headerText, footerButtons, file, setFile, fileUr
             <SpaceBetween direction="vertical" size="xl" content="div">
                 {!showForm ? (
                     <div
-                        style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap', alignItems: 'center', height: '30vh', border: '2px dashed #aaa', borderRadius: '10px', padding: '20px', backgroundColor: '#f9f9f9', cursor: 'pointer' }}
+                        style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap', alignItems: 'center', height: '30vh', border: '2px dashed #aaa', borderRadius: '10px', padding: '20px', backgroundColor: '#ffffff', cursor: 'pointer' }}
                         onClick={handleClick}
                         onDrop={handleDrop}
                         onDragOver={handleDragOver}
