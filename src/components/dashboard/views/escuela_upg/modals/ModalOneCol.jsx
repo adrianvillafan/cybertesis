@@ -153,7 +153,7 @@ const ModalOneCol = ({ onClose, headerText, footerButtons, file, setFile, fileUr
                                 position="top"
                                 size="small"
                                 triggerType="click"
-                                content={<div>Solo se están mostrando las 15 primeras páginas del documento.</div>}
+                                content={<div>Se están mostrando {Math.min(numPages, 15)} páginas de un total de {numPages}.</div>}
                             >
                                 <Icon name="status-info" size="medium" variant="link" />
                             </Popover>

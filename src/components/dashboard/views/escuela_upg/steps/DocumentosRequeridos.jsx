@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Box, Header, Button, Link, Table, SpaceBetween } from '@cloudscape-design/components';
+import { Box, Header, Button, Link, Table, SpaceBetween, StatusIndicator } from '@cloudscape-design/components';
 import TesisModal from '../modals/TesisModal';
 import ActaSustentacionModal from '../modals/ActaSustentacionModal';
 import CertificadoSimilitud from '../modals/CertificadoSimilitud';
@@ -73,7 +73,15 @@ const DocumentosRequeridos = ({
                 </Button>
               ) 
             },
-            { id: 'estado', header: 'Estado', cell: (item) => savedDocuments[item.nombre] ? '✔️' : '❌' },
+            { 
+              id: 'estado', 
+              header: 'Estado', 
+              cell: (item) => savedDocuments[item.nombre] ? (
+                <StatusIndicator type="success">Completado</StatusIndicator>
+              ) : (
+                <StatusIndicator type="error">Pendiente</StatusIndicator>
+              ) 
+            },
           ]}
         />
       </SpaceBetween>

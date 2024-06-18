@@ -3,7 +3,7 @@ import { executeQuery } from '../config/db.js';
 export function fetchDatosByDni(dni, callback) {
     const sql = `
         SELECT 
-            dni,
+            documento,
             nombre, 
             apellido_p,
             apellido_m,
@@ -11,7 +11,7 @@ export function fetchDatosByDni(dni, callback) {
             email, 
             orcid
         FROM datos_dni
-        WHERE dni = ?;
+        WHERE documento = ?;
     `;
     executeQuery(sql, [dni], (err, results) => {
         if (err || results.length === 0) {

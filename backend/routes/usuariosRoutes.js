@@ -56,6 +56,41 @@ router.get('/datospersona/:dni', async (req, res) => {
   });
 });
 
+// Ruta para obtener datos de ORCID
+router.get('/datosorcid/:orcid', async (req, res) => {
+  const { orcid } = req.params;
+
+  async function fetchDatosOrcid(orcid) {
+    try {
+      console.log(`Obteniendo datos de ORCID (BACKEND): ${orcid}`);
+      const response = await fetch(`https://pub.orcid.org/v3.0/${orcid}/person`);
+      if (!response.ok) {
+        throw new Error('No se pudo obtener los datos del ORCID');
+      }
+      const xml = await response.text();
+
+      // Usar expresiones regulares para extraer los datos necesarios
+      const givenNamesMatch = xml.match(/<personal-details:given-names[^>]*>([^<]*)<\/personal-details:given-names>/);
+      const familyNameMatch = xml.match(/<personal-details:family-name[^>]*>([^<]*)<\/personal-details:family-name>/);
+
+      const givenNames = givenNamesMatch ? givenNamesMatch[1] : '';
+      const familyName = familyNameMatch ? familyNameMatch[1] : '';
+
+      return { nombre: givenNames, apellido: familyName };
+    } catch (error) {
+      console.error('Error al obtener datos del ORCID:', error);
+      throw error;
+    }
+  }
+
+  try {
+    const datos = await fetchDatosOrcid(orcid);
+    res.json(datos);
+  } catch (error) {
+    res.status(500).send({ message: "Error al obtener datos del ORCID", error: error.toString() });
+  }
+});
+
 export default router;
 
 

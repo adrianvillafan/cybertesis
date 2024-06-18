@@ -211,4 +211,18 @@ export async function fetchDatosByDni(dni) {
 }
 }
 
-
+export async function fetchDatosOrcid(orcid) {
+  console.log(`Obteniendo datos de ORCID (APICALL): ${orcid}`);
+  try {
+    const response = await fetch(`http://localhost:3000/api/estudiantes/datosorcid/${orcid}`);
+    if (!response.ok) {
+        throw new Error('No se pudo obtener los datos del estudiante');
+    }
+    const datos = await response.json();
+    console.log(datos);
+    return datos;
+} catch (error) {
+    console.error('Error al obtener datos del estudiante:', error);
+    throw error; // Lanzar el error para manejarlo en el componente
+}
+}
