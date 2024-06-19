@@ -9,10 +9,7 @@ import {
   TextContent
 } from '@cloudscape-design/components';
 
-import {
-  fetchDocumentosBySolicitudId,
-  getDownloadUrlFromMinIO,
-} from '../../../../../../api'; // Asegúrate de que la ruta es correcta
+//import {fetchDocumentosBySolicitudId,getDownloadUrlFromMinIO} from '../../../../../../api'; // Asegúrate de que la ruta es correcta
 
 const DetallesModal = ({ solicitud, onClose }) => {
   const [documentos, setDocumentos] = useState([]);

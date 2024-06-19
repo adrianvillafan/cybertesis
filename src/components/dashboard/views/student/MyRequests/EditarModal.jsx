@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Modal, Table, Button, Box, SpaceBetween, Spinner, TextContent, FileUpload, FormField } from '@cloudscape-design/components';
-import { fetchDocumentosBySolicitudId, getDownloadUrlFromMinIO } from '../../../../../../api';
+//import { fetchDocumentosBySolicitudId, getDownloadUrlFromMinIO } from '../../../../../../api';
 
 const EditarModal = ({ solicitud, onClose }) => {
     const [documentos, setDocumentos] = useState([]);

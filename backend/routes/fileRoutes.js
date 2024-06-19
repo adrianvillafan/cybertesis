@@ -2,13 +2,17 @@ import express from 'express';
 import multer from 'multer';
 import { uploadFileToMinIO, getDownloadUrlFromMinIO, deleteFileFromMinIO, getViewUrlForDocument } from '../minio/controllers/minioController.js';
 import { getSolicitudesByEstudianteId } from '../queries/solicitudQueries.js';
-import  {insertDocument} from '../queries/documentQueries.js';
+import { insertDocument } from '../queries/documentQueries.js';
+import tesisRoutes from './tesisRoutes.js';  // Importa las rutas de tesis
+
 const router = express.Router();
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage, limits: { fileSize: 10 * 1024 * 1024 } }); // Límite de 10 MB
 
-const BUCKET_NAME = process.env.BUCKET_NAME 
+const TESIS_BUCKET_NAME = process.env.TESIS_BUCKET_NAME; // Nuevo bucket específico para tesis
 
+// Usa las rutas de tesis
+router.use('/tesis', tesisRoutes);
 
 // Ruta para subir archivos, con caché temporal
 let fileCache = {};  // Simula una caché simple en memoria
@@ -35,11 +39,11 @@ router.post('/confirm-upload', async (req, res) => {
 
   try {
     // Subir el archivo a MinIO
-    const etag = await uploadFileToMinIO(file, BUCKET_NAME, filename);
+    const etag = await uploadFileToMinIO(file, TESIS_BUCKET_NAME, filename);
 
     // Insertar detalles del documento en la base de datos
     const documentDetails = {
-      tipo : tipo+1,
+      tipo: tipo + 1,
       urlDocumento: filename,  // Almacenamos el nombre del archivo en lugar de la URL
       estudianteId: estudianteId,
       estadoId: 1,  // Estado inicial, ajustar según la lógica de la aplicación
@@ -67,13 +71,11 @@ router.post('/confirm-upload', async (req, res) => {
   }
 });
 
-
-
 // Ruta para descargar archivos
 router.get('/download/:filename', async (req, res) => {
   try {
     const fileName = req.params.filename;
-    const downloadUrl = await getDownloadUrlFromMinIO(BUCKET_NAME, fileName);
+    const downloadUrl = await getDownloadUrlFromMinIO(TESIS_BUCKET_NAME, fileName);
     res.send({ downloadUrl });
   } catch (error) {
     res.status(500).send('Error al obtener el link de descarga: ' + error.message);
@@ -83,19 +85,17 @@ router.get('/download/:filename', async (req, res) => {
 // Ruta para obtener la URL de vista de un documento
 router.get('/view/:filename', async (req, res) => {
   try {
-    const blob = await getViewUrlForDocument(BUCKET_NAME, req.params.filename);
+    const blob = await getViewUrlForDocument(TESIS_BUCKET_NAME, req.params.filename);
     res.send(blob);
   } catch (error) {
     res.status(500).send('Error al obtener el blob del documento:' + error.message);
   }
 });
 
-
-
 // Ruta para eliminar archivos
 router.delete('/delete/:filename', async (req, res) => {
   try {
-    await deleteFileFromMinIO(BUCKET_NAME, req.params.filename);
+    await deleteFileFromMinIO(TESIS_BUCKET_NAME, req.params.filename);
     await deleteDocumentByFilename(req.params.filename);
     res.send({ message: 'Archivo y registro eliminados exitosamente' });
   } catch (error) {
@@ -115,8 +115,4 @@ router.get('/solicitudes/:estudianteId', (req, res) => {
   });
 });
 
-
-
 export default router;
-
-

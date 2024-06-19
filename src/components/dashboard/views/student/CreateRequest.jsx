@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { Button, Box, Container, Header, SpaceBetween, Link, Select, FileUpload, FormField, Form } from '@cloudscape-design/components';
 import UserContext from '../../contexts/UserContext';
-import { uploadDocument, confirmUploadDocument , submitSolicitud} from '../../../../../api';
 
 const CreateRequest = () => {
   const { user } = useContext(UserContext);
