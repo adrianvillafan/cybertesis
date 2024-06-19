@@ -1,17 +1,28 @@
 import express from 'express';
-import { fetchAlumnosData, fetchEscuelaUpgData } from '../queries/escuelaUpgQueries.js'
+import { fetchListaAlumnos, fetchAlumnoData , fetchEscuelaUpgData } from '../queries/escuelaUpgQueries.js'
 import { fetchDatosByDni } from '../queries/datosDniQueries.js';
 import fetch from 'node-fetch';
 
 const router = express.Router();
 
 router.get('/alumnosunidades/:escuelaId/:gradoId', (req, res) => {
-  const { escuelaId , gradoId } = req.params;
-  fetchAlumnosData({ escuelaId , gradoId }, (error, alumnado) => {
+  const { escuelaId, gradoId } = req.params;
+  fetchListaAlumnos({ escuelaId, gradoId }, (error, alumnado) => {
     if (error) {
-      res.status(500).send({ message: "Error al recuperar los documentos", error: error.toString() });
+      res.status(500).send({ message: "Error al obtener el listado de alumnos de la unidad", error: error.toString() });
     } else {
       res.json(alumnado);
+    }
+  });
+});
+
+router.get('/datosalumno/:studentId', (req, res) => {
+  const { studentId } = req.params;
+  fetchAlumnoData(studentId, (error, alumnoData) => {
+    if (error) {
+      res.status(500).send({ message: "Error al obtener los datos del alumno", error: error.toString() });
+    } else {
+      res.json(alumnoData);
     }
   });
 });

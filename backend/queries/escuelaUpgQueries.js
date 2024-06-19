@@ -43,28 +43,49 @@ export function fetchEscuelaUpgData(userId, callback) {
     });
 }
 
-export function fetchAlumnosData({ escuelaId, gradoId }, callback) {
+export function fetchListaAlumnos({ escuelaId, gradoId }, callback) {
     const sql = `
-    SELECT 
-        estudiante.codigo_estudiante,
-        estudiante.user_id,
-        estudiante.dni,
-        users.name,
-        users.email
-    FROM estudiante
-    INNER JOIN users ON estudiante.user_id = users.id
-    WHERE estudiante.escuela_id = ? AND estudiante.grado_id = ?;
-`;
-
+      SELECT 
+          estudiante.codigo_estudiante,
+          estudiante.dni,
+          personas.nombre,
+          personas.apellidos_mat,
+          personas.apellidos_pat
+      FROM estudiante
+      INNER JOIN personas ON estudiante.dni = personas.identificacion
+      WHERE estudiante.escuela_id = ? AND estudiante.grado_id = ?;
+    `;
+  
     executeQuery(sql, [escuelaId, gradoId], (err, results) => {
-        if (err) {
-            console.error('Error al buscar datos de alumnos:', err);
-            callback({ message: 'Error al buscar datos de alumnos' }, null);
-        } else {
-            console.log('Datos de alumnos encontrados:', results);
-            callback(null, results);
-        }
+      if (err) {
+        console.error('Error al buscar lista de alumnos:', err);
+        callback({ message: 'Error al buscar lista de alumnos' }, null);
+      } else {
+        console.log('Lista de alumnos encontrada:', results);
+        callback(null, results);
+      }
     });
-}
+  }
+  
+  export function fetchAlumnoData(studentId, callback) {
+    const sql = `
+      SELECT 
+          estudiante.*,
+          personas.*
+      FROM estudiante
+      INNER JOIN personas ON estudiante.dni = personas.identificacion
+      WHERE estudiante.codigo_estudiante = ?;
+    `;
+  
+    executeQuery(sql, [studentId], (err, results) => {
+      if (err) {
+        console.error('Error al buscar datos del alumno:', err);
+        callback({ message: 'Error al buscar datos del alumno' }, null);
+      } else {
+        console.log('Datos del alumno encontrados:', results);
+        callback(null, results);
+      }
+    });
+  }
 
 

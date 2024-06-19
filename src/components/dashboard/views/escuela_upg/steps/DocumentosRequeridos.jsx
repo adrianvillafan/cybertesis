@@ -12,7 +12,9 @@ const DocumentosRequeridos = ({
   handleNextStep,
   setErrorMessage,
   alumnoData,
-  setCanProceed
+  setCanProceed,
+  canProceed,
+  setStep
 }) => {
   const [selectedDoc, setSelectedDoc] = useState(null);
   const [savedDocuments, setSavedDocuments] = useState({});
@@ -21,10 +23,12 @@ const DocumentosRequeridos = ({
   const [autores, setAutores] = useState([]);
   const [tesisCompletada, setTesisCompletada] = useState(false);
 
+
+
   useEffect(() => {
     if (documentos) {
       setSavedDocuments({
-        Tesis: documentos.Tesis || {},
+        'Tesis': documentos.Tesis || {},
         'Acta de Sustentación': documentos.ActaSustentacion || {},
         'Certificado de Similitud': documentos.CertificadoSimilitud || {},
         'Autorización para el depósito de obra en Cybertesis': documentos.AutoCyber || {},

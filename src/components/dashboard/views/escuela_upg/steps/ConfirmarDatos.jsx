@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { Box, Header, Button, Select, Spinner, ColumnLayout, Container, SpaceBetween } from '@cloudscape-design/components';
 import UserContext from '../../../contexts/UserContext';
-import { fetchAlumnadoByEscuelaId, createOrFetchDocumentos } from '../../../../../../api';
+import { fetchAlumnadoByEscuelaId, fetchDatosByStudentId, createOrFetchDocumentos } from '../../../../../../api';
 
-const ConfirmarDatos = ({ setStep, handleAlumnoSelection }) => {
+const ConfirmarDatos = ({ setStep, handleAlumnoSelection, setDocumentos }) => {
   const { user } = useContext(UserContext);
   const [selectedEscuela, setSelectedEscuela] = useState(null);
   const [selectedAlumno, setSelectedAlumno] = useState(null);
@@ -29,37 +29,36 @@ const ConfirmarDatos = ({ setStep, handleAlumnoSelection }) => {
 
   useEffect(() => {
     if (selectedAlumno) {
-      const alumnoSeleccionado = alumnos.find(alumno => alumno.codigo_estudiante === selectedAlumno.value);
-      if (alumnoSeleccionado) {
-        const alumnoInfo = {
-          nombre: alumnoSeleccionado.name,
-          apellidos: alumnoSeleccionado.name,
-          codigo: alumnoSeleccionado.codigo_estudiante,
-          facultad: user.nombre_facultad,
-          dni: alumnoSeleccionado.dni,
-          escuela: selectedEscuela ? selectedEscuela.label : user.nombre_escuela,
-          especialidad: alumnoSeleccionado.especialidad,
-          anioEgreso: 2020,
-          foto: 'https://via.placeholder.com/150'
-        };
-        setAlumnoData(alumnoInfo);
-        handleAlumnoSelection(alumnoInfo); // Pass the selected alumno data back to IngresarDoc
-      }
+      setIsLoading(true);
+      fetchDatosByStudentId(selectedAlumno.value)
+        .then(alumnoInfo => {
+          setAlumnoData(alumnoInfo);
+          handleAlumnoSelection(alumnoInfo);
+
+          // Verificar o crear documentos asociados
+          createOrFetchDocumentos(user.grado_id, alumnoInfo.codigo, user.id)
+            .then(fetchedDocumentos => {
+              setDocumentos(fetchedDocumentos);
+              setIsLoading(false);
+            })
+            .catch(err => {
+              setError('Error al crear o recuperar documentos.');
+              setIsLoading(false);
+            });
+        })
+        .catch(err => {
+          setError('Error al obtener los datos del alumno.');
+          setIsLoading(false);
+        });
     }
-  }, [selectedAlumno, alumnos, handleAlumnoSelection, user.nombre_facultad, user.nombre_escuela]);
+  }, [selectedAlumno, handleAlumnoSelection, user.grado_id, user.id, setDocumentos]);
 
   const handleCancelar = () => {
     setStep(1);
   };
 
-  const handleSiguiente = async () => {
-    try {
-      const fetchedDocumentos = await createOrFetchDocumentos(user.grado_id, alumnoData.codigo, user.id);
-      setDocumentos(fetchedDocumentos);
-      setStep(3);
-    } catch (error) {
-      setError('Error al crear o recuperar documentos.');
-    }
+  const handleSiguiente = () => {
+    setStep(3);
   };
 
   const handleEscuelaChange = (event) => {
@@ -79,7 +78,7 @@ const ConfirmarDatos = ({ setStep, handleAlumnoSelection }) => {
       <SpaceBetween direction="vertical" size="l">
         <Header variant="h2">Paso 1: Confirmar Datos</Header>
         {error ? (
-          <p>Error al cargar los alumnos: {error}</p>
+          <p>Error: {error}</p>
         ) : (
           <>
             <SpaceBetween direction="vertical" size="s">
@@ -96,7 +95,7 @@ const ConfirmarDatos = ({ setStep, handleAlumnoSelection }) => {
                   selectedOption={selectedAlumno}
                   onChange={handleAlumnoChange}
                   placeholder="Seleccione un alumno"
-                  options={alumnos.map(alumno => ({ label: alumno.name, value: alumno.codigo_estudiante }))}
+                  options={alumnos.map(alumno => ({ label: `${alumno.name} ${alumno.apellidos_pat}`, value: alumno.codigo_estudiante }))}
                   loadingText="Cargando alumnos..."
                   empty="No hay alumnos disponibles"
                   statusType={isLoading ? 'loading' : undefined}

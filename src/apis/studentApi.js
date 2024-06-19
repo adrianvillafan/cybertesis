@@ -34,10 +34,25 @@ export async function fetchAlumnadoByEscuelaId(escuelaId, gradoId) {
       throw new Error('No se pudo obtener los alumnos');
     }
     const alumnado = await response.json();
-    console.log(alumnado)
+    console.log(alumnado);
     return alumnado;
   } catch (error) {
     console.error('Error al obtener lista de alumnado de la escuela:', error);
+    throw error;
+  }
+}
+
+export async function fetchDatosByStudentId(studentId) {
+  try {
+    const response = await fetch(`http://localhost:3000/api/estudiantes/datosalumno/${studentId}`);
+    if (!response.ok) {
+      throw new Error('No se pudo obtener los datos del alumno');
+    }
+    const alumnoData = await response.json();
+    console.log(alumnoData);
+    return alumnoData;
+  } catch (error) {
+    console.error('Error al obtener los datos del alumno:', error);
     throw error;
   }
 }
