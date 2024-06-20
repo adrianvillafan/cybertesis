@@ -1,12 +1,12 @@
 import React, { useState, useContext } from 'react';
-import { Button, Container } from '@cloudscape-design/components';
+import { Container } from '@cloudscape-design/components';
 import UserContext from '../../contexts/UserContext';
 import RequerimientosInicio from './steps/RequerimientosInicio';
 import ConfirmarDatos from './steps/ConfirmarDatos';
 import DocumentosRequeridos from './steps/DocumentosRequeridos';
 import DeclaracionJurada from './steps/DeclaracionJurada';
 import SolicitudEnviada from './steps/SolicitudEnviada';
-import { submitDocumentos } from '../../../../../api';
+import { submitDocumentos, createOrFetchDocumentos } from '../../../../../api';
 
 const IngresarDoc = () => {
   const { user } = useContext(UserContext);
@@ -18,12 +18,17 @@ const IngresarDoc = () => {
 
   const handleStart = () => setStep(2);
 
-  const handleAlumnoSelection = (alumnoInfo) => {
+  const handleAlumnoSelection = async (alumnoInfo) => {
     setAlumnoData(alumnoInfo);
-    setStep(3);
+    try {
+      const fetchedDocumentos = await createOrFetchDocumentos(user.grado_id, alumnoInfo.codigo_estudiante, user.id);
+      setDocumentos(fetchedDocumentos);
+    } catch (error) {
+      setErrorMessage('Error al crear o recuperar documentos.');
+    }
   };
 
-  const handleNextStep = async () => {
+  const handleNextStep = () => {
     if (canProceed) {
       setStep(4);
     }
@@ -35,7 +40,7 @@ const IngresarDoc = () => {
 
   const enviarSolicitud = async () => {
     try {
-      await submitDocumentos(alumnoData.codigo);
+      await submitDocumentos(alumnoData.codigo_estudiante);
       setStep(5);
     } catch (error) {
       setErrorMessage('Failed to send request. Please try again.');

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { Box, Header, Button, Select, Spinner, ColumnLayout, Container, SpaceBetween } from '@cloudscape-design/components';
+import { Box, Header, Button, Select, ColumnLayout, Container, SpaceBetween } from '@cloudscape-design/components';
 import UserContext from '../../../contexts/UserContext';
 import { fetchAlumnadoByEscuelaId, fetchDatosByStudentId, createOrFetchDocumentos } from '../../../../../../api';
 
@@ -27,38 +27,32 @@ const ConfirmarDatos = ({ setStep, handleAlumnoSelection, setDocumentos }) => {
     }
   }, [selectedEscuela, user.grado_id]);
 
-  useEffect(() => {
-    if (selectedAlumno) {
-      setIsLoading(true);
-      fetchDatosByStudentId(selectedAlumno.value)
-        .then(alumnoInfo => {
-          setAlumnoData(alumnoInfo);
-          handleAlumnoSelection(alumnoInfo);
-
-          // Verificar o crear documentos asociados
-          createOrFetchDocumentos(user.grado_id, alumnoInfo.codigo, user.id)
-            .then(fetchedDocumentos => {
-              setDocumentos(fetchedDocumentos);
-              setIsLoading(false);
-            })
-            .catch(err => {
-              setError('Error al crear o recuperar documentos.');
-              setIsLoading(false);
-            });
-        })
-        .catch(err => {
-          setError('Error al obtener los datos del alumno.');
-          setIsLoading(false);
-        });
-    }
-  }, [selectedAlumno, handleAlumnoSelection, user.grado_id, user.id, setDocumentos]);
-
-  const handleCancelar = () => {
-    setStep(1);
+  const handleAlumnoChange = (event) => {
+    const selectedOption = event.detail.selectedOption;
+    setSelectedAlumno(selectedOption);
+    setIsLoading(true);
+    fetchDatosByStudentId(selectedOption.value)
+      .then(alumnoInfo => {
+        setAlumnoData(alumnoInfo);
+        handleAlumnoSelection(alumnoInfo);
+        setIsLoading(false);
+      })
+      .catch(err => {
+        setError('Error al obtener los datos del alumno.');
+        setIsLoading(false);
+      });
   };
 
-  const handleSiguiente = () => {
-    setStep(3);
+  const handleSiguiente = async () => {
+    if (selectedAlumno) {
+      try {
+        const fetchedDocumentos = await createOrFetchDocumentos(user.grado_id, selectedAlumno.value, user.id);
+        setDocumentos(fetchedDocumentos);
+        setStep(3);
+      } catch (error) {
+        setError('Error al crear o recuperar documentos.');
+      }
+    }
   };
 
   const handleEscuelaChange = (event) => {
@@ -68,9 +62,8 @@ const ConfirmarDatos = ({ setStep, handleAlumnoSelection, setDocumentos }) => {
     setAlumnoData(null);
   };
 
-  const handleAlumnoChange = (event) => {
-    const selectedOption = event.detail.selectedOption;
-    setSelectedAlumno(selectedOption);
+  const handleCancelar = () => {
+    setStep(1);
   };
 
   return (
@@ -87,7 +80,7 @@ const ConfirmarDatos = ({ setStep, handleAlumnoSelection, setDocumentos }) => {
                   selectedOption={selectedEscuela}
                   onChange={handleEscuelaChange}
                   placeholder="Seleccione una escuela"
-                  options={user.escuelas.map(escuela => ({ label: escuela.nombre_escuela, value: escuela.id_escuela }))}
+                  options={user.escuelas.map(escuela => ({ label: escuela.nombre_escuela, value: String(escuela.id_escuela) }))}
                 />
               )}
               {(user.grado_id === 1 || selectedEscuela) && (
@@ -95,11 +88,16 @@ const ConfirmarDatos = ({ setStep, handleAlumnoSelection, setDocumentos }) => {
                   selectedOption={selectedAlumno}
                   onChange={handleAlumnoChange}
                   placeholder="Seleccione un alumno"
-                  options={alumnos.map(alumno => ({ label: `${alumno.name} ${alumno.apellidos_pat}`, value: alumno.codigo_estudiante }))}
+                  options={alumnos.map(alumno => ({
+                    label: `${alumno.nombre} ${alumno.apellidos}`,
+                    value: String(alumno.codigo_estudiante),
+                    description: `ID: ${alumno.dni} - Cod. Alumno: ${alumno.codigo_estudiante}`
+                  }))}
                   loadingText="Cargando alumnos..."
                   empty="No hay alumnos disponibles"
                   statusType={isLoading ? 'loading' : undefined}
                   loading={isLoading}
+                  filteringType="auto"
                 />
               )}
             </SpaceBetween>
@@ -107,17 +105,20 @@ const ConfirmarDatos = ({ setStep, handleAlumnoSelection, setDocumentos }) => {
               <Container margin={{ top: 'l' }} header={<Header variant="h3">Datos del Alumno</Header>}>
                 <ColumnLayout columns={2} variant="default">
                   <Box margin="s" textAlign="center">
-                    <img src={alumnoData.foto} alt="Foto del alumno" style={{ width: 150, height: 150 }} />
+                    <img
+                      src={alumnoData.foto || `https://sisbib.unmsm.edu.pe/fotos/3/${alumnoData.identificacion_id}.jpg`}
+                      alt="Foto del alumno"
+                      style={{ width: 200, height: 250 }}
+                    />
                   </Box>
                   <Box margin="s">
-                    <p><strong>DNI:</strong> {alumnoData.dni}</p>
+                    <p><strong>DNI:</strong> {alumnoData.identificacion_id}</p>
                     <p><strong>Nombre:</strong> {alumnoData.nombre}</p>
-                    <p><strong>Apellidos:</strong> {alumnoData.apellidos}</p>
-                    <p><strong>Código:</strong> {alumnoData.codigo}</p>
-                    <p><strong>Facultad:</strong> {alumnoData.facultad}</p>
-                    <p><strong>Escuela:</strong> {alumnoData.escuela}</p>
-                    <p><strong>Especialidad:</strong> {alumnoData.especialidad}</p>
-                    <p><strong>Año de Egreso:</strong> {alumnoData.anioEgreso}</p>
+                    <p><strong>Apellidos:</strong> {`${alumnoData.apellidos_pat} ${alumnoData.apellidos_mat}`}</p>
+                    <p><strong>Código:</strong> {alumnoData.codigo_estudiante}</p>
+                    <p><strong>Correo Institucional:</strong> {alumnoData.correo_institucional}</p>
+                    <p><strong>Teléfono:</strong> {alumnoData.telefono}</p>
+                    <p><strong>ORCID:</strong> {alumnoData.orcid}</p>
                   </Box>
                 </ColumnLayout>
               </Container>

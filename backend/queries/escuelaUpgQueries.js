@@ -44,48 +44,51 @@ export function fetchEscuelaUpgData(userId, callback) {
 }
 
 export function fetchListaAlumnos({ escuelaId, gradoId }, callback) {
-    const sql = `
-      SELECT 
-          estudiante.codigo_estudiante,
-          estudiante.dni,
-          personas.nombre,
-          personas.apellidos_mat,
-          personas.apellidos_pat
-      FROM estudiante
-      INNER JOIN personas ON estudiante.dni = personas.identificacion
-      WHERE estudiante.escuela_id = ? AND estudiante.grado_id = ?;
-    `;
+  const sql = `
+    SELECT 
+        estudiante.codigo_estudiante,
+        estudiante.user_id,
+        estudiante.persona_id,
+        personas.identificacion_id AS dni,
+        personas.nombre,
+        CONCAT(personas.apellidos_pat, ' ', personas.apellidos_mat) AS apellidos
+    FROM estudiante
+    INNER JOIN personas ON estudiante.persona_id = personas.idpersonas
+    WHERE estudiante.escuela_id = ? AND estudiante.grado_id = ?;
+  `;
+
+  executeQuery(sql, [escuelaId, gradoId], (err, results) => {
+    if (err) {
+      console.error('Error al buscar datos de alumnos:', err);
+      callback({ message: 'Error al buscar datos de alumnos' }, null);
+    } else {
+      console.log('Datos de alumnos encontrados:', results);
+      callback(null, results);
+    }
+  });
+}
+
   
-    executeQuery(sql, [escuelaId, gradoId], (err, results) => {
-      if (err) {
-        console.error('Error al buscar lista de alumnos:', err);
-        callback({ message: 'Error al buscar lista de alumnos' }, null);
-      } else {
-        console.log('Lista de alumnos encontrada:', results);
-        callback(null, results);
-      }
-    });
-  }
-  
-  export function fetchAlumnoData(studentId, callback) {
-    const sql = `
-      SELECT 
-          estudiante.*,
-          personas.*
-      FROM estudiante
-      INNER JOIN personas ON estudiante.dni = personas.identificacion
-      WHERE estudiante.codigo_estudiante = ?;
-    `;
-  
-    executeQuery(sql, [studentId], (err, results) => {
-      if (err) {
-        console.error('Error al buscar datos del alumno:', err);
-        callback({ message: 'Error al buscar datos del alumno' }, null);
-      } else {
-        console.log('Datos del alumno encontrados:', results);
-        callback(null, results);
-      }
-    });
-  }
+export function fetchAlumnoData(studentId, callback) {
+  const sql = `
+    SELECT 
+        estudiante.*,
+        personas.*
+    FROM estudiante
+    INNER JOIN personas ON estudiante.persona_id = personas.idpersonas
+    WHERE estudiante.codigo_estudiante = ?;
+  `;
+
+  executeQuery(sql, [studentId], (err, results) => {
+    if (err) {
+      console.error('Error al obtener datos del alumno:', err);
+      callback({ message: 'Error al obtener datos del alumno' }, null);
+    } else {
+      console.log('Datos del alumno encontrados:', results);
+      callback(null, results[0]);  // Suponiendo que el código del estudiante es único, se espera un solo resultado
+    }
+  });
+}
+
 
 
