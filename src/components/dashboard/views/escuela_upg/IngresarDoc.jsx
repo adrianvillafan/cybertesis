@@ -6,7 +6,7 @@ import ConfirmarDatos from './steps/ConfirmarDatos';
 import DocumentosRequeridos from './steps/DocumentosRequeridos';
 import DeclaracionJurada from './steps/DeclaracionJurada';
 import SolicitudEnviada from './steps/SolicitudEnviada';
-import { submitDocumentos, createOrFetchDocumentos } from '../../../../../api';
+import { submitDocumentos } from '../../../../../api';
 
 const IngresarDoc = () => {
   const { user } = useContext(UserContext);
@@ -20,12 +20,6 @@ const IngresarDoc = () => {
 
   const handleAlumnoSelection = async (alumnoInfo) => {
     setAlumnoData(alumnoInfo);
-    try {
-      const fetchedDocumentos = await createOrFetchDocumentos(user.grado_id, alumnoInfo.codigo_estudiante, user.id);
-      setDocumentos(fetchedDocumentos);
-    } catch (error) {
-      setErrorMessage('Error al crear o recuperar documentos.');
-    }
   };
 
   const handleNextStep = () => {
@@ -50,9 +44,10 @@ const IngresarDoc = () => {
   return (
     <Container>
       {step === 1 && <RequerimientosInicio handleStart={handleStart} />}
-      {step === 2 && <ConfirmarDatos setStep={setStep} handleAlumnoSelection={handleAlumnoSelection} />}
+      {step === 2 && <ConfirmarDatos setStep={setStep} handleAlumnoSelection={handleAlumnoSelection} setDocumentos={setDocumentos} />}
       {step === 3 && (
         <DocumentosRequeridos
+          setStep={setStep}
           documentos={documentos}
           handleNextStep={handleNextStep}
           setErrorMessage={setErrorMessage}

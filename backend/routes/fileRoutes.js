@@ -2,7 +2,7 @@ import express from 'express';
 import multer from 'multer';
 import { uploadFileToMinIO, getDownloadUrlFromMinIO, deleteFileFromMinIO, getViewUrlForDocument } from '../minio/controllers/minioController.js';
 import { getSolicitudesByEstudianteId } from '../queries/solicitudQueries.js';
-import { insertDocument } from '../queries/documentQueries.js';
+import { insertDocument, createOrFetchDocumentos } from '../queries/documentQueries.js';
 import tesisRoutes from './tesisRoutes.js';  // Importa las rutas de tesis
 
 const router = express.Router();
@@ -111,6 +111,19 @@ router.get('/solicitudes/:estudianteId', (req, res) => {
       res.status(500).send('Error al consultar las solicitudes del estudiante');
     } else {
       res.json(solicitudes);
+    }
+  });
+});
+
+// Nueva ruta para crear o recuperar documentos
+router.post('/create-or-fetch', (req, res) => {
+  const { gradeId, studentId, userId } = req.body;
+  createOrFetchDocumentos(gradeId, studentId, userId, (error, documentos) => {
+    if (error) {
+      console.error('Error al crear o recuperar documentos:', error);
+      res.status(500).json({ message: 'Error al crear o recuperar documentos', error: error.toString() });
+    } else {
+      res.json(documentos);
     }
   });
 });

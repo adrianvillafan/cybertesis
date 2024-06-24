@@ -23,17 +23,15 @@ const DocumentosRequeridos = ({
   const [autores, setAutores] = useState([]);
   const [tesisCompletada, setTesisCompletada] = useState(false);
 
-
-
   useEffect(() => {
     if (documentos) {
       setSavedDocuments({
-        'Tesis': documentos.Tesis || {},
-        'Acta de Sustentación': documentos.ActaSustentacion || {},
-        'Certificado de Similitud': documentos.CertificadoSimilitud || {},
-        'Autorización para el depósito de obra en Cybertesis': documentos.AutoCyber || {},
-        'Hoja de Metadatos': documentos.Metadatos || {},
-        'Reporte de Turnitin': documentos.RepTurnitin || {},
+        'Tesis': documentos.tesis_id,
+        'Acta de Sustentación': documentos.actasust_id,
+        'Certificado de Similitud': documentos.certsimil_id,
+        'Autorización para el depósito de obra en Cybertesis': documentos.autocyber_id,
+        'Hoja de Metadatos': documentos.metadatos_id,
+        'Reporte de Turnitin': documentos.repturnitin_id
       });
     }
   }, [documentos]);
@@ -69,7 +67,7 @@ const DocumentosRequeridos = ({
   ];
 
   useEffect(() => {
-    const allDocumentsCompleted = documentosRequeridos.every(doc => savedDocuments[doc.nombre] && Object.keys(savedDocuments[doc.nombre]).length > 0);
+    const allDocumentsCompleted = documentosRequeridos.every(doc => savedDocuments[doc.nombre] && savedDocuments[doc.nombre] !== null);
     setCanProceed(allDocumentsCompleted);
   }, [savedDocuments, setCanProceed]);
 
@@ -102,7 +100,7 @@ const DocumentosRequeridos = ({
             { 
               id: 'estado', 
               header: 'Estado', 
-              cell: (item) => savedDocuments[item.nombre] && Object.keys(savedDocuments[item.nombre]).length > 0 ? (
+              cell: (item) => savedDocuments[item.nombre] && savedDocuments[item.nombre] !== null ? (
                 <StatusIndicator type="success">Completado</StatusIndicator>
               ) : (
                 <StatusIndicator type="error">Pendiente</StatusIndicator>

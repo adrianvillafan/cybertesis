@@ -46,10 +46,12 @@ const ConfirmarDatos = ({ setStep, handleAlumnoSelection, setDocumentos }) => {
   const handleSiguiente = async () => {
     if (selectedAlumno) {
       try {
-        const fetchedDocumentos = await createOrFetchDocumentos(user.grado_id, selectedAlumno.value, user.id);
+        const fetchedDocumentos = await createOrFetchDocumentos(user.grado_id, alumnoData.id, user.user_id);
+        console.log(fetchedDocumentos)
         setDocumentos(fetchedDocumentos);
         setStep(3);
       } catch (error) {
+        console.error('Error al crear o recuperar documentos:', error);
         setError('Error al crear o recuperar documentos.');
       }
     }

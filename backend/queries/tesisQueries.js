@@ -99,24 +99,7 @@ export const fetchTesisByStudentId = (studentId, callback) => {
   });
 };
 
-export const createOrFetchDocumentos = async (gradoId, estudianteId) => {
-  const query = `
-    SELECT * FROM documentos
-    WHERE grado_id = ? AND estudiante_id = ? AND estado_id != 1
-  `;
-  const results = await executeQuery(query, [gradoId, estudianteId]);
 
-  if (results.length === 0) {
-    const insertQuery = `
-      INSERT INTO documentos (grado_id, estudiante_id, estado_id, Fecha_Carga, usuarioCarga_id, Ultima_Modificacion)
-      VALUES (?, ?, 3, NOW(), ?, NOW())
-    `;
-    const insertResults = await executeQuery(insertQuery, [gradoId, estudianteId, userId]);
-    return { id: insertResults.insertId };
-  } else {
-    return results[0];
-  }
-};
 
 export const getTesisById = (id, callback) => {
   const query = 'SELECT * FROM tesis WHERE id = ?';
