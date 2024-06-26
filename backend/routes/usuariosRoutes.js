@@ -38,34 +38,19 @@ router.get('/datosunidades/:userId', (req, res) => {
   });
 });
 
-router.get('/datospersona/:dni', async (req, res) => {
-  const { dni } = req.params;
-  fetchDatosByDni(dni, async (error, datos) => {
-      if (error) {
-          try {
-              const response = await fetch(`https://dni-api.onrender.com/obtener_datos_dni/?dni=${dni}`);
-              if (!response.ok) {
-                  throw new Error('No se pudo obtener los datos del servicio externo');
-              }
-              const externalData = await response.json();
-              const formattedData = {
-                  dni: dni,
-                  nombre: externalData.nombres,
-                  apellido: `${externalData.apellido_paterno} ${externalData.apellido_materno}`,
-                  telefono: null,
-                  email: null,
-                  orcid: null
-              };
-              res.json(formattedData);
-          } catch (err) {
-              console.error('Error al obtener datos del servicio externo:', err);
-              res.status(500).send({ message: "Error al obtener datos del servicio externo", error: err.toString() });
-          }
-      } else {
-          res.json(datos);
-      }
+router.get('/datospersona/:tipoIdentificacionId/:identificacionId', async (req, res) => {
+  const { tipoIdentificacionId, identificacionId } = req.params;
+
+  fetchDatosByDni(tipoIdentificacionId, identificacionId, (error, datos) => {
+    if (error) {
+      res.status(500).send({ message: "Error al obtener los datos", error: error.toString() });
+    } else {
+      res.json(datos);
+    }
   });
 });
+
+
 
 // Ruta para obtener datos de ORCID
 router.get('/datosorcid/:orcid', async (req, res) => {

@@ -44,9 +44,9 @@ export async function fetchEscuelaByuserId(userId) {
   }
 }
 
-export async function fetchDatosByDni(dni) {
+export async function fetchDatosByDni(tipoIdentificacionId, identificacionId) {
   try {
-    const response = await fetch(`http://localhost:3000/api/estudiantes/datospersona/${dni}`);
+    const response = await fetch(`http://localhost:3000/api/estudiantes/datospersona/${tipoIdentificacionId}/${identificacionId}`);
     if (!response.ok) {
         throw new Error('No se pudo obtener los datos del estudiante');
     }
@@ -58,6 +58,7 @@ export async function fetchDatosByDni(dni) {
     throw error;
   }
 }
+
 
 export async function fetchDatosOrcid(orcid) {
   console.log(`Obteniendo datos de ORCID (APICALL): ${orcid}`);

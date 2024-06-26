@@ -73,9 +73,13 @@ export function fetchAlumnoData(studentId, callback) {
   const sql = `
     SELECT 
         estudiante.*,
-        personas.*
+        personas.*,
+        facultad.nombre AS facultad_nombre,
+        escuela.nombre AS escuela_nombre
     FROM estudiante
     INNER JOIN personas ON estudiante.persona_id = personas.idpersonas
+    INNER JOIN facultad ON estudiante.facultad_id = facultad.id
+    INNER JOIN escuela ON estudiante.escuela_id = escuela.id
     WHERE estudiante.codigo_estudiante = ?;
   `;
 
@@ -89,6 +93,7 @@ export function fetchAlumnoData(studentId, callback) {
     }
   });
 }
+
 
 
 

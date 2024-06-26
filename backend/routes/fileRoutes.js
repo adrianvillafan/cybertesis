@@ -1,106 +1,181 @@
 import express from 'express';
 import multer from 'multer';
 import { uploadFileToMinIO, getDownloadUrlFromMinIO, deleteFileFromMinIO, getViewUrlForDocument } from '../minio/controllers/minioController.js';
+import { createOrFetchDocumentos } from '../queries/documentQueries.js';
+import { insertTesis, updateTesis, deleteTesisById, getTesisById, getTesisByStudentId } from '../queries/tesisQueries.js';
 import { getSolicitudesByEstudianteId } from '../queries/solicitudQueries.js';
-import { insertDocument, createOrFetchDocumentos } from '../queries/documentQueries.js';
-import tesisRoutes from './tesisRoutes.js';  // Importa las rutas de tesis
 
 const router = express.Router();
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage, limits: { fileSize: 10 * 1024 * 1024 } }); // Límite de 10 MB
 
-const TESIS_BUCKET_NAME = process.env.TESIS_BUCKET_NAME; // Nuevo bucket específico para tesis
+const BUCKETS = {
+  TESIS: process.env.TESIS_BUCKET_NAME,
+  ACTAS: process.env.ACTAS_BUCKET_NAME,
+  CERTIFICADOS: process.env.CERTIFICADOS_BUCKET_NAME,
+  CYBER: process.env.CYBER_BUCKET_NAME,
+  METADATOS: process.env.METADATOS_BUCKET_NAME,
+  TURNITIN: process.env.TURNITIN_BUCKET_NAME
+};
 
-// Usa las rutas de tesis
-router.use('/tesis', tesisRoutes);
+// Functions for file upload, download, view, and delete based on document type
+const getBucketName = (type) => BUCKETS[type.toUpperCase()] || BUCKETS.TESIS;
 
-// Ruta para subir archivos, con caché temporal
-let fileCache = {};  // Simula una caché simple en memoria
-router.post('/upload', upload.single('file'), (req, res) => {
-  if (!req.file) {
-    return res.status(400).send('No se subió ningún archivo.');
-  }
-  const fileId = Date.now().toString(); // ID único basado en timestamp
-  fileCache[fileId] = req.file;  // Guardar el archivo en caché
-  res.send({ fileId });  // Devolver el ID al cliente
-});
+// ------------------ File Upload Routes ------------------
 
-router.post('/confirm-upload', async (req, res) => {
-  const { fileId, tipo, estudianteId, solicitudId, usuarioCargaId } = req.body;
-  const file = fileCache[fileId];
-  console.log(fileId, tipo, estudianteId, solicitudId, usuarioCargaId, file);
+router.post('/upload', upload.single('file'), async (req, res) => {
+  const { file } = req;
+  const { type, fileName } = req.body;
 
   if (!file) {
-    return res.status(404).send('Archivo no encontrado o expirado.');
+    return res.status(400).send('No se subió ningún archivo.');
   }
 
-  // Construir el nombre del archivo según la convención dada
-  const filename = `${tipo}-${estudianteId}-${solicitudId}-${file.originalname}`;
-
   try {
-    // Subir el archivo a MinIO
-    const etag = await uploadFileToMinIO(file, TESIS_BUCKET_NAME, filename);
-
-    // Insertar detalles del documento en la base de datos
-    const documentDetails = {
-      tipo: tipo + 1,
-      urlDocumento: filename,  // Almacenamos el nombre del archivo en lugar de la URL
-      estudianteId: estudianteId,
-      estadoId: 1,  // Estado inicial, ajustar según la lógica de la aplicación
-      tamano: file.size,
-      fechaCarga: new Date(),
-      usuarioCargaId: usuarioCargaId,
-      ultimaModificacion: new Date(),
-      solicitudId: solicitudId
-    };
-
-    insertDocument(documentDetails, (err, result) => {
-      if (err) {
-        console.error('Error inserting document:', err);
-        // Handle the error, e.g., send a response to the client indicating failure
-      } else {
-        console.log('Document inserted successfully with ID:', result);
-        // Continue processing or send a success response to the client
-      }
-    });
-
-    res.send({ message: 'Archivo subido exitosamente', etag });
-    delete fileCache[fileId];  // Limpiar la caché
+    const bucketName = getBucketName(type);
+    const uploadResult = await uploadFileToMinIO(file, bucketName, fileName);
+    res.json({ message: uploadResult });
   } catch (error) {
-    res.status(500).send('Error al subir archivo: ' + error.message);
+    res.status(500).send('Error al subir el archivo: ' + error.message);
   }
 });
 
-// Ruta para descargar archivos
-router.get('/download/:filename', async (req, res) => {
+router.get('/download/:type/:filename', async (req, res) => {
+  const { type, filename } = req.params;
+
   try {
-    const fileName = req.params.filename;
-    const downloadUrl = await getDownloadUrlFromMinIO(TESIS_BUCKET_NAME, fileName);
+    const bucketName = getBucketName(type);
+    const downloadUrl = await getDownloadUrlFromMinIO(bucketName, filename);
     res.send({ downloadUrl });
   } catch (error) {
     res.status(500).send('Error al obtener el link de descarga: ' + error.message);
   }
 });
 
-// Ruta para obtener la URL de vista de un documento
-router.get('/view/:filename', async (req, res) => {
+router.get('/view/:type/:filename', async (req, res) => {
+  const { type, filename } = req.params;
+
   try {
-    const blob = await getViewUrlForDocument(TESIS_BUCKET_NAME, req.params.filename);
+    const bucketName = getBucketName(type);
+    const blob = await getViewUrlForDocument(bucketName, filename);
     res.send(blob);
   } catch (error) {
     res.status(500).send('Error al obtener el blob del documento:' + error.message);
   }
 });
 
-// Ruta para eliminar archivos
-router.delete('/delete/:filename', async (req, res) => {
+router.delete('/delete/:type/:filename', async (req, res) => {
+  const { type, filename } = req.params;
+
   try {
-    await deleteFileFromMinIO(TESIS_BUCKET_NAME, req.params.filename);
-    await deleteDocumentByFilename(req.params.filename);
+    const bucketName = getBucketName(type);
+    await deleteFileFromMinIO(bucketName, filename);
+    await deleteDocumentByFilename(filename);
     res.send({ message: 'Archivo y registro eliminados exitosamente' });
   } catch (error) {
     res.status(500).send('Error al eliminar el archivo y el registro: ' + error.message);
   }
+});
+
+// ------------------ Tesis Routes ------------------
+
+router.post('/tesis/insert', async (req, res) => {
+  const tesisDetails = req.body;
+
+  try {
+    insertTesis(tesisDetails, (err, tesisId) => {
+      if (err) {
+        res.status(500).send('Error al insertar tesis: ' + err.message);
+      } else {
+        res.json({ message: 'Tesis insertada correctamente', tesisId });
+      }
+    });
+  } catch (error) {
+    res.status(500).send('Error al insertar tesis: ' + error.message);
+  }
+});
+
+router.put('/tesis/update/:id', async (req, res) => {
+  const { id } = req.params;
+  const tesisDetails = req.body;
+
+  try {
+    updateTesis(id, tesisDetails, (err, result) => {
+      if (err) {
+        res.status(500).send('Error al actualizar tesis: ' + err.message);
+      } else {
+        res.json({ message: 'Tesis actualizada correctamente' });
+      }
+    });
+  } catch (error) {
+    res.status(500).send('Error al actualizar tesis: ' + error.message);
+  }
+});
+
+router.delete('/tesis/delete/:id', async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const tesis = await getTesisById(id);
+    if (!tesis) {
+      return res.status(404).send('Tesis no encontrada.');
+    }
+
+    await deleteFileFromMinIO(BUCKETS.TESIS, tesis.file_url);
+    await deleteTesisById(id);
+
+    res.json({ message: 'Tesis eliminada correctamente' });
+  } catch (error) {
+    res.status(500).send('Error al eliminar tesis: ' + error.message);
+  }
+});
+
+router.get('/tesis/:id', async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    getTesisById(id, (err, tesis) => {
+      if (err) {
+        res.status(500).send('Error al obtener detalles de tesis: ' + err.message);
+      } else if (!tesis) {
+        res.status(404).send('Tesis no encontrada.');
+      } else {
+        res.json(tesis);
+      }
+    });
+  } catch (error) {
+    res.status(500).send('Error al obtener detalles de tesis: ' + error.message);
+  }
+});
+
+router.get('/tesis/student/:studentId', async (req, res) => {
+  const { studentId } = req.params;
+
+  try {
+    getTesisByStudentId(studentId, (err, tesisList) => {
+      if (err) {
+        res.status(500).send('Error al obtener las tesis del estudiante: ' + err.message);
+      } else {
+        res.json(tesisList);
+      }
+    });
+  } catch (error) {
+    res.status(500).send('Error al obtener las tesis del estudiante: ' + error.message);
+  }
+});
+
+// ------------------ Document Handling Routes ------------------
+
+router.post('/create-or-fetch', (req, res) => {
+  const { gradeId, studentId, userId } = req.body;
+  createOrFetchDocumentos(gradeId, studentId, userId, (error, documentos) => {
+    if (error) {
+      console.error('Error al crear o recuperar documentos:', error);
+      res.status(500).json({ message: 'Error al crear o recuperar documentos', error: error.toString() });
+    } else {
+      res.json(documentos);
+    }
+  });
 });
 
 // Endpoint para obtener las solicitudes de un estudiante por su ID
@@ -115,17 +190,6 @@ router.get('/solicitudes/:estudianteId', (req, res) => {
   });
 });
 
-// Nueva ruta para crear o recuperar documentos
-router.post('/create-or-fetch', (req, res) => {
-  const { gradeId, studentId, userId } = req.body;
-  createOrFetchDocumentos(gradeId, studentId, userId, (error, documentos) => {
-    if (error) {
-      console.error('Error al crear o recuperar documentos:', error);
-      res.status(500).json({ message: 'Error al crear o recuperar documentos', error: error.toString() });
-    } else {
-      res.json(documentos);
-    }
-  });
-});
+
 
 export default router;

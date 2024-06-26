@@ -1,27 +1,28 @@
 import { executeQuery } from '../config/db.js';
 
-export function fetchDatosByDni(dni, callback) {
+export function fetchDatosByDni(tipoIdentificacionId, identificacionId, callback) {
     const sql = `
         SELECT 
-            documento,
+            tipo_identificacion_id,
+            identificacion_id,
             nombre, 
-            apellido_p,
-            apellido_m,
+            apellidos_pat,
+            apellidos_mat,
             telefono, 
-            email, 
+            correo_institucional AS email, 
             orcid
-        FROM datos_dni
-        WHERE documento = ?;
+        FROM personas
+        WHERE tipo_identificacion_id = ? AND identificacion_id = ?;
     `;
-    executeQuery(sql, [dni], (err, results) => {
+    executeQuery(sql, [tipoIdentificacionId, identificacionId], (err, results) => {
         if (err || results.length === 0) {
-            console.error('Error al buscar datos del DNI:', err);
-            callback({ message: 'Error al buscar datos del DNI' }, null);
+            console.error('Error al buscar datos de identificación:', err);
+            callback({ message: 'Error al buscar datos de identificación' }, null);
         } else {
             const result = results[0];
-            result.apellido = `${result.apellido_p} ${result.apellido_m}`; // Combine apellidos
-            delete result.apellido_p;
-            delete result.apellido_m;
+            result.apellido = `${result.apellidos_pat} ${result.apellidos_mat}`; // Combine apellidos
+            delete result.apellidos_pat;
+            delete result.apellidos_mat;
             console.log('Datos encontrados:', result);
             callback(null, result);
         }

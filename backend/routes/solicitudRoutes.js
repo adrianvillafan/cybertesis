@@ -1,5 +1,4 @@
 import express from 'express';
-import { getDocumentosBySolicitudId } from '../queries/documentQueries.js'
 import { createSolicitud } from '../queries/solicitudQueries.js';
 
 const router = express.Router();
@@ -20,16 +19,6 @@ router.post('/create', (req, res) => {
   });
 });
 
-router.get('/documentos/:solicitudId', (req, res) => {
-  const { solicitudId } = req.params;
-  getDocumentosBySolicitudId(solicitudId, (error, documentos) => {
-    if (error) {
-      res.status(500).send({ message: "Error al recuperar los documentos", error: error.toString() });
-    } else {
-      res.json(documentos);
-    }
-  });
-});
 
 
 
