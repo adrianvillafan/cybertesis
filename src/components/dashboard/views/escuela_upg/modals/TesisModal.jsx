@@ -19,12 +19,12 @@ const TesisModal = ({ onClose, alumnoData, onSave, readOnly, fileUrl, formData: 
     autores: initialFormData?.autores || [{
       nombre: alumnoData?.nombre || '',
       apellido: alumnoData ? `${alumnoData.apellidos_pat} ${alumnoData.apellidos_mat}` : '',
-      dni: alumnoData?.dni || '',
+      dni: alumnoData?.identificacion_id || '',
       telefono: alumnoData?.telefono || '',
       email: alumnoData?.correo_institucional || '',
       orcid: alumnoData?.orcid || '',
       orcidConfirmed: false,
-      tipoDocumento: 'dni'
+      tipoDocumento: alumnoData?.tipo_identificacion_id === 1 ? 'DNI' : 'Pasaporte'
     }],
     asesores: initialFormData?.asesores || [{
       dni: '',
@@ -33,12 +33,20 @@ const TesisModal = ({ onClose, alumnoData, onSave, readOnly, fileUrl, formData: 
       titulo: '',
       orcid: '',
       orcidConfirmed: false,
-      tipoDocumento: 'dni'
+      tipoDocumento: 'DNI'
     }]
   });
 
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: 6 }, (_, i) => currentYear - i);
+
+  const gradoOptions = alumnoData?.grado_academico_id === 1 ? [
+    { label: 'Bachiller', value: 'Bachiller' },
+    { label: 'Título Profesional', value: 'Título Profesional' }
+  ] : [
+    { label: 'Magister', value: 'Magister' },
+    { label: 'Doctorado', value: 'Doctorado' }
+  ];
 
   const isFormComplete = () => {
     const requiredFields = [
@@ -78,6 +86,10 @@ const TesisModal = ({ onClose, alumnoData, onSave, readOnly, fileUrl, formData: 
         handleChange('telefono', data.telefono || '', index, type);
         handleChange('email', data.email || '', index, type);
       }
+      if (data.orcid) {
+        handleChange('orcid', data.orcid || '', index, type);
+        fetchAndSetDataByOrcid(data.orcid, index, type);
+      }
     } catch (error) {
       console.error('Error al obtener datos del DNI:', error);
     } finally {
@@ -87,6 +99,7 @@ const TesisModal = ({ onClose, alumnoData, onSave, readOnly, fileUrl, formData: 
 
   const fetchAndSetDataByOrcid = async (orcid, index, type) => {
     try {
+      handleChange('orcid', 'Cargando...', index, type);
       const data = await fetchDatosOrcid(orcid);
       setOrcidData(prev => ({
         ...prev,
@@ -95,6 +108,7 @@ const TesisModal = ({ onClose, alumnoData, onSave, readOnly, fileUrl, formData: 
           [index]: data
         }
       }));
+      handleChange('orcidConfirmed', true, index, type);
     } catch (error) {
       console.error('Error al obtener datos del ORCID:', error);
     }
@@ -110,7 +124,7 @@ const TesisModal = ({ onClose, alumnoData, onSave, readOnly, fileUrl, formData: 
     if (formData.autores.length < 2) {
       setFormData(prev => ({
         ...prev,
-        autores: [...prev.autores, { nombre: '', apellido: '', dni: '', telefono: '', email: '', orcid: '', orcidConfirmed: false, tipoDocumento: 'dni' }]
+        autores: [...prev.autores, { nombre: '', apellido: '', dni: '', telefono: '', email: '', orcid: '', orcidConfirmed: false, tipoDocumento: 'DNI' }]
       }));
     }
   };
@@ -126,7 +140,7 @@ const TesisModal = ({ onClose, alumnoData, onSave, readOnly, fileUrl, formData: 
     if (formData.asesores.length < 2) {
       setFormData(prev => ({
         ...prev,
-        asesores: [...prev.asesores, { nombre: '', apellido: '', dni: '', titulo: 'Magister', orcid: '', orcidConfirmed: false, tipoDocumento: 'dni' }]
+        asesores: [...prev.asesores, { nombre: '', apellido: '', dni: '', titulo: 'Magister', orcid: '', orcidConfirmed: false, tipoDocumento: 'DNI' }]
       }));
     }
   };
@@ -142,7 +156,7 @@ const TesisModal = ({ onClose, alumnoData, onSave, readOnly, fileUrl, formData: 
     const newValue = detail.value.replace(/\D/g, '').slice(0, 8);
     handleChange('dni', newValue, index, type);
     if (newValue.length === 8) {
-      fetchAndSetDataByDni(newValue, index, type);
+      fetchAndSetDataByDni(formData[type][index].tipoDocumento === 'DNI' ? 1 : 2, newValue, index, type);
     } else {
       handleChange('nombre', 'Cargando...', index, type);
       handleChange('apellido', 'Cargando...', index, type);
@@ -166,6 +180,7 @@ const TesisModal = ({ onClose, alumnoData, onSave, readOnly, fileUrl, formData: 
           [index]: null
         }
       }));
+      handleChange('orcidConfirmed', false, index, type);
     }
   };
 
@@ -212,7 +227,7 @@ const TesisModal = ({ onClose, alumnoData, onSave, readOnly, fileUrl, formData: 
                 <Input value={formData.escuela} readOnly />
               </FormField>
               <FormField label="Título">
-                <Input value={formData.titulo} onChange={({ detail }) => setFormData(prev => ({ ...prev, titulo: detail.value }))} readOnly={false} />
+                <Input value={formData.titulo} onChange={({ detail }) => setFormData(prev => ({ ...prev, titulo: detail.value }))} />
               </FormField>
               <ColumnLayout columns={3}>
                 <FormField label="Tipo">
@@ -223,21 +238,13 @@ const TesisModal = ({ onClose, alumnoData, onSave, readOnly, fileUrl, formData: 
                       { label: 'Trabajo de investigación', value: 'Trabajo de investigación' }
                     ]}
                     onChange={({ detail }) => setFormData(prev => ({ ...prev, tipo: detail.selectedOption.value }))}
-                    disabled={false}
                   />
                 </FormField>
                 <FormField label="Grado">
                   <Select
                     selectedOption={{ label: formData.grado, value: formData.grado }}
-                    options={[
-                      { label: 'Bachiller', value: 'Bachiller' },
-                      { label: 'Magister', value: 'Magister' },
-                      { label: 'Doctor', value: 'Doctor' },
-                      { label: 'Segunda Esp.', value: 'Segunda Esp.' },
-                      { label: 'Título Prof.', value: 'Título Prof.' }
-                    ]}
+                    options={gradoOptions}
                     onChange={({ detail }) => setFormData(prev => ({ ...prev, grado: detail.selectedOption.value }))}
-                    disabled={false}
                   />
                 </FormField>
                 <FormField label="Año">
@@ -245,7 +252,6 @@ const TesisModal = ({ onClose, alumnoData, onSave, readOnly, fileUrl, formData: 
                     selectedOption={{ label: formData.year, value: formData.year }}
                     options={years.map(year => ({ label: year.toString(), value: year.toString() }))}
                     onChange={({ detail }) => setFormData(prev => ({ ...prev, year: detail.selectedOption.value }))}
-                    disabled={false}
                   />
                 </FormField>
               </ColumnLayout>
@@ -269,23 +275,37 @@ const TesisModal = ({ onClose, alumnoData, onSave, readOnly, fileUrl, formData: 
                 <FormField label="Nombres">
                   <Input
                     value={loadingDni.autores[index] ? 'Cargando...' : autor.nombre}
-                    readOnly={true}
-                    onChange={({ detail }) => handleChange('nombre', detail.value, index, 'autores')}
+                    readOnly
                   />
                 </FormField>
                 <FormField label="Apellidos">
                   <Input
                     value={loadingDni.autores[index] ? 'Cargando...' : autor.apellido}
-                    readOnly={true}
-                    onChange={({ detail }) => handleChange('apellido', detail.value, index, 'autores')}
+                    readOnly
                   />
                 </FormField>
               </ColumnLayout>
               <ColumnLayout columns={2}>
-                <FormField label="DNI">
+                <FormField label="Tipo de Documento">
+                  <Select
+                    selectedOption={{ label: autor.tipoDocumento, value: autor.tipoDocumento }}
+                    options={[
+                      { label: 'DNI', value: 'DNI' },
+                      { label: 'Pasaporte', value: 'Pasaporte' }
+                    ]}
+                    onChange={({ detail }) => {
+                      handleChange('tipoDocumento', detail.selectedOption.value, index, 'autores');
+                      if (index > 0) {
+                        handleDniChange({ value: formData.autores[index].dni }, index, 'autores');
+                      }
+                    }}
+                    disabled={index === 0}
+                  />
+                </FormField>
+                <FormField label="Número de Documento">
                   <Input
                     value={autor.dni}
-                    readOnly={index === 0 ? Boolean(alumnoData?.dni) : false}
+                    readOnly={index === 0}
                     onChange={({ detail }) => handleDniChange(detail, index, 'autores')}
                     type="text"
                     maxLength="8"
@@ -295,9 +315,7 @@ const TesisModal = ({ onClose, alumnoData, onSave, readOnly, fileUrl, formData: 
                 <FormField label="Teléfono">
                   <Input
                     value={loadingDni.autores[index] ? 'Cargando...' : autor.telefono}
-                    readOnly={true}
-                    onChange={({ detail }) => handleChange('telefono', detail.value, index, 'autores')}
-                    type="tel"
+                    readOnly
                   />
                 </FormField>
               </ColumnLayout>
@@ -305,10 +323,7 @@ const TesisModal = ({ onClose, alumnoData, onSave, readOnly, fileUrl, formData: 
                 <FormField label="Email UNMSM">
                   <Input
                     value={loadingDni.autores[index] ? 'Cargando...' : autor.email}
-                    readOnly={true}
-                    onChange={({ detail }) => handleChange('email', detail.value, index, 'autores')}
-                    type="email"
-                    placeholder="nombre.apellido@unmsm.edu.pe"
+                    readOnly
                   />
                 </FormField>
               </ColumnLayout>
@@ -316,6 +331,7 @@ const TesisModal = ({ onClose, alumnoData, onSave, readOnly, fileUrl, formData: 
                 <FormField label="URL de ORCID">
                   <Input
                     value={autor.orcid}
+                    readOnly
                     onChange={({ detail }) => handleOrcidChange(detail, index, 'autores')}
                     inputMode="numeric"
                     placeholder="0000-0000-0000-0000"
@@ -352,15 +368,13 @@ const TesisModal = ({ onClose, alumnoData, onSave, readOnly, fileUrl, formData: 
                 <FormField label="Nombres">
                   <Input
                     value={loadingDni.asesores[index] ? 'Cargando...' : asesor.nombre}
-                    readOnly={Boolean(asesor.nombre) && !loadingDni.asesores[index]}
-                    onChange={({ detail }) => handleChange('nombre', detail.value, index, 'asesores')}
+                    readOnly
                   />
                 </FormField>
                 <FormField label="Apellidos">
                   <Input
                     value={loadingDni.asesores[index] ? 'Cargando...' : asesor.apellido}
-                    readOnly={Boolean(asesor.apellido) && !loadingDni.asesores[index]}
-                    onChange={({ detail }) => handleChange('apellido', detail.value, index, 'asesores')}
+                    readOnly
                   />
                 </FormField>
               </ColumnLayout>
@@ -369,11 +383,22 @@ const TesisModal = ({ onClose, alumnoData, onSave, readOnly, fileUrl, formData: 
                   <Select
                     selectedOption={{ label: asesor.tipoDocumento, value: asesor.tipoDocumento }}
                     options={[
-                      { label: 'DNI', value: 'dni' },
-                      { label: 'Pasaporte', value: 'pasaporte' }
+                      { label: 'DNI', value: 'DNI' },
+                      { label: 'Pasaporte', value: 'Pasaporte' }
                     ]}
-                    onChange={({ detail }) => handleChange('tipoDocumento', detail.selectedOption.value, index, 'asesores')}
-                    disabled={false}
+                    onChange={({ detail }) => {
+                      handleChange('tipoDocumento', detail.selectedOption.value, index, 'asesores');
+                      handleDniChange({ value: formData.asesores[index].dni }, index, 'asesores');
+                    }}
+                  />
+                </FormField>
+                <FormField label="Número de Documento">
+                  <Input
+                    value={asesor.dni}
+                    onChange={({ detail }) => handleDniChange(detail, index, 'asesores')}
+                    type="text"
+                    maxLength="8"
+                    pattern="\d{1,8}"
                   />
                 </FormField>
                 <FormField label="Grado">
@@ -382,40 +407,33 @@ const TesisModal = ({ onClose, alumnoData, onSave, readOnly, fileUrl, formData: 
                     options={[
                       { label: 'Doctor', value: 'Doctor' },
                       { label: 'Magister', value: 'Magister' },
-                      { label: 'Otro', value: 'Otro' }
+                      { label: 'Bachiller', value: 'Bachiller' }
                     ]}
                     onChange={({ detail }) => handleChange('titulo', detail.selectedOption.value, index, 'asesores')}
-                    disabled={false}
                   />
                 </FormField>
               </ColumnLayout>
-              <FormField label="Número de Documento">
-                <Input
-                  value={asesor.dni}
-                  onChange={({ detail }) => handleDniChange(detail, index, 'asesores')}
-                  type="text"
-                  maxLength="8"
-                  pattern="\d{1,8}"
-                />
-              </FormField>
-              <FormField label="URL de ORCID">
-                <Input
-                  value={asesor.orcid}
-                  onChange={({ detail }) => handleOrcidChange(detail, index, 'asesores')}
-                  inputMode="numeric"
-                  placeholder="0000-0000-0000-0000"
-                  maxLength="19"
-                />
-                {asesor.orcid.length === 19 && orcidData.asesores[index] && !asesor.orcidConfirmed && (
-                  <Box>
-                    <div>Usuario ORCID: {orcidData.asesores[index]?.nombre} {orcidData.asesores[index]?.apellido}</div>
-                    <Button onClick={() => handleConfirmOrcid(index, 'asesores')}>Confirmar</Button>
-                  </Box>
-                )}
-                {asesor.orcidConfirmed && (
-                  <StatusIndicator type="success">{orcidData.asesores[index]?.nombre} {orcidData.asesores[index]?.apellido}</StatusIndicator>
-                )}
-              </FormField>
+              <ColumnLayout>
+                <FormField label="URL de ORCID">
+                  <Input
+                    value={asesor.orcid}
+                    readOnly
+                    onChange={({ detail }) => handleOrcidChange(detail, index, 'asesores')}
+                    inputMode="numeric"
+                    placeholder="0000-0000-0000-0000"
+                    maxLength="19"
+                  />
+                  {asesor.orcid.length === 19 && orcidData.asesores[index] && !asesor.orcidConfirmed && (
+                    <Box>
+                      <div>Usuario ORCID: {orcidData.asesores[index]?.nombre} {orcidData.asesores[index]?.apellido}</div>
+                      <Button onClick={() => handleConfirmOrcid(index, 'asesores')}>Confirmar</Button>
+                    </Box>
+                  )}
+                  {asesor.orcidConfirmed && (
+                    <StatusIndicator type="success">{orcidData.asesores[index]?.nombre} {orcidData.asesores[index]?.apellido}</StatusIndicator>
+                  )}
+                </FormField>
+              </ColumnLayout>
             </Container>
           ))}
         </SpaceBetween>
