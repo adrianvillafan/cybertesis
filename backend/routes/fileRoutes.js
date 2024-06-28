@@ -7,7 +7,7 @@ import { getSolicitudesByEstudianteId } from '../queries/solicitudQueries.js';
 
 const router = express.Router();
 const storage = multer.memoryStorage();
-const upload = multer({ storage: storage, limits: { fileSize: 10 * 1024 * 1024 } }); // Límite de 10 MB
+const upload = multer({ storage: storage, limits: { fileSize: 15 * 1024 * 1024 } }); // Límite de 10 MB
 
 const BUCKETS = {
   TESIS: process.env.TESIS_BUCKET_NAME,
@@ -18,14 +18,13 @@ const BUCKETS = {
   TURNITIN: process.env.TURNITIN_BUCKET_NAME
 };
 
-// Functions for file upload, download, view, and delete based on document type
 const getBucketName = (type) => BUCKETS[type.toUpperCase()] || BUCKETS.TESIS;
 
 // ------------------ File Upload Routes ------------------
 
 router.post('/upload', upload.single('file'), async (req, res) => {
   const { file } = req;
-  const { type, fileName } = req.body;
+  const { type, fileUrl } = req.body;
 
   if (!file) {
     return res.status(400).send('No se subió ningún archivo.');
@@ -33,12 +32,13 @@ router.post('/upload', upload.single('file'), async (req, res) => {
 
   try {
     const bucketName = getBucketName(type);
-    const uploadResult = await uploadFileToMinIO(file, bucketName, fileName);
+    const uploadResult = await uploadFileToMinIO(file, bucketName, fileUrl);
     res.json({ message: uploadResult });
   } catch (error) {
     res.status(500).send('Error al subir el archivo: ' + error.message);
   }
 });
+
 
 router.get('/download/:type/:filename', async (req, res) => {
   const { type, filename } = req.params;
@@ -126,7 +126,7 @@ router.delete('/tesis/delete/:id', async (req, res) => {
 
     res.json({ message: 'Tesis eliminada correctamente' });
   } catch (error) {
-    res.status(500).send('Error al eliminar tesis: ' + error.message);
+    res.status (500).send('Error al eliminar tesis: ' + error.message);
   }
 });
 
@@ -163,6 +163,8 @@ router.get('/tesis/student/:studentId', async (req, res) => {
     res.status(500).send('Error al obtener las tesis del estudiante: ' + error.message);
   }
 });
+
+
 
 // ------------------ Document Handling Routes ------------------
 

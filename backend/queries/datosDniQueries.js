@@ -3,6 +3,7 @@ import { executeQuery } from '../config/db.js';
 export function fetchDatosByDni(tipoIdentificacionId, identificacionId, callback) {
     const sql = `
         SELECT 
+            idpersonas,
             tipo_identificacion_id,
             identificacion_id,
             nombre, 

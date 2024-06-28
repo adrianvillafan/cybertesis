@@ -17,6 +17,7 @@ const TesisModal = ({ onClose, alumnoData, onSave, readOnly, fileUrl, formData: 
     grado: initialFormData?.grado || '',
     year: initialFormData?.year || '',
     autores: initialFormData?.autores || [{
+      id: alumnoData?.idpersonas || '',
       nombre: alumnoData?.nombre || '',
       apellido: alumnoData ? `${alumnoData.apellidos_pat} ${alumnoData.apellidos_mat}` : '',
       dni: alumnoData?.identificacion_id || '',
@@ -27,6 +28,7 @@ const TesisModal = ({ onClose, alumnoData, onSave, readOnly, fileUrl, formData: 
       tipoDocumento: alumnoData?.tipo_identificacion_id === 1 ? 'DNI' : 'Pasaporte'
     }],
     asesores: initialFormData?.asesores || [{
+      id: '',
       dni: '',
       nombre: '',
       apellido: '',
@@ -80,6 +82,7 @@ const TesisModal = ({ onClose, alumnoData, onSave, readOnly, fileUrl, formData: 
     setLoadingDni(prev => ({ ...prev, [type]: { ...prev[type], [index]: true } }));
     try {
       const data = await fetchDatosByDni(tipoIdentificacionId, identificacionId);
+      handleChange('id', data.idpersonas, index, type);
       handleChange('nombre', data.nombre || '', index, type);
       handleChange('apellido', data.apellido || '', index, type);
       if (type === 'autores') {
@@ -87,7 +90,7 @@ const TesisModal = ({ onClose, alumnoData, onSave, readOnly, fileUrl, formData: 
         handleChange('email', data.email || '', index, type);
       }
       if (data.orcid) {
-        handleChange('orcid', data.orcid || '', index, type);
+        handleChange('orcid', data.orcid, index, type);
         fetchAndSetDataByOrcid(data.orcid, index, type);
       }
     } catch (error) {
@@ -99,7 +102,6 @@ const TesisModal = ({ onClose, alumnoData, onSave, readOnly, fileUrl, formData: 
 
   const fetchAndSetDataByOrcid = async (orcid, index, type) => {
     try {
-      handleChange('orcid', 'Cargando...', index, type);
       const data = await fetchDatosOrcid(orcid);
       setOrcidData(prev => ({
         ...prev,
@@ -124,7 +126,7 @@ const TesisModal = ({ onClose, alumnoData, onSave, readOnly, fileUrl, formData: 
     if (formData.autores.length < 2) {
       setFormData(prev => ({
         ...prev,
-        autores: [...prev.autores, { nombre: '', apellido: '', dni: '', telefono: '', email: '', orcid: '', orcidConfirmed: false, tipoDocumento: 'DNI' }]
+        autores: [...prev.autores, { id: '', nombre: '', apellido: '', dni: '', telefono: '', email: '', orcid: '', orcidConfirmed: false, tipoDocumento: 'DNI' }]
       }));
     }
   };
@@ -140,7 +142,7 @@ const TesisModal = ({ onClose, alumnoData, onSave, readOnly, fileUrl, formData: 
     if (formData.asesores.length < 2) {
       setFormData(prev => ({
         ...prev,
-        asesores: [...prev.asesores, { nombre: '', apellido: '', dni: '', titulo: 'Magister', orcid: '', orcidConfirmed: false, tipoDocumento: 'DNI' }]
+        asesores: [...prev.asesores, { id: '', nombre: '', apellido: '', dni: '', titulo: 'Magister', orcid: '', orcidConfirmed: false, tipoDocumento: 'DNI' }]
       }));
     }
   };
@@ -160,6 +162,7 @@ const TesisModal = ({ onClose, alumnoData, onSave, readOnly, fileUrl, formData: 
     } else {
       handleChange('nombre', 'Cargando...', index, type);
       handleChange('apellido', 'Cargando...', index, type);
+      handleChange('orcid', 'Cargando...', index, type);
       if (type === 'autores') {
         handleChange('telefono', 'Cargando...', index, type);
         handleChange('email', 'Cargando...', index, type);
@@ -190,10 +193,37 @@ const TesisModal = ({ onClose, alumnoData, onSave, readOnly, fileUrl, formData: 
     setFormData(prev => ({ ...prev, [type]: newEntries }));
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
+    console.log("formData:", formData);
+    console.log("file:", file);
     if (isFormComplete()) {
-      onSave({ formData, fileUrl });
-      onClose();
+      try {
+        // Subir el archivo
+        console.log("Tratando de subir archivo...");
+        const uploadResponse = await uploadTesisFile(file, localFileUrl);
+        const { fileName } = uploadResponse;
+        console.log("uploadResponse:", uploadResponse);
+
+        // Guardar los detalles de la tesis
+        const tesisData = {
+          ...formData,
+          file_url: fileName,
+          autor1: formData.autores[0].id,
+          autor2: formData.autores[1]?.id || null,
+          asesor1: formData.asesores[0].id,
+          asesor2: formData.asesores[1]?.id || null
+        };
+
+        const saveResponse = await saveTesis(tesisData);
+
+        // Actualizar el documento
+        await updateDocumentos(alumnoData.documento_id, saveResponse.tesisId);
+
+        onSave({ formData, fileUrl });
+        onClose();
+      } catch (error) {
+        alert("Error al guardar la tesis: " + error.message);
+      }
     } else {
       alert("Todos los campos deben estar completos.");
     }
@@ -330,7 +360,7 @@ const TesisModal = ({ onClose, alumnoData, onSave, readOnly, fileUrl, formData: 
               <ColumnLayout>
                 <FormField label="URL de ORCID">
                   <Input
-                    value={autor.orcid}
+                    value={loadingDni.autores[index] ? 'Cargando...' : autor.orcid}
                     readOnly
                     onChange={({ detail }) => handleOrcidChange(detail, index, 'autores')}
                     inputMode="numeric"
@@ -416,7 +446,7 @@ const TesisModal = ({ onClose, alumnoData, onSave, readOnly, fileUrl, formData: 
               <ColumnLayout>
                 <FormField label="URL de ORCID">
                   <Input
-                    value={asesor.orcid}
+                    value={loadingDni.asesores[index] ? 'Cargando...' : asesor.orcid}
                     readOnly
                     onChange={({ detail }) => handleOrcidChange(detail, index, 'asesores')}
                     inputMode="numeric"

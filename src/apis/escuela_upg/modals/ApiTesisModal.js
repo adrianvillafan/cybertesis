@@ -3,13 +3,20 @@ const getToken = () => localStorage.getItem('token');
 // Función para crear o editar una tesis
 export const saveTesis = async (tesisData) => {
   try {
-    const response = await axios.post('http://localhost:3000/api/tesis/insert', tesisData, {
+    const response = await fetch('http://localhost:3000/api/tesis/insert', {
+      method: 'POST',
       headers: {
+        'Content-Type': 'application/json',
         'Authorization': `Bearer ${getToken()}`,
-        'Content-Type': 'application/json'
-      }
+      },
+      body: JSON.stringify(tesisData),
     });
-    return response.data;
+
+    if (response.ok) {
+      return response.json();
+    } else {
+      throw new Error('No se pudo guardar la tesis');
+    }
   } catch (error) {
     console.error('Error al guardar la tesis:', error);
     throw error;
@@ -32,24 +39,30 @@ export const fetchTesisById = async (tesisId) => {
 };
 
 // Función para cargar el archivo PDF a MinIO
-export const uploadTesisFile = async (file, fileName) => {
+export const uploadTesisFile = async (file, fileUrl) => {
   const formData = new FormData();
   formData.append('file', file);
-  formData.append('fileName', fileName);
+  formData.append('fileUrl', fileUrl);
+  formData.append('type', 'tesis');
 
   try {
-    const response = await axios.post('http://localhost:3000/api/files/upload', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-        'Authorization': `Bearer ${getToken()}`
-      }
+    const response = await fetch('http://localhost:3000/api/files/upload', {
+      method: 'POST',
+      body: formData,
+      headers: { 'Authorization': `Bearer ${getToken()}` },
     });
-    return response.data;
+
+    if (response.ok) {
+      return response.json();
+    } else {
+      throw new Error('No se pudo cargar el archivo de tesis');
+    }
   } catch (error) {
-    console.error('Error al subir el archivo:', error);
+    console.error('Error al cargar el archivo de tesis:', error);
     throw error;
   }
 };
+
 
 // Función para obtener la URL de visualización del archivo PDF desde MinIO
 export const fetchTesisFileUrl = async (type, filename) => {
