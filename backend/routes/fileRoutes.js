@@ -22,22 +22,29 @@ const getBucketName = (type) => BUCKETS[type.toUpperCase()] || BUCKETS.TESIS;
 
 // ------------------ File Upload Routes ------------------
 
-router.post('/upload', upload.single('file'), async (req, res) => {
-  const { file } = req;
+router.post('/upload', async (req, res) => {
   const { type, fileUrl } = req.body;
+  let data = Buffer.from('');
 
-  if (!file) {
-    return res.status(400).send('No se subió ningún archivo.');
-  }
+  req.on('data', chunk => {
+    data = Buffer.concat([data, chunk]);
+  });
 
-  try {
-    const bucketName = getBucketName(type);
-    const uploadResult = await uploadFileToMinIO(file, bucketName, fileUrl);
-    res.json({ message: uploadResult });
-  } catch (error) {
-    res.status(500).send('Error al subir el archivo: ' + error.message);
-  }
+  req.on('end', async () => {
+    if (data.length === 0) {
+      return res.status(400).send('No se subió ningún archivo.');
+    }
+
+    try {
+      const bucketName = getBucketName(type);
+      const uploadResult = await uploadFileToMinIO(data, bucketName, fileUrl);
+      res.json({ message: uploadResult });
+    } catch (error) {
+      res.status(500).send('Error al subir el archivo: ' + error.message);
+    }
+  });
 });
+
 
 
 router.get('/download/:type/:filename', async (req, res) => {
