@@ -122,6 +122,7 @@ const DocumentosRequeridos = ({
           readOnly={!selectedDoc.editing}
           fileUrl={selectedDoc.editing ? '' : savedDocuments['Tesis']?.file_url || ''}
           formData={selectedDoc.editing ? {} : savedDocuments['Tesis']?.formData || {}}
+          documentos = {documentos}
         />
       )}
       {selectedDoc?.type === 'Acta de Sustentación' && (
@@ -132,6 +133,7 @@ const DocumentosRequeridos = ({
           readOnly={!selectedDoc.editing}
           fileUrl={selectedDoc.editing ? '' : savedDocuments['Acta de Sustentación']?.file_url || ''}
           formData={selectedDoc.editing ? {} : savedDocuments['Acta de Sustentación']?.formData || {}}
+          documentos = {documentos}
         />
       )}
       {selectedDoc?.type === 'Certificado de Similitud' && (
@@ -141,6 +143,7 @@ const DocumentosRequeridos = ({
           onSave={(data) => handleSaveDocument('Certificado de Similitud', data)}
           readOnly={!selectedDoc.editing}
           fileUrl={selectedDoc.editing ? '' : savedDocuments['Certificado de Similitud']?.file_url || ''}
+          documentos = {documentos}
         />
       )}
       {selectedDoc?.type === 'Autorización para el depósito de obra en Cybertesis' && (
@@ -150,6 +153,7 @@ const DocumentosRequeridos = ({
           onSave={(data) => handleSaveDocument('Autorización para el depósito de obra en Cybertesis', data)}
           readOnly={!selectedDoc.editing}
           fileUrl={selectedDoc.editing ? '' : savedDocuments['Autorización para el depósito de obra en Cybertesis']?.file_url || ''}
+          documentos = {documentos}
         />
       )}
       {selectedDoc?.type === 'Hoja de Metadatos' && (
@@ -160,6 +164,7 @@ const DocumentosRequeridos = ({
           onSave={(data) => handleSaveDocument('Hoja de Metadatos', data)}
           readOnly={!selectedDoc.editing}
           fileUrl={selectedDoc.editing ? '' : savedDocuments['Hoja de Metadatos']?.file_url || ''}
+          documentos = {documentos}
         />
       )}
       {selectedDoc?.type === 'Reporte de Turnitin' && (
@@ -168,6 +173,7 @@ const DocumentosRequeridos = ({
           onSave={(data) => handleSaveDocument('Reporte de Turnitin', data)}
           readOnly={!selectedDoc.editing}
           fileUrl={selectedDoc.editing ? '' : savedDocuments['Reporte de Turnitin']?.file_url || ''}
+          documentos = {documentos}
         />
       )}
     </Box>

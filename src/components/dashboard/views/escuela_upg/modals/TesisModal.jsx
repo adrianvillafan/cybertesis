@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import ModalTwoCol from './ModalTwoCol';
 import { Button, FormField, Input, Select, SpaceBetween, Container, Header, ColumnLayout, Box, StatusIndicator } from '@cloudscape-design/components';
-import { fetchDatosByDni, fetchDatosOrcid, saveTesis, fetchTesisById, uploadTesisFile, fetchTesisFileUrl, updateDocumentos } from '../../../../../../api';
+import { fetchDatosByDni, fetchDatosOrcid, saveTesis, fetchTesisById, uploadTesisFile, fetchTesisFileUrl, deleteTesis } from '../../../../../../api';
 
-const TesisModal = ({ onClose, alumnoData, onSave, readOnly, fileUrl, formData: initialFormData }) => {
+const TesisModal = ({ onClose, alumnoData, onSave, readOnly, fileUrl, formData: initialFormData, documentos }) => {
   const [file, setFile] = useState(null);
   const [localFileUrl, setLocalFileUrl] = useState(fileUrl);
   const [showForm, setShowForm] = useState(false);
   const [loadingDni, setLoadingDni] = useState({ autores: {}, asesores: {} });
   const [orcidData, setOrcidData] = useState({ autores: {}, asesores: {} });
   const [formData, setFormData] = useState({
+    facultad_id: alumnoData?.facultad_id || '',
+    escuela_id: alumnoData?.escuela_id || '',
     facultad: alumnoData?.facultad_nombre || '',
     escuela: alumnoData?.escuela_nombre || '',
     titulo: initialFormData?.titulo || '',
@@ -38,6 +40,36 @@ const TesisModal = ({ onClose, alumnoData, onSave, readOnly, fileUrl, formData: 
       tipoDocumento: 'DNI'
     }]
   });
+
+  useEffect(() => {
+    if (readOnly) {
+      fetchTesisById(documentos.tesis_id).then((data) => {
+        const autores = [
+          { id: data.id_autor1, dni: '', nombre: '', apellido: '', telefono: '', email: '', orcid: '', orcidConfirmed: false, tipoDocumento: 'DNI' },
+          data.id_autor2 ? { id: data.id_autor2, dni: '', nombre: '', apellido: '', telefono: '', email: '', orcid: '', orcidConfirmed: false, tipoDocumento: 'DNI' } : null
+        ].filter(Boolean);
+        const asesores = [
+          { id: data.id_asesor1, dni: '', nombre: '', apellido: '', titulo: 'Magister', orcid: '', orcidConfirmed: false, tipoDocumento: 'DNI' },
+          data.id_asesor2 ? { id: data.id_asesor2, dni: '', nombre: '', apellido: '', titulo: 'Magister', orcid: '', orcidConfirmed: false, tipoDocumento: 'DNI' } : null
+        ].filter(Boolean);
+  
+        setFormData({
+          facultad_id: data.id_facultad,
+          escuela_id: data.id_escuela,
+          facultad: data.facultad_nombre,
+          escuela: data.escuela_nombre,
+          titulo: data.titulo,
+          tipo: data.tipo_tesis,
+          grado: data.grado_academico,
+          year: data.año,
+          autores,
+          asesores
+        });
+        setLocalFileUrl(data.file_url);
+      });
+    }
+  }, [readOnly, documentos.tesis_id]);
+  
 
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: 6 }, (_, i) => currentYear - i);
@@ -196,14 +228,23 @@ const TesisModal = ({ onClose, alumnoData, onSave, readOnly, fileUrl, formData: 
   const handleSave = async () => {
     console.log("formData:", formData);
     console.log("file:", file);
+  
     if (isFormComplete()) {
       try {
+        // Define the new file name
+        const newFileName = `${formData.autores[0].dni}_${formData.tipo}_${formData.grado}_${formData.year}.pdf`;
+        console.log("newFileName:", newFileName);
+  
+        // Create a new file object with the new name
+        const newFile = new File([file], newFileName, { type: file.type });
+        console.log("newFile:", newFile);
+  
         // Subir el archivo
         console.log("Tratando de subir archivo...");
-        const uploadResponse = await uploadTesisFile(file, localFileUrl);
+        const uploadResponse = await uploadTesisFile(newFile);
         const { fileName } = uploadResponse;
         console.log("uploadResponse:", uploadResponse);
-
+  
         // Guardar los detalles de la tesis
         const tesisData = {
           ...formData,
@@ -211,14 +252,12 @@ const TesisModal = ({ onClose, alumnoData, onSave, readOnly, fileUrl, formData: 
           autor1: formData.autores[0].id,
           autor2: formData.autores[1]?.id || null,
           asesor1: formData.asesores[0].id,
-          asesor2: formData.asesores[1]?.id || null
+          asesor2: formData.asesores[1]?.id || null,
+          documentos_id: documentos.id
         };
-
+  
         const saveResponse = await saveTesis(tesisData);
-
-        // Actualizar el documento
-        await updateDocumentos(alumnoData.documento_id, saveResponse.tesisId);
-
+  
         onSave({ formData, fileUrl });
         onClose();
       } catch (error) {
@@ -229,15 +268,32 @@ const TesisModal = ({ onClose, alumnoData, onSave, readOnly, fileUrl, formData: 
     }
   };
 
+  const handleDelete = async () => {
+    try {
+      await deleteTesis(documentos.tesis_id);
+      onSave(); // Update the state after deletion
+      onClose();
+    } catch (error) {
+      alert("Error al eliminar la tesis: " + error.message);
+    }
+  };
+
   return (
     <ModalTwoCol
       onClose={onClose}
-      headerText="Subir Tesis"
+      headerText={readOnly ? "Ver Tesis" : "Subir Tesis"}
       footerButtons={
-        <>
-          <Button onClick={onClose} variant="secondary">Cancelar</Button>
-          <Button onClick={handleSave} disabled={!isFormComplete()}>Guardar</Button>
-        </>
+        readOnly ? (
+          <>
+            <Button onClick={onClose} variant="secondary">Cerrar</Button>
+            <Button onClick={handleDelete} variant="danger">Eliminar</Button>
+          </>
+        ) : (
+          <>
+            <Button onClick={onClose} variant="secondary">Cancelar</Button>
+            <Button onClick={handleSave} disabled={!isFormComplete()}>Guardar</Button>
+          </>
+        )
       }
       file={file}
       setFile={setFile}
@@ -257,7 +313,7 @@ const TesisModal = ({ onClose, alumnoData, onSave, readOnly, fileUrl, formData: 
                 <Input value={formData.escuela} readOnly />
               </FormField>
               <FormField label="Título">
-                <Input value={formData.titulo} onChange={({ detail }) => setFormData(prev => ({ ...prev, titulo: detail.value }))} />
+                <Input value={formData.titulo} onChange={({ detail }) => setFormData(prev => ({ ...prev, titulo: detail.value }))} readOnly={readOnly} />
               </FormField>
               <ColumnLayout columns={3}>
                 <FormField label="Tipo">
@@ -268,6 +324,7 @@ const TesisModal = ({ onClose, alumnoData, onSave, readOnly, fileUrl, formData: 
                       { label: 'Trabajo de investigación', value: 'Trabajo de investigación' }
                     ]}
                     onChange={({ detail }) => setFormData(prev => ({ ...prev, tipo: detail.selectedOption.value }))}
+                    disabled={readOnly}
                   />
                 </FormField>
                 <FormField label="Grado">
@@ -275,6 +332,7 @@ const TesisModal = ({ onClose, alumnoData, onSave, readOnly, fileUrl, formData: 
                     selectedOption={{ label: formData.grado, value: formData.grado }}
                     options={gradoOptions}
                     onChange={({ detail }) => setFormData(prev => ({ ...prev, grado: detail.selectedOption.value }))}
+                    disabled={readOnly}
                   />
                 </FormField>
                 <FormField label="Año">
@@ -282,6 +340,7 @@ const TesisModal = ({ onClose, alumnoData, onSave, readOnly, fileUrl, formData: 
                     selectedOption={{ label: formData.year, value: formData.year }}
                     options={years.map(year => ({ label: year.toString(), value: year.toString() }))}
                     onChange={({ detail }) => setFormData(prev => ({ ...prev, year: detail.selectedOption.value }))}
+                    disabled={readOnly}
                   />
                 </FormField>
               </ColumnLayout>
@@ -292,10 +351,10 @@ const TesisModal = ({ onClose, alumnoData, onSave, readOnly, fileUrl, formData: 
               key={index}
               header={
                 <Header variant="h5" actions={
-                  (index > 0 &&
+                  (!readOnly && index > 0 &&
                     <Button onClick={() => removeAuthor(index)} variant="icon" iconName="close" ariaLabel="Eliminar autor" />
                   ) || (
-                    index === 0 &&
+                    !readOnly && index === 0 &&
                     <Button onClick={addAuthor} disabled={formData.autores.length >= 2}>Agregar Autor</Button>)
                 }> {formData.autores.length === 1 ? "Datos del Autor" : `Datos del Autor ${index + 1}`}
                 </Header>
@@ -329,13 +388,13 @@ const TesisModal = ({ onClose, alumnoData, onSave, readOnly, fileUrl, formData: 
                         handleDniChange({ value: formData.autores[index].dni }, index, 'autores');
                       }
                     }}
-                    disabled={index === 0}
+                    disabled={index === 0 || readOnly}
                   />
                 </FormField>
                 <FormField label="Número de Documento">
                   <Input
                     value={autor.dni}
-                    readOnly={index === 0}
+                    readOnly={index === 0 || readOnly}
                     onChange={({ detail }) => handleDniChange(detail, index, 'autores')}
                     type="text"
                     maxLength="8"
@@ -385,10 +444,10 @@ const TesisModal = ({ onClose, alumnoData, onSave, readOnly, fileUrl, formData: 
               key={index}
               header={
                 <Header variant="h5" actions={
-                  (index > 0 &&
+                  (!readOnly && index > 0 &&
                     <Button onClick={() => removeAdvisor(index)} variant="icon" iconName="close" ariaLabel="Eliminar asesor" />
                   ) || (
-                    index === 0 &&
+                    !readOnly && index === 0 &&
                     <Button onClick={addAdvisor} disabled={formData.asesores.length >= 2}>Agregar Asesor</Button>)
                 }> {formData.asesores.length === 1 ? "Datos del Asesor" : `Datos del Asesor ${index + 1}`}
                 </Header>
@@ -420,6 +479,7 @@ const TesisModal = ({ onClose, alumnoData, onSave, readOnly, fileUrl, formData: 
                       handleChange('tipoDocumento', detail.selectedOption.value, index, 'asesores');
                       handleDniChange({ value: formData.asesores[index].dni }, index, 'asesores');
                     }}
+                    disabled={readOnly}
                   />
                 </FormField>
                 <FormField label="Número de Documento">
@@ -429,6 +489,7 @@ const TesisModal = ({ onClose, alumnoData, onSave, readOnly, fileUrl, formData: 
                     type="text"
                     maxLength="8"
                     pattern="\d{1,8}"
+                    readOnly={readOnly}
                   />
                 </FormField>
                 <FormField label="Grado">
@@ -440,6 +501,7 @@ const TesisModal = ({ onClose, alumnoData, onSave, readOnly, fileUrl, formData: 
                       { label: 'Bachiller', value: 'Bachiller' }
                     ]}
                     onChange={({ detail }) => handleChange('titulo', detail.selectedOption.value, index, 'asesores')}
+                    disabled={readOnly}
                   />
                 </FormField>
               </ColumnLayout>

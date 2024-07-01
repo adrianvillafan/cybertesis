@@ -5,8 +5,8 @@ import fetch from 'node-fetch';
 
 // Función para subir un archivo PDF a MinIO
 export const uploadFileToMinIO = async (file, bucketName, fileName) => {
-  if (file.mimetype !== 'application/pdf' || file.size > 10485760) {
-    throw new Error('Archivo debe ser PDF y menor a 10 MB.');
+  if (file.mimetype !== 'application/pdf' || file.size > 20971520) { // 20 MB 
+    throw new Error('Archivo debe ser PDF y menor a 20 MB.');
   }
 
   const params = {

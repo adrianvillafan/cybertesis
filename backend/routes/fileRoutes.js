@@ -2,50 +2,50 @@ import express from 'express';
 import multer from 'multer';
 import { uploadFileToMinIO, getDownloadUrlFromMinIO, deleteFileFromMinIO, getViewUrlForDocument } from '../minio/controllers/minioController.js';
 import { createOrFetchDocumentos } from '../queries/documentQueries.js';
-import { insertTesis, updateTesis, deleteTesisById, getTesisById, getTesisByStudentId } from '../queries/tesisQueries.js';
+import { insertTesis, updateTesis, deleteTesisById, getTesisById, getTesisByStudentId, updateDocumentos } from '../queries/tesisQueries.js';
 import { getSolicitudesByEstudianteId } from '../queries/solicitudQueries.js';
 
 const router = express.Router();
 const storage = multer.memoryStorage();
-const upload = multer({ storage: storage, limits: { fileSize: 15 * 1024 * 1024 } }); // Límite de 10 MB
+const upload = multer({ storage: storage, limits: { fileSize: 20 * 1024 * 1024 } });
 
 const BUCKETS = {
-  TESIS: process.env.TESIS_BUCKET_NAME,
-  ACTAS: process.env.ACTAS_BUCKET_NAME,
-  CERTIFICADOS: process.env.CERTIFICADOS_BUCKET_NAME,
-  CYBER: process.env.CYBER_BUCKET_NAME,
-  METADATOS: process.env.METADATOS_BUCKET_NAME,
-  TURNITIN: process.env.TURNITIN_BUCKET_NAME
+  TESIS: process.env.BUCKET_TESIS,
+  ACTAS: process.env.BUCKET_ACTAS,
+  CERTIFICADOS: process.env.BUCKET_CERTIFICADOS,
+  CYBER: process.env.BUCKET_CYBER,
+  METADATOS: process.env.BUCKET_METADATOS,
+  TURNITIN: process.env.BUCKET_TURNITIN
 };
 
-const getBucketName = (type) => BUCKETS[type.toUpperCase()] || BUCKETS.TESIS;
+const getBucketName = (type) => BUCKETS[type];
 
-// ------------------ File Upload Routes ------------------
+router.post('/upload', upload.single('file'), async (req, res) => {
+  const { file } = req;
+  const { type } = req.body;
 
-router.post('/upload', async (req, res) => {
-  const { type, fileUrl } = req.body;
-  let data = Buffer.from('');
+  console.log('file', file);
+  console.log('type', type);
 
-  req.on('data', chunk => {
-    data = Buffer.concat([data, chunk]);
-  });
+  if (!file) {
+    return res.status(400).send('No se subió ningún archivo.');
+  }
 
-  req.on('end', async () => {
-    if (data.length === 0) {
-      return res.status(400).send('No se subió ningún archivo.');
+  try {
+    const bucketName = getBucketName(type);
+    console.log('bucketNameReal', process.env.BUCKET_TESIS);
+    console.log('bucketName', bucketName);
+
+    if (!bucketName) {
+      throw new Error('No se proporcionó un bucket válido.');
     }
 
-    try {
-      const bucketName = getBucketName(type);
-      const uploadResult = await uploadFileToMinIO(data, bucketName, fileUrl);
-      res.json({ message: uploadResult });
-    } catch (error) {
-      res.status(500).send('Error al subir el archivo: ' + error.message);
-    }
-  });
+    const uploadResult = await uploadFileToMinIO(file, bucketName, file.originalname);
+    res.json({ message: uploadResult, fileName: file.originalname });
+  } catch (error) {
+    res.status(500).send('Error al subir el archivo: ' + error.message);
+  }
 });
-
-
 
 router.get('/download/:type/:filename', async (req, res) => {
   const { type, filename } = req.params;
@@ -77,10 +77,9 @@ router.delete('/delete/:type/:filename', async (req, res) => {
   try {
     const bucketName = getBucketName(type);
     await deleteFileFromMinIO(bucketName, filename);
-    await deleteDocumentByFilename(filename);
-    res.send({ message: 'Archivo y registro eliminados exitosamente' });
+    res.send({ message: 'Archivo eliminado correctamente' });
   } catch (error) {
-    res.status(500).send('Error al eliminar el archivo y el registro: ' + error.message);
+    res.status(500).send('Error al eliminar el archivo: ' + error.message);
   }
 });
 
@@ -88,7 +87,7 @@ router.delete('/delete/:type/:filename', async (req, res) => {
 
 router.post('/tesis/insert', async (req, res) => {
   const tesisDetails = req.body;
-
+  console.log('tesisDetails', tesisDetails);
   try {
     insertTesis(tesisDetails, (err, tesisId) => {
       if (err) {
@@ -123,7 +122,13 @@ router.delete('/tesis/delete/:id', async (req, res) => {
   const { id } = req.params;
 
   try {
-    const tesis = await getTesisById(id);
+    const tesis = await new Promise((resolve, reject) => {
+      getTesisById(id, (err, result) => {
+        if (err) reject(err);
+        else resolve(result);
+      });
+    });
+
     if (!tesis) {
       return res.status(404).send('Tesis no encontrada.');
     }
@@ -133,7 +138,7 @@ router.delete('/tesis/delete/:id', async (req, res) => {
 
     res.json({ message: 'Tesis eliminada correctamente' });
   } catch (error) {
-    res.status (500).send('Error al eliminar tesis: ' + error.message);
+    res.status(500).send('Error al eliminar tesis: ' + error.message);
   }
 });
 
@@ -141,13 +146,19 @@ router.get('/tesis/:id', async (req, res) => {
   const { id } = req.params;
 
   try {
-    getTesisById(id, (err, tesis) => {
+    getTesisById(id, async (err, tesis) => {
       if (err) {
         res.status(500).send('Error al obtener detalles de tesis: ' + err.message);
       } else if (!tesis) {
         res.status(404).send('Tesis no encontrada.');
       } else {
-        res.json(tesis);
+        try {
+          const fileUrl = await getDownloadUrlFromMinIO('tesis', tesis.file_url);
+          tesis.file_url = fileUrl;
+          res.json(tesis);
+        } catch (fileError) {
+          res.status(500).send('Error al obtener la URL del archivo: ' + fileError.message);
+        }
       }
     });
   } catch (error) {
@@ -170,8 +181,6 @@ router.get('/tesis/student/:studentId', async (req, res) => {
     res.status(500).send('Error al obtener las tesis del estudiante: ' + error.message);
   }
 });
-
-
 
 // ------------------ Document Handling Routes ------------------
 
@@ -198,7 +207,5 @@ router.get('/solicitudes/:estudianteId', (req, res) => {
     }
   });
 });
-
-
 
 export default router;
