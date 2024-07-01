@@ -209,7 +209,6 @@ const ActaSustentacionModal = ({ onClose, asesores, onSave }) => {
                   <Input
                     value={loadingDni.miembros[index] ? 'Cargando...' : miembro.nombre}
                     readOnly
-                    
                   />
                 </FormField>
                 <FormField label="Apellidos">

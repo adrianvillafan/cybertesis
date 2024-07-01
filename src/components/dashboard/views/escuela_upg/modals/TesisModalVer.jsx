@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import ModalTwoCol from './ModalTwoCol';
-import { Button, FormField, Input, Select, SpaceBetween, Container, Header, ColumnLayout, Box, StatusIndicator } from '@cloudscape-design/components';
-import { fetchDatosByDni, fetchDatosOrcid, fetchTesisById, fetchTesisFileUrl } from '../../../../../../api';
+import { Button, FormField, Input, Select, SpaceBetween, Container, Header, ColumnLayout, Box } from '@cloudscape-design/components';
+import { fetchDatosByDni, fetchTesisById } from '../../../../../../api';
 
 const TesisModalVer = ({ onClose, documentos }) => {
   const [formData, setFormData] = useState({
@@ -15,8 +15,8 @@ const TesisModalVer = ({ onClose, documentos }) => {
     asesores: []
   });
   const [fileUrl, setFileUrl] = useState('');
-  const [orcidData, setOrcidData] = useState({ autores: {}, asesores: {} });
-  console.log('formData', documentos);
+  const [dataLoaded, setDataLoaded] = useState({ autores: false, asesores: false }); // Nuevo estado
+
   useEffect(() => {
     if (documentos.tesis_id) {
       fetchTesisById(documentos.tesis_id).then((data) => {
@@ -36,7 +36,6 @@ const TesisModalVer = ({ onClose, documentos }) => {
               telefono: '',
               email: '',
               orcid: '',
-              orcidConfirmed: false,
               tipoDocumento: 'DNI'
             },
             ...(data.id_autor2 ? [{
@@ -47,7 +46,6 @@ const TesisModalVer = ({ onClose, documentos }) => {
               telefono: '',
               email: '',
               orcid: '',
-              orcidConfirmed: false,
               tipoDocumento: 'DNI'
             }] : [])
           ],
@@ -59,7 +57,6 @@ const TesisModalVer = ({ onClose, documentos }) => {
               apellido: '',
               titulo: '',
               orcid: '',
-              orcidConfirmed: false,
               tipoDocumento: 'DNI'
             },
             ...(data.id_asesor2 ? [{
@@ -69,7 +66,6 @@ const TesisModalVer = ({ onClose, documentos }) => {
               apellido: '',
               titulo: '',
               orcid: '',
-              orcidConfirmed: false,
               tipoDocumento: 'DNI'
             }] : [])
           ]
@@ -91,7 +87,6 @@ const TesisModalVer = ({ onClose, documentos }) => {
       }
       if (data.orcid) {
         handleChange('orcid', data.orcid, index, type);
-        fetchAndSetDataByOrcid(data.orcid, index, type);
       }
     } catch (error) {
       console.error('Error al obtener datos del DNI:', error);
@@ -99,18 +94,24 @@ const TesisModalVer = ({ onClose, documentos }) => {
   };
 
   useEffect(() => {
-    formData.autores.forEach((autor, index) => {
-      if (autor.dni) {
-        fetchAndSetDataByDni(1, autor.dni, index, 'autores');
-      }
-    });
+    if (!dataLoaded.autores && formData.autores.length > 0) {
+      formData.autores.forEach((autor, index) => {
+        if (autor.dni) {
+          fetchAndSetDataByDni(1, autor.dni, index, 'autores');
+        }
+      });
+      setDataLoaded(prev => ({ ...prev, autores: true })); // Marcar autores como cargados
+    }
 
-    formData.asesores.forEach((asesor, index) => {
-      if (asesor.dni) {
-        fetchAndSetDataByDni(1, asesor.dni, index, 'asesores');
-      }
-    });
-  }, [formData.autores, formData.asesores]);
+    if (!dataLoaded.asesores && formData.asesores.length > 0) {
+      formData.asesores.forEach((asesor, index) => {
+        if (asesor.dni) {
+          fetchAndSetDataByDni(1, asesor.dni, index, 'asesores');
+        }
+      });
+      setDataLoaded(prev => ({ ...prev, asesores: true })); // Marcar asesores como cargados
+    }
+  }, [formData.autores, formData.asesores, dataLoaded]);
 
   const handleChange = (key, value, index, type = 'autores') => {
     const newEntries = [...formData[type]];
@@ -226,12 +227,6 @@ const TesisModalVer = ({ onClose, documentos }) => {
                     value={autor.orcid}
                     readOnly
                   />
-                  {autor.orcid.length === 19 && orcidData.autores[index] && !autor.orcidConfirmed && (
-                    <Box>
-                      <div>Usuario ORCID: {orcidData.autores[index]?.nombre} {orcidData.autores[index]?.apellido}</div>
-                      <StatusIndicator type="success">{orcidData.autores[index]?.nombre} {orcidData.autores[index]?.apellido}</StatusIndicator>
-                    </Box>
-                  )}
                 </FormField>
               </ColumnLayout>
             </Container>
@@ -266,12 +261,6 @@ const TesisModalVer = ({ onClose, documentos }) => {
                     readOnly
                   />
                 </FormField>
-                <FormField label="Número de Documento">
-                  <Input
-                    value={asesor.dni}
-                    readOnly
-                  />
-                </FormField>
                 <FormField label="Grado">
                   <Select
                     selectedOption={{ label: asesor.titulo, value: asesor.titulo }}
@@ -290,12 +279,6 @@ const TesisModalVer = ({ onClose, documentos }) => {
                     value={asesor.orcid}
                     readOnly
                   />
-                  {asesor.orcid.length === 19 && orcidData.asesores[index] && !asesor.orcidConfirmed && (
-                    <Box>
-                      <div>Usuario ORCID: {orcidData.asesores[index]?.nombre} {orcidData.asesores[index]?.apellido}</div>
-                      <StatusIndicator type="success">{orcidData.asesores[index]?.nombre} {orcidData.asesores[index]?.apellido}</StatusIndicator>
-                    </Box>
-                  )}
                 </FormField>
               </ColumnLayout>
             </Container>

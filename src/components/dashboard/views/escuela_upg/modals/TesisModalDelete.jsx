@@ -13,6 +13,7 @@ const TesisModalDelete = ({ visible, onClose, onConfirm, documentos }) => {
         .catch((error) => console.error('Error al obtener los detalles de la tesis:', error));
     }
   }, [documentos]);
+  console.log('Documentos:', tesisDetails);
 
   const handleDelete = async () => {
     setIsDeleting(true);

@@ -3,15 +3,18 @@ import { Box, Header, Button, Link, Table, SpaceBetween, StatusIndicator } from 
 import TesisModal from '../modals/TesisModal';
 import TesisModalVer from '../modals/TesisModalVer';
 import ActaSustentacionModal from '../modals/ActaSustentacionModal';
+import ActaSustentacionModalVer from '../modals/ActaSustentacionModalVer';
+import ActaSustentacionModalDelete from '../modals/ActaSustentacionModalDelete';
 import CertificadoSimilitud from '../modals/CertificadoSimilitud';
 import AutoCyber from '../modals/AutoCyber';
 import MetadatosModal from '../modals/Metadatos';
 import RepTurnitinModal from '../modals/RepTurnitin';
 import TesisModalDelete from '../modals/TesisModalDelete';
-import { deleteTesis, createOrFetchDocumentos } from '../../../../../../api';
+import { createOrFetchDocumentos } from '../../../../../../api';
 
 const DocumentosRequeridos = ({
   documentos,
+  setDocumentos, // Agregar esta prop para actualizar documentos
   handleNextStep,
   setErrorMessage,
   alumnoData,
@@ -31,6 +34,7 @@ const DocumentosRequeridos = ({
   const fetchDocumentos = async () => {
     try {
       const updatedDocumentos = await createOrFetchDocumentos(alumnoData.grado_id, alumnoData.id, alumnoData.usuarioCarga_id);
+      console.log('Documentos actualizados:', updatedDocumentos);
       setSavedDocuments({
         'Tesis': updatedDocumentos.tesis_id,
         'Acta de Sustentación': updatedDocumentos.actasust_id,
@@ -39,6 +43,7 @@ const DocumentosRequeridos = ({
         'Hoja de Metadatos': updatedDocumentos.metadatos_id,
         'Reporte de Turnitin': updatedDocumentos.repturnitin_id
       });
+      setDocumentos(updatedDocumentos); // Actualizar la variable documentos
     } catch (error) {
       console.error('Error al actualizar los documentos:', error);
     }
@@ -99,6 +104,7 @@ const DocumentosRequeridos = ({
       await deleteTesis(savedDocuments[deleteDocType]);
       setSavedDocuments(prev => ({ ...prev, [deleteDocType]: null }));
       setShowDeleteConfirmation(false);
+      await fetchDocumentos(); // Actualiza los documentos después de eliminar
     } catch (error) {
       setErrorMessage('Error al eliminar el documento: ' + error.message);
       setShowDeleteConfirmation(false);
@@ -161,24 +167,25 @@ const DocumentosRequeridos = ({
         ) : (
           <TesisModalVer
             onClose={handleModalClose}
-            alumnoData={alumnoData}
-            readOnly={true}
-            fileUrl={savedDocuments['Tesis']?.file_url || ''}
-            formData={savedDocuments['Tesis']?.formData || {}}
             documentos={documentos}
           />
         )
       )}
       {selectedDoc?.type === 'Acta de Sustentación' && (
-        <ActaSustentacionModal
-          onClose={handleModalClose}
-          asesores={asesores}
-          onSave={(data) => handleSaveDocument('Acta de Sustentación', data)}
-          readOnly={!selectedDoc.editing}
-          fileUrl={selectedDoc.editing ? '' : savedDocuments['Acta de Sustentación']?.file_url || ''}
-          formData={selectedDoc.editing ? {} : savedDocuments['Acta de Sustentación']?.formData || {}}
-          documentos={documentos}
-        />
+        selectedDoc.editing ? (
+          <ActaSustentacionModal
+            onClose={handleModalClose}
+            asesores={asesores}
+            onSave={(data) => handleSaveDocument('Acta de Sustentación', data)}
+            readOnly={false}
+            documentos={documentos}
+          />
+        ) : (
+          <ActaSustentacionModalVer
+            onClose={handleModalClose}
+            documentos={documentos}
+          />
+        )
       )}
       {selectedDoc?.type === 'Certificado de Similitud' && (
         <CertificadoSimilitud
@@ -222,6 +229,14 @@ const DocumentosRequeridos = ({
       )}
       {showDeleteConfirmation && (
         <TesisModalDelete
+          visible={showDeleteConfirmation}
+          onClose={() => setShowDeleteConfirmation(false)}
+          onConfirm={handleDeleteDocument}
+          documentos={documentos}
+        />
+      )}
+      {showDeleteConfirmation && deleteDocType === 'Acta de Sustentación' && (
+        <ActaSustentacionModalDelete
           visible={showDeleteConfirmation}
           onClose={() => setShowDeleteConfirmation(false)}
           onConfirm={handleDeleteDocument}

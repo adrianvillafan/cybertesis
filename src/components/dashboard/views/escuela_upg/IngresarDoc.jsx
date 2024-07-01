@@ -53,6 +53,7 @@ const IngresarDoc = () => {
           setErrorMessage={setErrorMessage}
           alumnoData={alumnoData}
           setCanProceed={setCanProceed}
+          setDocumentos={setDocumentos}
         />
       )}
       {step === 4 && <DeclaracionJurada enviarSolicitud={enviarSolicitud} setStep={setStep} handleBack={handleBack} />}
