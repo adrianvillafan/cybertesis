@@ -37,8 +37,8 @@ const ModalTwoCol = ({ onClose, headerText, footerButtons, file, setFile, fileUr
 
     const handleFileChange = ({ detail }) => {
         const selectedFile = detail.value[0];
-        if (selectedFile.size > 15000000) {
-            alert("El tamaño del archivo excede los 15MB.");
+        if (selectedFile.size > 20000000) {
+            alert("El tamaño del archivo excede los 20MB.");
         } else {
             setFile(selectedFile);
             setShowForm(!!selectedFile);
@@ -46,18 +46,18 @@ const ModalTwoCol = ({ onClose, headerText, footerButtons, file, setFile, fileUr
                 const reader = new FileReader();
                 reader.onload = (event) => {
                     const fileContent = event.target.result;
-                    setFileUrl(fileContent);
+                    setFileUrl(fileContent
+                    );
                 };
                 reader.readAsDataURL(selectedFile);
             }
         }
     };
-
     const handleDrop = (event) => {
         event.preventDefault();
         const selectedFile = event.dataTransfer.files[0];
-        if (selectedFile.size > 15000000) {
-            alert("El tamaño del archivo excede los 15MB.");
+        if (selectedFile.size > 20000000) {
+            alert("El tamaño del archivo excede los 20MB.");
         } else {
             setFile(selectedFile);
             setShowForm(!!selectedFile);
@@ -99,7 +99,7 @@ const ModalTwoCol = ({ onClose, headerText, footerButtons, file, setFile, fileUr
             visible={true}
             closeAriaLabel="Cerrar modal"
             header={headerText}
-            size={showForm ? 'max' : 'medium'}
+            size={showForm || fileUrl ? 'max' : 'medium'}
             footer={
                 <Box float='right'>
                     <SpaceBetween direction="horizontal" size="m">
@@ -109,7 +109,7 @@ const ModalTwoCol = ({ onClose, headerText, footerButtons, file, setFile, fileUr
             }
         >
             <SpaceBetween direction="vertical" size="xl" content="div">
-                {!showForm ? (
+                {!showForm && !fileUrl ? (
                     <div
                         style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap', alignItems: 'center', height: '30vh', border: '2px dashed #aaa', borderRadius: '10px', padding: '20px', backgroundColor: '#ffffff', cursor: 'pointer' }}
                         onClick={handleClick}

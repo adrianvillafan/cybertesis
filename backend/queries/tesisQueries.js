@@ -118,32 +118,64 @@ export const updateTesis = (id, tesisDetails, callback) => {
 };
 
 export const deleteTesisById = (id, callback) => {
-  const query = 'DELETE FROM tesis WHERE id_tesis = ?';
-  executeQuery(query, [id], (err, results) => {
+  // Primero obtenemos el id_participantes de la tesis
+  const queryGetParticipantes = 'SELECT id_participantes FROM tesis WHERE id_tesis = ?';
+
+  executeQuery(queryGetParticipantes, [id], (err, results) => {
     if (err) {
-      console.error('Error al eliminar tesis:', err);
-      callback(err, null);
-    } else {
-      const queryDeleteParticipacion = 'DELETE FROM tesis_participacion WHERE id = (SELECT id_participantes FROM tesis WHERE id_tesis = ?)';
-      executeQuery(queryDeleteParticipacion, [id], (err, results) => {
+      console.error('Error al obtener id_participantes:', err);
+      return callback(err, null);
+    }
+
+    if (results.length === 0) {
+      const error = new Error('No se encontró la tesis con el id proporcionado.');
+      console.error('Error:', error);
+      return callback(error, null);
+    }
+
+    const idParticipantes = results[0].id_participantes;
+
+    // Luego eliminamos los metadatos asociados
+    const queryDeleteMetadatos = 'DELETE FROM metadatos WHERE id_participantes = ?';
+
+    executeQuery(queryDeleteMetadatos, [idParticipantes], (err, results) => {
+      if (err) {
+        console.error('Error al eliminar metadatos:', err);
+        return callback(err, null);
+      }
+
+      // Luego eliminamos la participación
+      const queryDeleteParticipacion = 'DELETE FROM tesis_participacion WHERE id_participantes = ?';
+
+      executeQuery(queryDeleteParticipacion, [idParticipantes], (err, results) => {
         if (err) {
           console.error('Error al eliminar participación de tesis:', err);
-          callback(err, null);
-        } else {
-          const queryUpdateDocumentos = `
-            UPDATE documentos SET tesis_id = NULL WHERE tesis_id = ?
-          `;
-          executeQuery(queryUpdateDocumentos, [id], (err, results) => {
-            if (err) {
-              console.error('Error al actualizar documentos:', err);
-              callback(err, null);
-            } else {
-              callback(null, results.affectedRows);
-            }
-          });
+          return callback(err, null);
         }
+
+        // Luego actualizamos la tabla de documentos
+        const queryUpdateDocumentos = 'UPDATE documentos SET tesis_id = NULL WHERE tesis_id = ?';
+
+        executeQuery(queryUpdateDocumentos, [id], (err, results) => {
+          if (err) {
+            console.error('Error al actualizar documentos:', err);
+            return callback(err, null);
+          }
+
+          // Finalmente, eliminamos la tesis
+          const queryDeleteTesis = 'DELETE FROM tesis WHERE id_tesis = ?';
+
+          executeQuery(queryDeleteTesis, [id], (err, results) => {
+            if (err) {
+              console.error('Error al eliminar tesis:', err);
+              return callback(err, null);
+            }
+
+            callback(null, results.affectedRows);
+          });
+        });
       });
-    }
+    });
   });
 };
 
@@ -163,9 +195,13 @@ export const getTesisById = (id, callback) => {
       t.fecha_creacion,
       t.fecha_modificacion,
       tp.id_autor1,
+      p1.identificacion_id AS autor1_dni,
       tp.id_autor2,
+      p2.identificacion_id AS autor2_dni,
       tp.id_asesor1,
-      tp.id_asesor2
+      p3.identificacion_id AS asesor1_dni,
+      tp.id_asesor2,
+      p4.identificacion_id AS asesor2_dni
     FROM 
       tesis t
     LEFT JOIN 
@@ -174,6 +210,14 @@ export const getTesisById = (id, callback) => {
       facultad f ON t.id_facultad = f.id
     LEFT JOIN 
       escuela e ON t.id_escuela = e.id
+    LEFT JOIN 
+      personas p1 ON tp.id_autor1 = p1.idpersonas
+    LEFT JOIN 
+      personas p2 ON tp.id_autor2 = p2.idpersonas
+    LEFT JOIN 
+      personas p3 ON tp.id_asesor1 = p3.idpersonas
+    LEFT JOIN 
+      personas p4 ON tp.id_asesor2 = p4.idpersonas
     WHERE 
       t.id_tesis = ?
   `;

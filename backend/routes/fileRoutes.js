@@ -134,7 +134,12 @@ router.delete('/tesis/delete/:id', async (req, res) => {
     }
 
     await deleteFileFromMinIO(BUCKETS.TESIS, tesis.file_url);
-    await deleteTesisById(id);
+    await new Promise((resolve, reject) => {
+      deleteTesisById(id, (err, results) => {
+        if (err) reject(err);
+        else resolve(results);
+      });
+    });
 
     res.json({ message: 'Tesis eliminada correctamente' });
   } catch (error) {
