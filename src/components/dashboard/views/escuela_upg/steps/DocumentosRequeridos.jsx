@@ -111,6 +111,9 @@ const DocumentosRequeridos = ({
     }
   };
 
+  const isTesisComplete = !!savedDocuments['Tesis'];
+  const isActaSustentacionComplete = !!savedDocuments['Acta de Sustentación'];
+
   return (
     <Box>
       <SpaceBetween direction="vertical" size="l">
@@ -131,7 +134,10 @@ const DocumentosRequeridos = ({
               ) : (
                 <Button 
                   onClick={() => handleModalOpen(item.nombre, true)} 
-                  disabled={item.nombre === 'Acta de Sustentación' && !tesisCompletada}
+                  disabled={
+                    (item.nombre === 'Acta de Sustentación' && !isTesisComplete) ||
+                    (item.nombre === 'Hoja de Metadatos' && (!isTesisComplete || !isActaSustentacionComplete))
+                  }
                 >
                   Cargar
                 </Button>
@@ -175,9 +181,7 @@ const DocumentosRequeridos = ({
         selectedDoc.editing ? (
           <ActaSustentacionModal
             onClose={handleModalClose}
-            asesores={asesores}
             onSave={(data) => handleSaveDocument('Acta de Sustentación', data)}
-            readOnly={false}
             documentos={documentos}
           />
         ) : (

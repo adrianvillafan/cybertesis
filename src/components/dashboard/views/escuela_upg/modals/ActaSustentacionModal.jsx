@@ -1,28 +1,64 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import ModalTwoCol from './ModalTwoCol';
 import { Button, FormField, Input, Select, SpaceBetween, Container, Header, ColumnLayout } from '@cloudscape-design/components';
-import { fetchDatosByDni } from '../../../../../../api';
+import { fetchDatosByDni, fetchTesisById } from '../../../../../../api';
 
-const ActaSustentacionModal = ({ onClose, asesores, onSave }) => {
+const ActaSustentacionModal = ({ onClose, documentos, onSave }) => {
   const [file, setFile] = useState(null);
   const [fileUrl, setFileUrl] = useState('');
   const [showForm, setShowForm] = useState(false);
-  const [loadingDni, setLoadingDni] = useState({ presidente: false, miembros: {} });
+  const [loadingDni, setLoadingDni] = useState({ presidente: false, miembros: {}, asesores: {} });
   const [formData, setFormData] = useState({
-    presidente: { nombre: '', apellido: '', dni: '', grado: '' },
-    miembros: [{ nombre: '', apellido: '', dni: '', grado: '' }, { nombre: '', apellido: '', dni: '', grado: '' }],
-    asesores: asesores.map(asesor => ({
-      nombre: asesor.nombre,
-      apellido: asesor.apellido,
-      dni: asesor.dni,
-      titulo: asesor.titulo,
-      orcid: asesor.orcid,
-    }))
+    presidente: { nombre: '', apellido: '', dni: '', grado: '', tipoDocumento: 'DNI' },
+    miembros: [{ nombre: '', apellido: '', dni: '', grado: '', tipoDocumento: 'DNI' }, { nombre: '', apellido: '', dni: '', grado: '', tipoDocumento: 'DNI' }],
+    asesores: []
   });
+
+  useEffect(() => {
+    const fetchAsesores = async () => {
+      try {
+        const tesisData = await fetchTesisById(documentos.tesis_id);
+        const asesores = [
+          {
+            nombre: '',
+            apellido: '',
+            dni: tesisData.asesor1_dni,
+            orcid: '',
+            tipoDocumento: /^\d+$/.test(tesisData.asesor1_dni) ? 'DNI' : 'Pasaporte'
+          }
+        ];
+        if (tesisData.asesor2_dni) {
+          asesores.push({
+            nombre: '',
+            apellido: '',
+            dni: tesisData.asesor2_dni,
+            orcid: '',
+            tipoDocumento: /^\d+$/.test(tesisData.asesor2_dni) ? 'DNI' : 'Pasaporte'
+          });
+        }
+        setFormData(prev => ({ ...prev, asesores }));
+
+        asesores.forEach((asesor, index) => {
+          if (asesor.dni) {
+            fetchAndSetDataByDni(asesor.dni, index, 'asesores', asesor.tipoDocumento);
+          }
+        });
+      } catch (error) {
+        console.error('Error al obtener los datos de la tesis:', error);
+      }
+    };
+
+    fetchAsesores();
+  }, [documentos.tesis_id]);
 
   const grados = [
     { label: 'Doctor', value: 'Doctor' },
     { label: 'Magister', value: 'Magister' }
+  ];
+
+  const tiposDocumento = [
+    { label: 'DNI', value: 'DNI' },
+    { label: 'Pasaporte', value: 'Pasaporte' }
   ];
 
   const isFormComplete = () => {
@@ -32,34 +68,49 @@ const ActaSustentacionModal = ({ onClose, asesores, onSave }) => {
       formData.presidente.dni,
       formData.presidente.grado,
       ...formData.miembros.flatMap(miembro => [miembro.nombre, miembro.apellido, miembro.dni, miembro.grado]),
-      ...formData.asesores.flatMap(asesor => [asesor.nombre, asesor.apellido, asesor.dni, asesor.titulo, asesor.orcid])
+      ...formData.asesores.flatMap(asesor => [asesor.nombre, asesor.apellido, asesor.dni, asesor.orcid])
     ];
     return requiredFields.every(field => field && field.trim().length > 0);
   };
 
-  const fetchAndSetDataByDni = async (dni, index, type) => {
+  const fetchAndSetDataByDni = async (dni, index, type, tipoDocumento = 'DNI') => {
+    const tipoIdentificacionId = tipoDocumento === 'DNI' ? 1 : 2;
+
     if (type === 'presidente') {
       setLoadingDni(prev => ({ ...prev, presidente: true }));
+    } else if (type === 'asesores') {
+      setLoadingDni(prev => ({ ...prev, asesores: { ...prev.asesores, [index]: true } }));
     } else {
       setLoadingDni(prev => ({ ...prev, miembros: { ...prev.miembros, [index]: true } }));
     }
 
-    const data = await fetchDatosByDni(dni);
-
-    if (type === 'presidente') {
-      setLoadingDni(prev => ({ ...prev, presidente: false }));
-      setFormData(prev => ({
-        ...prev,
-        presidente: {
-          ...prev.presidente,
-          nombre: data.nombre || '',
-          apellido: data.apellido || '',
-        }
-      }));
-    } else {
-      setLoadingDni(prev => ({ ...prev, miembros: { ...prev.miembros, [index]: false } }));
-      handleChange('nombre', data.nombre || '', index, 'miembros');
-      handleChange('apellido', data.apellido || '', index, 'miembros');
+    try {
+      const data = await fetchDatosByDni(tipoIdentificacionId, dni);
+      if (type === 'presidente') {
+        setLoadingDni(prev => ({ ...prev, presidente: false }));
+        setFormData(prev => ({
+          ...prev,
+          presidente: {
+            ...prev.presidente,
+            nombre: data.nombre || '',
+            apellido: data.apellido || '',
+          }
+        }));
+      } else if (type === 'asesores') {
+        setLoadingDni(prev => ({ ...prev, asesores: { ...prev.asesores, [index]: false } }));
+        setFormData(prev => ({
+          ...prev,
+          asesores: prev.asesores.map((asesor, i) => i === index ? { ...asesor, nombre: data.nombre || '', apellido: data.apellido || '' , orcid: data.orcid || '' } : asesor)
+        }));
+      } else {
+        setLoadingDni(prev => ({ ...prev, miembros: { ...prev.miembros, [index]: false } }));
+        setFormData(prev => ({
+          ...prev,
+          miembros: prev.miembros.map((miembro, i) => i === index ? { ...miembro, nombre: data.nombre || '', apellido: data.apellido || '' } : miembro)
+        }));
+      }
+    } catch (error) {
+      console.error('Error al obtener datos del DNI:', error);
     }
   };
 
@@ -73,7 +124,7 @@ const ActaSustentacionModal = ({ onClose, asesores, onSave }) => {
     if (formData.miembros.length < 3) {
       setFormData(prev => ({
         ...prev,
-        miembros: [...prev.miembros, { nombre: '', apellido: '', dni: '', grado: '' }]
+        miembros: [...prev.miembros, { nombre: '', apellido: '', dni: '', grado: '', tipoDocumento: 'DNI' }]
       }));
     }
   };
@@ -87,6 +138,7 @@ const ActaSustentacionModal = ({ onClose, asesores, onSave }) => {
 
   const handleDniChange = (detail, index, type) => {
     const newValue = detail.value.replace(/\D/g, '').slice(0, 8);
+    const tipoDocumento = formData[type][index].tipoDocumento;
     if (type === 'presidente') {
       setFormData(prev => ({
         ...prev,
@@ -96,7 +148,7 @@ const ActaSustentacionModal = ({ onClose, asesores, onSave }) => {
         }
       }));
       if (newValue.length === 8) {
-        fetchAndSetDataByDni(newValue, null, 'presidente');
+        fetchAndSetDataByDni(newValue, null, 'presidente', tipoDocumento);
       } else {
         setFormData(prev => ({
           ...prev,
@@ -107,10 +159,18 @@ const ActaSustentacionModal = ({ onClose, asesores, onSave }) => {
           }
         }));
       }
+    } else if (type === 'asesores') {
+      handleChange('dni', newValue, index, 'asesores');
+      if (newValue.length === 8) {
+        fetchAndSetDataByDni(newValue, index, 'asesores', tipoDocumento);
+      } else {
+        handleChange('nombre', 'Cargando...', index, 'asesores');
+        handleChange('apellido', 'Cargando...', index, 'asesores');
+      }
     } else {
       handleChange('dni', newValue, index, 'miembros');
       if (newValue.length === 8) {
-        fetchAndSetDataByDni(newValue, index, 'miembros');
+        fetchAndSetDataByDni(newValue, index, 'miembros', tipoDocumento);
       } else {
         handleChange('nombre', 'Cargando...', index, 'miembros');
         handleChange('apellido', 'Cargando...', index, 'miembros');
@@ -163,8 +223,21 @@ const ActaSustentacionModal = ({ onClose, asesores, onSave }) => {
                   />
                 </FormField>
               </ColumnLayout>
-              <ColumnLayout columns={2}>
-                <FormField label="DNI">
+              <ColumnLayout columns={3}>
+                <FormField label="Tipo de Documento">
+                  <Select
+                    selectedOption={{ label: formData.presidente.tipoDocumento, value: formData.presidente.tipoDocumento }}
+                    options={tiposDocumento}
+                    onChange={({ detail }) => setFormData(prev => ({
+                      ...prev,
+                      presidente: {
+                        ...prev.presidente,
+                        tipoDocumento: detail.selectedOption.value
+                      }
+                    }))}
+                  />
+                </FormField>
+                <FormField label="Número de Documento">
                   <Input
                     value={formData.presidente.dni}
                     onChange={({ detail }) => handleDniChange(detail, null, 'presidente')}
@@ -218,8 +291,15 @@ const ActaSustentacionModal = ({ onClose, asesores, onSave }) => {
                   />
                 </FormField>
               </ColumnLayout>
-              <ColumnLayout columns={2}>
-                <FormField label="DNI">
+              <ColumnLayout columns={3}>
+                <FormField label="Tipo de Documento">
+                  <Select
+                    selectedOption={{ label: miembro.tipoDocumento, value: miembro.tipoDocumento }}
+                    options={tiposDocumento}
+                    onChange={({ detail }) => handleChange('tipoDocumento', detail.selectedOption.value, index, 'miembros')}
+                  />
+                </FormField>
+                <FormField label="Número de Documento">
                   <Input
                     value={miembro.dni}
                     onChange={({ detail }) => handleDniChange(detail, index, 'miembros')}
@@ -246,21 +326,16 @@ const ActaSustentacionModal = ({ onClose, asesores, onSave }) => {
             >
               <ColumnLayout columns={2}>
                 <FormField label="Nombres">
-                  <Input value={asesor.nombre} readOnly />
+                  <Input value={loadingDni.asesores[index] ? 'Cargando...' : asesor.nombre} readOnly />
                 </FormField>
                 <FormField label="Apellidos">
-                  <Input value={asesor.apellido} readOnly />
+                  <Input value={loadingDni.asesores[index] ? 'Cargando...' : asesor.apellido} readOnly />
                 </FormField>
               </ColumnLayout>
               <ColumnLayout columns={2}>
-                <FormField label="DNI">
+                <FormField label="Número de Documento">
                   <Input value={asesor.dni} readOnly />
                 </FormField>
-                <FormField label="Título">
-                  <Input value={asesor.titulo} readOnly />
-                </FormField>
-              </ColumnLayout>
-              <ColumnLayout>
                 <FormField label="URL de ORCID">
                   <Input value={asesor.orcid} readOnly />
                 </FormField>

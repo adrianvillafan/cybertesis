@@ -16,9 +16,10 @@ const TesisModalVer = ({ onClose, documentos }) => {
   });
   const [fileUrl, setFileUrl] = useState('');
   const [dataLoaded, setDataLoaded] = useState({ autores: false, asesores: false }); // Nuevo estado
-
+  
   useEffect(() => {
     if (documentos.tesis_id) {
+      console.log(fetchTesisById(documentos.tesis_id).then((data) => console.log(data)));
       fetchTesisById(documentos.tesis_id).then((data) => {
         setFormData({
           facultad: data.facultad_nombre,
