@@ -2,7 +2,7 @@ import express from 'express';
 import multer from 'multer';
 import { uploadFileToMinIO, getDownloadUrlFromMinIO, deleteFileFromMinIO, getViewUrlForDocument } from '../minio/controllers/minioController.js';
 import { createOrFetchDocumentos } from '../queries/documentQueries.js';
-import { insertTesis, updateTesis, deleteTesisById, getTesisById, getTesisByStudentId, updateDocumentos } from '../queries/tesisQueries.js';
+import { insertTesis, deleteTesisById, getTesisById, getTesisByStudentId } from '../queries/tesisQueries.js';
 import { getSolicitudesByEstudianteId } from '../queries/solicitudQueries.js';
 
 const router = express.Router();

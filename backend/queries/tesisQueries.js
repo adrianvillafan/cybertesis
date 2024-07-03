@@ -69,54 +69,6 @@ export const insertTesis = (tesisDetails, callback) => {
   });
 };
 
-export const updateTesis = (id, tesisDetails, callback) => {
-  const queryTesis = `
-    UPDATE tesis
-    SET id_facultad = ?, id_escuela = ?, titulo = ?, tipo_tesis = ?, grado_academico = ?, año = ?, file_url = ?, fecha_modificacion = ?
-    WHERE id_tesis = ?
-  `;
-  const tesisValues = [
-    tesisDetails.id_facultad,
-    tesisDetails.id_escuela,
-    tesisDetails.titulo,
-    tesisDetails.tipo_tesis,
-    tesisDetails.grado_academico,
-    tesisDetails.año,
-    tesisDetails.file_url,
-    new Date(),
-    id
-  ];
-
-  executeQuery(queryTesis, tesisValues, (err, results) => {
-    if (err) {
-      console.error('Error al actualizar tesis:', err);
-      callback(err, null);
-    } else {
-      const queryParticipacion = `
-        UPDATE tesis_participacion
-        SET id_autor1 = ?, id_autor2 = ?, id_asesor1 = ?, id_asesor2 = ?
-        WHERE id = (SELECT id_participantes FROM tesis WHERE id_tesis = ?)
-      `;
-      const participacionValues = [
-        tesisDetails.autor1,
-        tesisDetails.autor2 || null,
-        tesisDetails.asesor1,
-        tesisDetails.asesor2 || null,
-        id
-      ];
-
-      executeQuery(queryParticipacion, participacionValues, (err, results) => {
-        if (err) {
-          console.error('Error al actualizar participación de tesis:', err);
-          callback(err, null);
-        } else {
-          callback(null, results.affectedRows);
-        }
-      });
-    }
-  });
-};
-
 export const deleteTesisById = (id, callback) => {
   // Primero obtenemos el id_participantes de la tesis
   const queryGetParticipantes = 'SELECT id_participantes FROM tesis WHERE id_tesis = ?';
