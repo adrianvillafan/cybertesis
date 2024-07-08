@@ -1,31 +1,35 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import ModalTwoCol from './ModalTwoCol';
 import { Button, FormField, Input, Select, SpaceBetween, Container, Header, ColumnLayout } from '@cloudscape-design/components';
-import { fetchDatosByDni, fetchTesisById } from '../../../../../../api';
-import { createActaSustentacion, uploadActaFile } from '../../../../../../src/apis/escuela_upg/modals/ApiActaSustentacionModal';
+import { fetchDatosByDni, fetchTesisById, uploadActaFile, createActaSustentacion } from '../../../../../../api';
+import UserContext from '../../../contexts/UserContext';
 
 const ActaSustentacionModal = ({ onClose, documentos, onSave }) => {
+  const { user } = useContext(UserContext);
   const [file, setFile] = useState(null);
   const [fileUrl, setFileUrl] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [loadingDni, setLoadingDni] = useState({ presidente: false, miembros: {}, asesores: {} });
   const [formData, setFormData] = useState({
-    presidente: { nombre: '', apellido: '', dni: '', grado: '', tipoDocumento: 'DNI' },
-    miembros: [{ nombre: '', apellido: '', dni: '', grado: '', tipoDocumento: 'DNI' }, { nombre: '', apellido: '', dni: '', grado: '', tipoDocumento: 'DNI' }],
-    asesores: []
+    presidente: { nombre: '', apellido: '', dni: '', grado: '', tipoDocumento: 'DNI', id: '' },
+    miembros: [{ nombre: '', apellido: '', dni: '', grado: '', tipoDocumento: 'DNI', id: '' }, { nombre: '', apellido: '', dni: '', grado: '', tipoDocumento: 'DNI', id: '' }],
+    asesores: [],
+    id_participantes: ''
   });
 
   useEffect(() => {
     const fetchAsesores = async () => {
       try {
         const tesisData = await fetchTesisById(documentos.tesis_id);
+        
         const asesores = [
           {
             nombre: '',
             apellido: '',
             dni: tesisData.asesor1_dni,
             orcid: '',
-            tipoDocumento: /^\d+$/.test(tesisData.asesor1_dni) ? 'DNI' : 'Pasaporte'
+            tipoDocumento: /^\d+$/.test(tesisData.asesor1_dni) ? 'DNI' : 'Pasaporte',
+            id: tesisData.id_asesor1
           }
         ];
         if (tesisData.asesor2_dni) {
@@ -34,7 +38,8 @@ const ActaSustentacionModal = ({ onClose, documentos, onSave }) => {
             apellido: '',
             dni: tesisData.asesor2_dni,
             orcid: '',
-            tipoDocumento: /^\d+$/.test(tesisData.asesor2_dni) ? 'DNI' : 'Pasaporte'
+            tipoDocumento: /^\d+$/.test(tesisData.asesor2_dni) ? 'DNI' : 'Pasaporte',
+            id: tesisData.id_asesor2
           });
         }
         setFormData(prev => ({ ...prev, asesores }));
@@ -44,6 +49,8 @@ const ActaSustentacionModal = ({ onClose, documentos, onSave }) => {
             fetchAndSetDataByDni(asesor.dni, index, 'asesores', asesor.tipoDocumento);
           }
         });
+
+        setFormData(prev => ({ ...prev, id_participantes: tesisData.id_participantes }));
       } catch (error) {
         console.error('Error al obtener los datos de la tesis:', error);
       }
@@ -68,8 +75,8 @@ const ActaSustentacionModal = ({ onClose, documentos, onSave }) => {
       formData.presidente.apellido,
       formData.presidente.dni,
       formData.presidente.grado,
-      ...formData.miembros.flatMap(miembro => [miembro.nombre, miembro.apellido, miembro.dni, miembro.grado]),
-      ...formData.asesores.flatMap(asesor => [asesor.nombre, asesor.apellido, asesor.dni, asesor.orcid])
+      ...formData.miembros.map(miembro => [miembro.nombre, miembro.apellido, miembro.dni, miembro.grado]).flat(),
+      ...formData.asesores.map(asesor => [asesor.nombre, asesor.apellido, asesor.dni, asesor.orcid]).flat()
     ];
     return requiredFields.every(field => field && field.trim().length > 0);
   };
@@ -87,6 +94,7 @@ const ActaSustentacionModal = ({ onClose, documentos, onSave }) => {
 
     try {
       const data = await fetchDatosByDni(tipoIdentificacionId, dni);
+      const id = data.idpersonas;
       if (type === 'presidente') {
         setLoadingDni(prev => ({ ...prev, presidente: false }));
         setFormData(prev => ({
@@ -95,19 +103,20 @@ const ActaSustentacionModal = ({ onClose, documentos, onSave }) => {
             ...prev.presidente,
             nombre: data.nombre || '',
             apellido: data.apellido || '',
+            id
           }
         }));
       } else if (type === 'asesores') {
         setLoadingDni(prev => ({ ...prev, asesores: { ...prev.asesores, [index]: false } }));
         setFormData(prev => ({
           ...prev,
-          asesores: prev.asesores.map((asesor, i) => i === index ? { ...asesor, nombre: data.nombre || '', apellido: data.apellido || '' , orcid: data.orcid || '' } : asesor)
+          asesores: prev.asesores.map((asesor, i) => i === index ? { ...asesor, nombre: data.nombre || '', apellido: data.apellido || '', orcid: data.orcid || '', id } : asesor)
         }));
       } else {
         setLoadingDni(prev => ({ ...prev, miembros: { ...prev.miembros, [index]: false } }));
         setFormData(prev => ({
           ...prev,
-          miembros: prev.miembros.map((miembro, i) => i === index ? { ...miembro, nombre: data.nombre || '', apellido: data.apellido || '' } : miembro)
+          miembros: prev.miembros.map((miembro, i) => i === index ? { ...miembro, nombre: data.nombre || '', apellido: data.apellido || '', id } : miembro)
         }));
       }
     } catch (error) {
@@ -116,16 +125,26 @@ const ActaSustentacionModal = ({ onClose, documentos, onSave }) => {
   };
 
   const handleChange = (key, value, index, type = 'miembros') => {
-    const newEntries = [...formData[type]];
-    newEntries[index][key] = value;
-    setFormData(prev => ({ ...prev, [type]: newEntries }));
+    if (type === 'presidente') {
+      setFormData(prev => ({
+        ...prev,
+        presidente: {
+          ...prev.presidente,
+          [key]: value
+        }
+      }));
+    } else {
+      const newEntries = [...formData[type]];
+      newEntries[index][key] = value;
+      setFormData(prev => ({ ...prev, [type]: newEntries }));
+    }
   };
 
   const addMember = () => {
     if (formData.miembros.length < 3) {
       setFormData(prev => ({
         ...prev,
-        miembros: [...prev.miembros, { nombre: '', apellido: '', dni: '', grado: '', tipoDocumento: 'DNI' }]
+        miembros: [...prev.miembros, { nombre: '', apellido: '', dni: '', grado: '', tipoDocumento: 'DNI', id: '' }]
       }));
     }
   };
@@ -139,28 +158,15 @@ const ActaSustentacionModal = ({ onClose, documentos, onSave }) => {
 
   const handleDniChange = (detail, index, type) => {
     const newValue = detail.value.replace(/\D/g, '').slice(0, 8);
-    const tipoDocumento = type === 'presidente' ? formData.presidente.tipoDocumento : formData[type][index].tipoDocumento;
-
-    if (type === 'presidente') {
-      setFormData(prev => ({
-        ...prev,
-        presidente: {
-          ...prev.presidente,
-          dni: newValue,
-        }
-      }));
-      if (newValue.length === 8) {
-        fetchAndSetDataByDni(newValue, null, 'presidente', tipoDocumento);
-      }
-    } else if (type === 'asesores') {
-      handleChange('dni', newValue, index, 'asesores');
-      if (newValue.length === 8) {
-        fetchAndSetDataByDni(newValue, index, 'asesores', tipoDocumento);
-      }
+    const tipoDocumento = formData[type]?.[index]?.tipoDocumento || 'DNI';
+    handleChange('dni', newValue, index, type);
+    if (newValue.length === 8) {
+      fetchAndSetDataByDni(newValue, index, type, tipoDocumento);
     } else {
-      handleChange('dni', newValue, index, 'miembros');
-      if (newValue.length === 8) {
-        fetchAndSetDataByDni(newValue, index, 'miembros', tipoDocumento);
+      handleChange('nombre', 'Cargando...', index, type);
+      handleChange('apellido', 'Cargando...', index, type);
+      if (type === 'asesores') {
+        handleChange('orcid', 'Cargando...', index, type);
       }
     }
   };
@@ -168,8 +174,22 @@ const ActaSustentacionModal = ({ onClose, documentos, onSave }) => {
   const handleSave = async () => {
     if (isFormComplete()) {
       try {
-        const uploadResult = await uploadActaFile(file);
-        const savedActa = await createActaSustentacion({ formData, fileUrl: uploadResult.fileName });
+        const uploadResponse = await uploadActaFile(file);
+        const { fileName } = uploadResponse;
+
+        const actaData = {
+          id_participantes: formData.id_participantes,
+          id_presidente: formData.presidente.id,
+          id_miembro1: formData.miembros[0].id,
+          id_miembro2: formData.miembros[1].id,
+          id_miembro3: formData.miembros[2]?.id || null,
+          file_url: fileName,
+          created_by: user.user_id,
+          updated_by: user.user_id,
+          documentos_id: documentos.id
+        };
+
+        const savedActa = await createActaSustentacion(actaData);
         onSave(savedActa);
         onClose();
       } catch (error) {
@@ -222,13 +242,7 @@ const ActaSustentacionModal = ({ onClose, documentos, onSave }) => {
                   <Select
                     selectedOption={{ label: formData.presidente.tipoDocumento, value: formData.presidente.tipoDocumento }}
                     options={tiposDocumento}
-                    onChange={({ detail }) => setFormData(prev => ({
-                      ...prev,
-                      presidente: {
-                        ...prev.presidente,
-                        tipoDocumento: detail.selectedOption.value
-                      }
-                    }))}
+                    onChange={({ detail }) => handleChange('tipoDocumento', detail.selectedOption.value, null, 'presidente')}
                   />
                 </FormField>
                 <FormField label="Número de Documento">
@@ -244,13 +258,7 @@ const ActaSustentacionModal = ({ onClose, documentos, onSave }) => {
                   <Select
                     selectedOption={{ label: formData.presidente.grado, value: formData.presidente.grado }}
                     options={grados}
-                    onChange={({ detail }) => setFormData(prev => ({
-                      ...prev,
-                      presidente: {
-                        ...prev.presidente,
-                        grado: detail.selectedOption.value
-                      }
-                    }))}
+                    onChange={({ detail }) => handleChange('grado', detail.selectedOption.value, null, 'presidente')}
                   />
                 </FormField>
               </ColumnLayout>

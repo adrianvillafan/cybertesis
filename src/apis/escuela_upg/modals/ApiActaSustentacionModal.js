@@ -14,16 +14,34 @@ export const fetchActaById = async (id) => {
   }
 };
 
+// Función para crear un acta de sustentación
+export const createActaSustentacion = async (actaData) => {
+  try {
+    const response = await fetch('http://localhost:3000/api/files/acta/insert', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${getToken()}`,
+      },
+      body: JSON.stringify(actaData),
+    });
+
+    if (response.ok) {
+      return response.json();
+    } else {
+      throw new Error('No se pudo guardar el acta de sustentación');
+    }
+  } catch (error) {
+    console.error('Error al guardar el acta de sustentación:', error);
+    throw error;
+  }
+};
+
+// Función para cargar el archivo PDF a MinIO
 export const uploadActaFile = async (file) => {
   const formData = new FormData();
   formData.append('file', file);
   formData.append('type', 'ACTAS'); // Asegúrate de usar mayúsculas
-
-  // Log each entry in the FormData
-  for (let pair of formData.entries()) {
-    console.log(pair[0] + ', ' + pair[1]);
-  }
-  console.log('formData', formData);
 
   try {
     const response = await fetch('http://localhost:3000/api/files/upload', {
@@ -35,27 +53,10 @@ export const uploadActaFile = async (file) => {
     if (response.ok) {
       return await response.json();
     } else {
-      throw new Error('No se pudo cargar el archivo de acta');
+      throw new Error('No se pudo cargar el archivo del acta');
     }
   } catch (error) {
-    console.error('Error al cargar el archivo de acta:', error);
-    throw error;
-  }
-};
-
-export const createActaSustentacion = async (data) => {
-  try {
-    const response = await fetch(`http://localhost:3000/api/files/acta/insert`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${getToken()}`
-      },
-      body: JSON.stringify(data)
-    });
-    return await response.json();
-  } catch (error) {
-    console.error('Error al crear Acta de Sustentación:', error);
+    console.error('Error al cargar el archivo del acta:', error);
     throw error;
   }
 };

@@ -146,6 +146,7 @@ export const getTesisById = (id, callback) => {
       t.file_url,
       t.fecha_creacion,
       t.fecha_modificacion,
+      t.id_participantes,
       tp.id_autor1,
       p1.identificacion_id AS autor1_dni,
       tp.id_autor2,
