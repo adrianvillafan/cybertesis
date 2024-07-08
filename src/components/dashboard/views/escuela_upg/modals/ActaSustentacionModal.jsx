@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import ModalTwoCol from './ModalTwoCol';
 import { Button, FormField, Input, Select, SpaceBetween, Container, Header, ColumnLayout } from '@cloudscape-design/components';
 import { fetchDatosByDni, fetchTesisById } from '../../../../../../api';
+import { createActaSustentacion, uploadActaFile } from '../../../../../../src/apis/escuela_upg/modals/ApiActaSustentacionModal';
 
 const ActaSustentacionModal = ({ onClose, documentos, onSave }) => {
   const [file, setFile] = useState(null);
@@ -138,7 +139,8 @@ const ActaSustentacionModal = ({ onClose, documentos, onSave }) => {
 
   const handleDniChange = (detail, index, type) => {
     const newValue = detail.value.replace(/\D/g, '').slice(0, 8);
-    const tipoDocumento = formData[type][index].tipoDocumento;
+    const tipoDocumento = type === 'presidente' ? formData.presidente.tipoDocumento : formData[type][index].tipoDocumento;
+
     if (type === 'presidente') {
       setFormData(prev => ({
         ...prev,
@@ -149,39 +151,31 @@ const ActaSustentacionModal = ({ onClose, documentos, onSave }) => {
       }));
       if (newValue.length === 8) {
         fetchAndSetDataByDni(newValue, null, 'presidente', tipoDocumento);
-      } else {
-        setFormData(prev => ({
-          ...prev,
-          presidente: {
-            ...prev.presidente,
-            nombre: 'Cargando...',
-            apellido: 'Cargando...',
-          }
-        }));
       }
     } else if (type === 'asesores') {
       handleChange('dni', newValue, index, 'asesores');
       if (newValue.length === 8) {
         fetchAndSetDataByDni(newValue, index, 'asesores', tipoDocumento);
-      } else {
-        handleChange('nombre', 'Cargando...', index, 'asesores');
-        handleChange('apellido', 'Cargando...', index, 'asesores');
       }
     } else {
       handleChange('dni', newValue, index, 'miembros');
       if (newValue.length === 8) {
         fetchAndSetDataByDni(newValue, index, 'miembros', tipoDocumento);
-      } else {
-        handleChange('nombre', 'Cargando...', index, 'miembros');
-        handleChange('apellido', 'Cargando...', index, 'miembros');
       }
     }
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (isFormComplete()) {
-      onSave({ formData, fileUrl });
-      onClose();
+      try {
+        const uploadResult = await uploadActaFile(file);
+        const savedActa = await createActaSustentacion({ formData, fileUrl: uploadResult.fileName });
+        onSave(savedActa);
+        onClose();
+      } catch (error) {
+        console.error('Error al guardar acta de sustentación:', error);
+        alert('Error al guardar el acta de sustentación. Por favor, intente nuevamente.');
+      }
     } else {
       alert("Todos los campos deben estar completos.");
     }

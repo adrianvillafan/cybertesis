@@ -4,6 +4,7 @@ import { uploadFileToMinIO, getDownloadUrlFromMinIO, deleteFileFromMinIO, getVie
 import { createOrFetchDocumentos } from '../queries/documentQueries.js';
 import { insertTesis, deleteTesisById, getTesisById, getTesisByStudentId } from '../queries/tesisQueries.js';
 import { getSolicitudesByEstudianteId } from '../queries/solicitudQueries.js';
+import { insertActaSustentacion, deleteActaSustentacionById, getActaSustentacionById } from '../queries/actaQueries.js';
 
 const router = express.Router();
 const storage = multer.memoryStorage();
@@ -101,22 +102,6 @@ router.post('/tesis/insert', async (req, res) => {
   }
 });
 
-router.put('/tesis/update/:id', async (req, res) => {
-  const { id } = req.params;
-  const tesisDetails = req.body;
-
-  try {
-    updateTesis(id, tesisDetails, (err, result) => {
-      if (err) {
-        res.status(500).send('Error al actualizar tesis: ' + err.message);
-      } else {
-        res.json({ message: 'Tesis actualizada correctamente' });
-      }
-    });
-  } catch (error) {
-    res.status(500).send('Error al actualizar tesis: ' + error.message);
-  }
-});
 
 router.delete('/tesis/delete/:id', async (req, res) => {
   const { id } = req.params;
@@ -183,7 +168,78 @@ router.get('/tesis/student/:studentId', async (req, res) => {
       }
     });
   } catch (error) {
-    res.status(500).send('Error al obtener las tesis del estudiante: ' + error.message);
+    res.status (500).send('Error al obtener las tesis del estudiante: ' + error.message);
+  }
+});
+
+// ------------------ Acta Sustentacion Routes ------------------
+
+router.post('/acta/insert', async (req, res) => {
+  const actaDetails = req.body;
+  console.log('actaDetails', actaDetails);
+  try {
+    insertActaSustentacion(actaDetails, (err, actaId) => {
+      if (err) {
+        res.status(500).send('Error al insertar acta de sustentación: ' + err.message);
+      } else {
+        res.json({ message: 'Acta de sustentación insertada correctamente', actaId });
+      }
+    });
+  } catch (error) {
+    res.status(500).send('Error al insertar acta de sustentación: ' + error.message);
+  }
+});
+
+router.delete('/acta/delete/:id', async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const acta = await new Promise((resolve, reject) => {
+      getActaSustentacionById(id, (err, result) => {
+        if (err) reject(err);
+        else resolve(result);
+      });
+    });
+
+    if (!acta) {
+      return res.status(404).send('Acta de sustentación no encontrada.');
+    }
+
+    await deleteFileFromMinIO(BUCKETS.ACTAS, acta.file_url);
+    await new Promise((resolve, reject) => {
+      deleteActaSustentacionById(id, (err, results) => {
+        if (err) reject(err);
+        else resolve(results);
+      });
+    });
+
+    res.json({ message: 'Acta de sustentación eliminada correctamente' });
+  } catch (error) {
+    res.status(500).send('Error al eliminar acta de sustentación: ' + error.message);
+  }
+});
+
+router.get('/acta/:id', async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    getActaSustentacionById(id, async (err, acta) => {
+      if (err) {
+        res.status(500).send('Error al obtener detalles de acta de sustentación: ' + err.message);
+      } else if (!acta) {
+        res.status(404).send('Acta de sustentación no encontrada.');
+      } else {
+        try {
+          const fileUrl = await getDownloadUrlFromMinIO('actas', acta.file_url);
+          acta.file_url = fileUrl;
+          res.json(acta);
+        } catch (fileError) {
+          res.status(500).send('Error al obtener la URL del archivo: ' + fileError.message);
+        }
+      }
+    });
+  } catch (error) {
+    res.status(500).send('Error al obtener detalles de acta de sustentación: ' + error.message);
   }
 });
 

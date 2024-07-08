@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import ModalTwoCol from './ModalTwoCol';
 import { Button, FormField, Input, Select, SpaceBetween, Container, Header, ColumnLayout } from '@cloudscape-design/components';
-import { fetchActaById } from '../../../../../../api';
+import { fetchActaById } from '../../../../../../src/apis/escuela_upg/modals/ApiActaSustentacionModal';
 
 const ActaSustentacionModalVer = ({ onClose, documentos }) => {
   const [formData, setFormData] = useState({
@@ -15,11 +15,29 @@ const ActaSustentacionModalVer = ({ onClose, documentos }) => {
     if (documentos.actasust_id) {
       fetchActaById(documentos.actasust_id).then(data => {
         setFormData({
-          presidente: data.presidente,
-          miembros: data.miembros,
-          asesores: data.asesores
+          presidente: {
+            nombre: data.presidente_nombre,
+            apellido: data.presidente_apellido,
+            dni: data.presidente_numero_documento,
+            grado: data.presidente_grado_id === 1 ? 'Doctor' : 'Magister'
+          },
+          miembros: data.miembros.map(miembro => ({
+            nombre: miembro.nombre,
+            apellido: miembro.apellido,
+            dni: miembro.numero_documento,
+            grado: miembro.grado_id === 1 ? 'Doctor' : 'Magister'
+          })),
+          asesores: data.asesores.map(asesor => ({
+            nombre: asesor.nombre,
+            apellido: asesor.apellido,
+            dni: asesor.dni,
+            titulo: asesor.titulo,
+            orcid: asesor.orcid
+          }))
         });
         setFileUrl(data.file_url);
+      }).catch(error => {
+        console.error('Error al obtener el acta:', error);
       });
     }
   }, [documentos.actasust_id]);
@@ -49,7 +67,7 @@ const ActaSustentacionModalVer = ({ onClose, documentos }) => {
                 </FormField>
               </ColumnLayout>
               <ColumnLayout columns={2}>
-                <FormField label="DNI">
+                <FormField label="Número de Documento">
                   <Input value={formData.presidente.dni} readOnly />
                 </FormField>
                 <FormField label="Grado">
@@ -77,7 +95,7 @@ const ActaSustentacionModalVer = ({ onClose, documentos }) => {
                 </FormField>
               </ColumnLayout>
               <ColumnLayout columns={2}>
-                <FormField label="DNI">
+                <FormField label="Número de Documento">
                   <Input value={miembro.dni} readOnly />
                 </FormField>
                 <FormField label="Grado">
@@ -105,14 +123,9 @@ const ActaSustentacionModalVer = ({ onClose, documentos }) => {
                 </FormField>
               </ColumnLayout>
               <ColumnLayout columns={2}>
-                <FormField label="DNI">
+                <FormField label="Número de Documento">
                   <Input value={asesor.dni} readOnly />
                 </FormField>
-                <FormField label="Título">
-                  <Input value={asesor.titulo} readOnly />
-                </FormField>
-              </ColumnLayout>
-              <ColumnLayout>
                 <FormField label="URL de ORCID">
                   <Input value={asesor.orcid} readOnly />
                 </FormField>

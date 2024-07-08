@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Button, SpaceBetween } from '@cloudscape-design/components';
-import { fetchActaById, deleteActa } from '../../../../../../api';
+import { fetchActaById, deleteActa } from '../../../../../../src/apis/escuela_upg/modals/ApiActaSustentacionModal';
 
 const ActaSustentacionModalDelete = ({ visible, onClose, onConfirm, documentos }) => {
   const [actaData, setActaData] = useState(null);
@@ -9,6 +9,8 @@ const ActaSustentacionModalDelete = ({ visible, onClose, onConfirm, documentos }
     if (documentos.actasust_id) {
       fetchActaById(documentos.actasust_id).then(data => {
         setActaData(data);
+      }).catch(error => {
+        console.error('Error al obtener el acta:', error);
       });
     }
   }, [documentos.actasust_id]);
