@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import ModalTwoCol from './ModalTwoCol';
-import { Button, FormField, Input, Select, SpaceBetween, Container, Header, ColumnLayout, Box } from '@cloudscape-design/components';
+import { Button, FormField, Input, Select, SpaceBetween, Container, Header, ColumnLayout } from '@cloudscape-design/components';
 import { fetchDatosByDni, fetchTesisById } from '../../../../../../api';
 
 const TesisModalVer = ({ onClose, documentos }) => {
@@ -15,79 +15,47 @@ const TesisModalVer = ({ onClose, documentos }) => {
     asesores: []
   });
   const [fileUrl, setFileUrl] = useState('');
-  const [dataLoaded, setDataLoaded] = useState({ autores: false, asesores: false }); // Nuevo estado
-  
-  useEffect(() => {
-    if (documentos.tesis_id) {
-      console.log(fetchTesisById(documentos.tesis_id).then((data) => console.log(data)));
-      fetchTesisById(documentos.tesis_id).then((data) => {
-        setFormData({
-          facultad: data.facultad_nombre,
-          escuela: data.escuela_nombre,
-          titulo: data.titulo,
-          tipo: data.tipo_tesis,
-          grado: data.grado_academico,
-          year: data.año,
-          autores: [
-            {
-              id: data.id_autor1,
-              dni: data.autor1_dni,
-              nombre: '',
-              apellido: '',
-              telefono: '',
-              email: '',
-              orcid: '',
-              tipoDocumento: 'DNI'
-            },
-            ...(data.id_autor2 ? [{
-              id: data.id_autor2,
-              dni: data.autor2_dni,
-              nombre: '',
-              apellido: '',
-              telefono: '',
-              email: '',
-              orcid: '',
-              tipoDocumento: 'DNI'
-            }] : [])
-          ],
-          asesores: [
-            {
-              id: data.id_asesor1,
-              dni: data.asesor1_dni,
-              nombre: '',
-              apellido: '',
-              titulo: '',
-              orcid: '',
-              tipoDocumento: 'DNI'
-            },
-            ...(data.id_asesor2 ? [{
-              id: data.id_asesor2,
-              dni: data.asesor2_dni,
-              nombre: '',
-              apellido: '',
-              titulo: '',
-              orcid: '',
-              tipoDocumento: 'DNI'
-            }] : [])
-          ]
-        });
-        setFileUrl(data.file_url);
-      });
-    }
-  }, [documentos.tesis_id]);
+  const [loadingState, setLoadingState] = useState({ autores: [true, true], asesores: [true, true] });
+
+  const gradoOptions = [
+    { label: 'Bachiller', value: '1' },
+    { label: 'Magister', value: '2' },
+    { label: 'Doctor', value: '3' }
+  ];
 
   const fetchAndSetDataByDni = async (tipoIdentificacionId, identificacionId, index, type) => {
     try {
       const data = await fetchDatosByDni(tipoIdentificacionId, identificacionId);
-      handleChange('id', data.idpersonas, index, type);
-      handleChange('nombre', data.nombre || '', index, type);
-      handleChange('apellido', data.apellido || '', index, type);
+      const gradoLabel = gradoOptions.find(option => option.value === data.grado_academico_id.toString())?.label || '';
+
+      const newEntry = {
+        nombre: data.nombre,
+        apellido: data.apellido,
+        dni: data.identificacion_id,
+        grado: gradoLabel,
+        telefono: data.telefono,
+        email: data.email,
+        orcid: data.orcid
+      };
+
       if (type === 'autores') {
-        handleChange('telefono', data.telefono || '', index, type);
-        handleChange('email', data.email || '', index, type);
-      }
-      if (data.orcid) {
-        handleChange('orcid', data.orcid, index, type);
+        setFormData(prev => ({
+          ...prev,
+          autores: prev.autores.map((autor, idx) => idx === index ? { ...autor, ...newEntry } : autor)
+        }));
+        setLoadingState(prev => ({
+          ...prev,
+          autores: prev.autores.map((loading, idx) => idx === index ? false : loading)
+        }));
+      } else if (type === 'asesores') {
+        setFormData(prev => ({
+          ...prev,
+          asesores: prev.asesores.map((asesor, idx) => idx === index ? { ...asesor, ...newEntry, tipoDocumento: 'DNI' } : asesor)
+        }));
+        setLoadingState(prev => ({
+          ...prev,
+          asesores: prev.asesores.map((loading, idx) => idx === index ? false : loading)
+        }));
       }
     } catch (error) {
       console.error('Error al obtener datos del DNI:', error);
@@ -95,30 +63,74 @@ const TesisModalVer = ({ onClose, documentos }) => {
   };
 
   useEffect(() => {
-    if (!dataLoaded.autores && formData.autores.length > 0) {
-      formData.autores.forEach((autor, index) => {
-        if (autor.dni) {
-          fetchAndSetDataByDni(1, autor.dni, index, 'autores');
-        }
-      });
-      setDataLoaded(prev => ({ ...prev, autores: true })); // Marcar autores como cargados
-    }
+    if (documentos.tesis_id) {
+      fetchTesisById(documentos.tesis_id).then(data => {
+        if (data) {
+          setFormData({
+            facultad: data.facultad_nombre,
+            escuela: data.escuela_nombre,
+            titulo: data.titulo,
+            tipo: data.tipo_tesis,
+            grado: data.grado_academico,
+            year: data.año,
+            autores: [
+              {
+                id: data.id_autor1,
+                dni: data.autor1_dni,
+                nombre: 'Cargando...',
+                apellido: 'Cargando...',
+                telefono: 'Cargando...',
+                email: 'Cargando...',
+                orcid: 'Cargando...',
+                tipoDocumento: 'DNI'
+              },
+              ...(data.id_autor2 ? [{
+                id: data.id_autor2,
+                dni: data.autor2_dni,
+                nombre: 'Cargando...',
+                apellido: 'Cargando...',
+                telefono: 'Cargando...',
+                email: 'Cargando...',
+                orcid: 'Cargando...',
+                tipoDocumento: 'DNI'
+              }] : [])
+            ],
+            asesores: [
+              {
+                id: data.id_asesor1,
+                dni: data.asesor1_dni,
+                nombre: 'Cargando...',
+                apellido: 'Cargando...',
+                grado: 'Cargando...',
+                tipoDocumento: 'DNI'
+              },
+              ...(data.id_asesor2 ? [{
+                id: data.id_asesor2,
+                dni: data.asesor2_dni,
+                nombre: 'Cargando...',
+                apellido: 'Cargando...',
+                grado: 'Cargando...',
+                tipoDocumento: 'DNI'
+              }] : [])
+            ]
+          });
+          setFileUrl(data.file_url);
 
-    if (!dataLoaded.asesores && formData.asesores.length > 0) {
-      formData.asesores.forEach((asesor, index) => {
-        if (asesor.dni) {
-          fetchAndSetDataByDni(1, asesor.dni, index, 'asesores');
+          // Fetch data for autores and asesores
+          [
+            ...[
+              { dni: data.autor1_dni, type: 'autores', index: 0 },
+              ...(data.id_autor2 ? [{ dni: data.autor2_dni, type: 'autores', index: 1 }] : [])
+            ],
+            { dni: data.asesor1_dni, type: 'asesores', index: 0 },
+            ...(data.id_asesor2 ? [{ dni: data.asesor2_dni, type: 'asesores', index: 1 }] : [])
+          ].forEach(({ dni, type, index }) => fetchAndSetDataByDni(1, dni, index, type));
         }
+      }).catch(error => {
+        console.error('Error al obtener la tesis:', error);
       });
-      setDataLoaded(prev => ({ ...prev, asesores: true })); // Marcar asesores como cargados
     }
-  }, [formData.autores, formData.asesores, dataLoaded]);
-
-  const handleChange = (key, value, index, type = 'autores') => {
-    const newEntries = [...formData[type]];
-    newEntries[index][key] = String(value);
-    setFormData(prev => ({ ...prev, [type]: newEntries }));
-  };
+  }, [documentos.tesis_id]);
 
   return (
     <ModalTwoCol
@@ -131,6 +143,7 @@ const TesisModalVer = ({ onClose, documentos }) => {
         </>
       }
       fileUrl={fileUrl}
+      mode={'view'}
       formContent={
         <SpaceBetween direction="vertical" size="l">
           <Container header={<Header variant="h3">Formulario de Tesis</Header>}>
@@ -174,18 +187,18 @@ const TesisModalVer = ({ onClose, documentos }) => {
           {formData.autores.map((autor, index) => (
             <Container
               key={index}
-              header={<Header variant="h5">Datos del Autor {index + 1}</Header>}
+              header={<Header variant="h5">{formData.autores.length > 1 ? `Datos del Autor ${index + 1}` : 'Datos del Autor'}</Header>}
             >
               <ColumnLayout columns={2}>
                 <FormField label="Nombres">
                   <Input
-                    value={autor.nombre}
+                    value={loadingState.autores[index] ? 'Cargando...' : autor.nombre}
                     readOnly
                   />
                 </FormField>
                 <FormField label="Apellidos">
                   <Input
-                    value={autor.apellido}
+                    value={loadingState.autores[index] ? 'Cargando...' : autor.apellido}
                     readOnly
                   />
                 </FormField>
@@ -209,7 +222,7 @@ const TesisModalVer = ({ onClose, documentos }) => {
                 </FormField>
                 <FormField label="Teléfono">
                   <Input
-                    value={autor.telefono}
+                    value={loadingState.autores[index] ? 'Cargando...' : autor.telefono}
                     readOnly
                   />
                 </FormField>
@@ -217,7 +230,7 @@ const TesisModalVer = ({ onClose, documentos }) => {
               <ColumnLayout>
                 <FormField label="Email UNMSM">
                   <Input
-                    value={autor.email}
+                    value={loadingState.autores[index] ? 'Cargando...' : autor.email}
                     readOnly
                   />
                 </FormField>
@@ -225,7 +238,7 @@ const TesisModalVer = ({ onClose, documentos }) => {
               <ColumnLayout>
                 <FormField label="URL de ORCID">
                   <Input
-                    value={autor.orcid}
+                    value={loadingState.autores[index] ? 'Cargando...' : autor.orcid}
                     readOnly
                   />
                 </FormField>
@@ -235,23 +248,38 @@ const TesisModalVer = ({ onClose, documentos }) => {
           {formData.asesores.map((asesor, index) => (
             <Container
               key={index}
-              header={<Header variant="h5">Datos del Asesor {index + 1}</Header>}
+              header={<Header variant="h5">{formData.asesores.length > 1 ? `Datos del Asesor ${index + 1}` : 'Datos del Asesor'}</Header>}
             >
               <ColumnLayout columns={2}>
                 <FormField label="Nombres">
                   <Input
-                    value={asesor.nombre}
+                    value={loadingState.asesores[index] ? 'Cargando...' : asesor.nombre}
                     readOnly
                   />
                 </FormField>
                 <FormField label="Apellidos">
                   <Input
-                    value={asesor.apellido}
+                    value={loadingState.asesores[index] ? 'Cargando...' : asesor.apellido}
                     readOnly
                   />
                 </FormField>
               </ColumnLayout>
               <ColumnLayout columns={2}>
+                <FormField label="Número de Documento">
+                  <Input
+                    value={asesor.dni}
+                    readOnly
+                  />
+                </FormField>
+                <FormField label="Grado">
+                  <Select
+                    selectedOption={{ label: asesor.grado, value: asesor.grado }}
+                    options={gradoOptions}
+                    readOnly
+                  />
+                </FormField>
+              </ColumnLayout>
+              <ColumnLayout>
                 <FormField label="Tipo de Documento">
                   <Select
                     selectedOption={{ label: asesor.tipoDocumento, value: asesor.tipoDocumento }}
@@ -262,22 +290,9 @@ const TesisModalVer = ({ onClose, documentos }) => {
                     readOnly
                   />
                 </FormField>
-                <FormField label="Grado">
-                  <Select
-                    selectedOption={{ label: asesor.titulo, value: asesor.titulo }}
-                    options={[
-                      { label: 'Doctor', value: 'Doctor' },
-                      { label: 'Magister', value: 'Magister' },
-                      { label: 'Bachiller', value: 'Bachiller' }
-                    ]}
-                    readOnly
-                  />
-                </FormField>
-              </ColumnLayout>
-              <ColumnLayout>
                 <FormField label="URL de ORCID">
                   <Input
-                    value={asesor.orcid}
+                    value={loadingState.asesores[index] ? 'Cargando...' : asesor.orcid}
                     readOnly
                   />
                 </FormField>

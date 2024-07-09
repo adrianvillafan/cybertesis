@@ -21,13 +21,13 @@ const ActaSustentacionModal = ({ onClose, documentos, onSave }) => {
     const fetchAsesores = async () => {
       try {
         const tesisData = await fetchTesisById(documentos.tesis_id);
-        
+
         const asesores = [
           {
             nombre: '',
             apellido: '',
             dni: tesisData.asesor1_dni,
-            orcid: '',
+            grado: '',
             tipoDocumento: /^\d+$/.test(tesisData.asesor1_dni) ? 'DNI' : 'Pasaporte',
             id: tesisData.id_asesor1
           }
@@ -37,7 +37,7 @@ const ActaSustentacionModal = ({ onClose, documentos, onSave }) => {
             nombre: '',
             apellido: '',
             dni: tesisData.asesor2_dni,
-            orcid: '',
+            grado: '',
             tipoDocumento: /^\d+$/.test(tesisData.asesor2_dni) ? 'DNI' : 'Pasaporte',
             id: tesisData.id_asesor2
           });
@@ -59,11 +59,6 @@ const ActaSustentacionModal = ({ onClose, documentos, onSave }) => {
     fetchAsesores();
   }, [documentos.tesis_id]);
 
-  const grados = [
-    { label: 'Doctor', value: 'Doctor' },
-    { label: 'Magister', value: 'Magister' }
-  ];
-
   const tiposDocumento = [
     { label: 'DNI', value: 'DNI' },
     { label: 'Pasaporte', value: 'Pasaporte' }
@@ -76,7 +71,7 @@ const ActaSustentacionModal = ({ onClose, documentos, onSave }) => {
       formData.presidente.dni,
       formData.presidente.grado,
       ...formData.miembros.map(miembro => [miembro.nombre, miembro.apellido, miembro.dni, miembro.grado]).flat(),
-      ...formData.asesores.map(asesor => [asesor.nombre, asesor.apellido, asesor.dni, asesor.orcid]).flat()
+      ...formData.asesores.map(asesor => [asesor.nombre, asesor.apellido, asesor.dni, asesor.grado]).flat()
     ];
     return requiredFields.every(field => field && field.trim().length > 0);
   };
@@ -95,6 +90,7 @@ const ActaSustentacionModal = ({ onClose, documentos, onSave }) => {
     try {
       const data = await fetchDatosByDni(tipoIdentificacionId, dni);
       const id = data.idpersonas;
+      const gradoLabel = data.grado_academico_id === 1 ? 'Bachiller' : data.grado_academico_id === 2 ? 'Magister' : 'Doctor';
       if (type === 'presidente') {
         setLoadingDni(prev => ({ ...prev, presidente: false }));
         setFormData(prev => ({
@@ -103,6 +99,7 @@ const ActaSustentacionModal = ({ onClose, documentos, onSave }) => {
             ...prev.presidente,
             nombre: data.nombre || '',
             apellido: data.apellido || '',
+            grado: gradoLabel,
             id
           }
         }));
@@ -110,13 +107,13 @@ const ActaSustentacionModal = ({ onClose, documentos, onSave }) => {
         setLoadingDni(prev => ({ ...prev, asesores: { ...prev.asesores, [index]: false } }));
         setFormData(prev => ({
           ...prev,
-          asesores: prev.asesores.map((asesor, i) => i === index ? { ...asesor, nombre: data.nombre || '', apellido: data.apellido || '', orcid: data.orcid || '', id } : asesor)
+          asesores: prev.asesores.map((asesor, i) => i === index ? { ...asesor, nombre: data.nombre || '', apellido: data.apellido || '', grado: gradoLabel, id } : asesor)
         }));
       } else {
         setLoadingDni(prev => ({ ...prev, miembros: { ...prev.miembros, [index]: false } }));
         setFormData(prev => ({
           ...prev,
-          miembros: prev.miembros.map((miembro, i) => i === index ? { ...miembro, nombre: data.nombre || '', apellido: data.apellido || '', id } : miembro)
+          miembros: prev.miembros.map((miembro, i) => i === index ? { ...miembro, nombre: data.nombre || '', apellido: data.apellido || '', grado: gradoLabel, id } : miembro)
         }));
       }
     } catch (error) {
@@ -165,9 +162,7 @@ const ActaSustentacionModal = ({ onClose, documentos, onSave }) => {
     } else {
       handleChange('nombre', 'Cargando...', index, type);
       handleChange('apellido', 'Cargando...', index, type);
-      if (type === 'asesores') {
-        handleChange('orcid', 'Cargando...', index, type);
-      }
+      handleChange('grado', 'Cargando...', index, type);
     }
   };
 
@@ -217,6 +212,7 @@ const ActaSustentacionModal = ({ onClose, documentos, onSave }) => {
       setFileUrl={setFileUrl}
       showForm={showForm}
       setShowForm={setShowForm}
+      mode={'upload'}
       isFormComplete={isFormComplete}
       formContent={
         <SpaceBetween direction="vertical" size="l">
@@ -255,10 +251,9 @@ const ActaSustentacionModal = ({ onClose, documentos, onSave }) => {
                   />
                 </FormField>
                 <FormField label="Grado">
-                  <Select
-                    selectedOption={{ label: formData.presidente.grado, value: formData.presidente.grado }}
-                    options={grados}
-                    onChange={({ detail }) => handleChange('grado', detail.selectedOption.value, null, 'presidente')}
+                  <Input
+                    value={loadingDni.presidente ? 'Cargando...' : formData.presidente.grado}
+                    readOnly
                   />
                 </FormField>
               </ColumnLayout>
@@ -311,10 +306,9 @@ const ActaSustentacionModal = ({ onClose, documentos, onSave }) => {
                   />
                 </FormField>
                 <FormField label="Grado">
-                  <Select
-                    selectedOption={{ label: miembro.grado, value: miembro.grado }}
-                    options={grados}
-                    onChange={({ detail }) => handleChange('grado', detail.selectedOption.value, index, 'miembros')}
+                  <Input
+                    value={loadingDni.miembros[index] ? 'Cargando...' : miembro.grado}
+                    readOnly
                   />
                 </FormField>
               </ColumnLayout>
@@ -324,7 +318,7 @@ const ActaSustentacionModal = ({ onClose, documentos, onSave }) => {
           {formData.asesores.map((asesor, index) => (
             <Container
               key={index}
-              header={<Header variant="h5">Datos del Asesor {index + 1}</Header>}
+              header={<Header variant="h5">{formData.asesores.length === 1 ? "Datos del Asesor" : `Datos del Asesor ${index + 1}`}</Header>}
             >
               <ColumnLayout columns={2}>
                 <FormField label="Nombres">
@@ -334,12 +328,22 @@ const ActaSustentacionModal = ({ onClose, documentos, onSave }) => {
                   <Input value={loadingDni.asesores[index] ? 'Cargando...' : asesor.apellido} readOnly />
                 </FormField>
               </ColumnLayout>
-              <ColumnLayout columns={2}>
+              <ColumnLayout columns={3}>
+                <FormField label="Tipo de Documento">
+                  <Select
+                    selectedOption={{ label: asesor.tipoDocumento, value: asesor.tipoDocumento }}
+                    options={tiposDocumento}
+                    onChange={({ detail }) => handleChange('tipoDocumento', detail.selectedOption.value, index, 'asesores')}
+                  />
+                </FormField>
                 <FormField label="Número de Documento">
                   <Input value={asesor.dni} readOnly />
                 </FormField>
-                <FormField label="URL de ORCID">
-                  <Input value={asesor.orcid} readOnly />
+                <FormField label="Grado">
+                  <Input
+                    value={loadingDni.asesores[index] ? 'Cargando...' : asesor.grado}
+                    readOnly
+                  />
                 </FormField>
               </ColumnLayout>
             </Container>
@@ -351,3 +355,4 @@ const ActaSustentacionModal = ({ onClose, documentos, onSave }) => {
 };
 
 export default ActaSustentacionModal;
+

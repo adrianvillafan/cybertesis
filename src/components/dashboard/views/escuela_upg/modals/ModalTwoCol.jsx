@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Modal, FileUpload, Button, Box, SpaceBetween, Container, Header, ColumnLayout, Popover, Icon } from '@cloudscape-design/components';
+import { Modal, FileUpload, Button, Box, SpaceBetween, Container, Header, ColumnLayout, Popover, Icon, Spinner } from '@cloudscape-design/components';
 import { Document, Page, pdfjs } from 'react-pdf';
 import 'pdfjs-dist/web/pdf_viewer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
@@ -7,8 +7,9 @@ import 'react-pdf/dist/Page/AnnotationLayer.css';
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.js`;
 
-const ModalTwoCol = ({ onClose, headerText, footerButtons, file, setFile, fileUrl, setFileUrl, showForm, setShowForm, formContent, isFormComplete }) => {
+const ModalTwoCol = ({ onClose, headerText, footerButtons, file, setFile, fileUrl, setFileUrl, showForm, setShowForm, formContent, mode }) => {
     const [numPages, setNumPages] = useState(null);
+    const [isLoading, setIsLoading] = useState(true); // Inicia en true para mostrar el spinner
     const fileInputRef = useRef(null);
     const containerRef = useRef(null);
     const [width, setWidth] = useState(0);
@@ -33,7 +34,10 @@ const ModalTwoCol = ({ onClose, headerText, footerButtons, file, setFile, fileUr
         if (containerRef.current) {
             setWidth(containerRef.current.offsetWidth);
         }
-    }, [showForm]);
+        if (fileUrl || (formContent && mode === 'view') || (mode === 'upload')) {
+            setIsLoading(false); // Desactiva el spinner cuando el contenido está listo
+        }
+    }, [fileUrl, formContent, mode]);
 
     const handleFileChange = ({ detail }) => {
         const selectedFile = detail.value[0];
@@ -43,16 +47,18 @@ const ModalTwoCol = ({ onClose, headerText, footerButtons, file, setFile, fileUr
             setFile(selectedFile);
             setShowForm(!!selectedFile);
             if (selectedFile) {
+                setIsLoading(true); // Activa el spinner al seleccionar un archivo
                 const reader = new FileReader();
                 reader.onload = (event) => {
                     const fileContent = event.target.result;
-                    setFileUrl(fileContent
-                    );
+                    setFileUrl(fileContent);
+                    setIsLoading(false); // Desactiva el spinner cuando el archivo está listo
                 };
                 reader.readAsDataURL(selectedFile);
             }
         }
     };
+
     const handleDrop = (event) => {
         event.preventDefault();
         const selectedFile = event.dataTransfer.files[0];
@@ -62,10 +68,12 @@ const ModalTwoCol = ({ onClose, headerText, footerButtons, file, setFile, fileUr
             setFile(selectedFile);
             setShowForm(!!selectedFile);
             if (selectedFile) {
+                setIsLoading(true); // Activa el spinner al arrastrar y soltar un archivo
                 const reader = new FileReader();
                 reader.onload = (event) => {
                     const fileContent = event.target.result;
                     setFileUrl(fileContent);
+                    setIsLoading(false); // Desactiva el spinner cuando el archivo está listo
                 };
                 reader.readAsDataURL(selectedFile);
             }
@@ -109,7 +117,11 @@ const ModalTwoCol = ({ onClose, headerText, footerButtons, file, setFile, fileUr
             }
         >
             <SpaceBetween direction="vertical" size="xl" content="div">
-                {!showForm && !fileUrl ? (
+                {isLoading ? (
+                    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '30vh' }}>
+                        <Spinner size="large" />
+                    </div>
+                ) : mode === 'upload' && !showForm && !fileUrl ? (
                     <div
                         style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap', alignItems: 'center', height: '30vh', border: '2px dashed #aaa', borderRadius: '10px', padding: '20px', backgroundColor: '#ffffff', cursor: 'pointer' }}
                         onClick={handleClick}

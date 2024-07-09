@@ -44,40 +44,42 @@ export const insertActaSustentacion = (actaDetails, callback) => {
 export const getActaSustentacionById = (id, callback) => {
   const query = `
     SELECT 
-      a.id, 
-      a.id_participantes, 
-      a.id_presidente, 
+      a.id,
+      a.id_participantes,
+      a.id_presidente,
       p1.identificacion_id AS presidente_dni,
-      p1.nombre AS presidente_nombre,
-      p1.apellido AS presidente_apellido,
-      a.id_miembro1, 
+      a.id_miembro1,
       p2.identificacion_id AS miembro1_dni,
-      p2.nombre AS miembro1_nombre,
-      p2.apellido AS miembro1_apellido,
-      a.id_miembro2, 
+      a.id_miembro2,
       p3.identificacion_id AS miembro2_dni,
-      p3.nombre AS miembro2_nombre,
-      p3.apellido AS miembro2_apellido,
-      a.id_miembro3, 
+      a.id_miembro3,
       p4.identificacion_id AS miembro3_dni,
-      p4.nombre AS miembro3_nombre,
-      p4.apellido AS miembro3_apellido,
-      a.file_url, 
-      a.created_by, 
-      a.updated_by, 
-      a.created_at, 
-      a.updated_at 
-    FROM 
+      a.file_url,
+      a.created_by,
+      a.updated_by,
+      a.created_at,
+      a.updated_at,
+      tp.id_asesor1,
+      p5.identificacion_id AS asesor1_dni,
+      tp.id_asesor2,
+      p6.identificacion_id AS asesor2_dni
+    FROM
       acta_sustentacion a
-    LEFT JOIN 
+    LEFT JOIN
       personas p1 ON a.id_presidente = p1.idpersonas
-    LEFT JOIN 
+    LEFT JOIN
       personas p2 ON a.id_miembro1 = p2.idpersonas
-    LEFT JOIN 
+    LEFT JOIN
       personas p3 ON a.id_miembro2 = p3.idpersonas
-    LEFT JOIN 
+    LEFT JOIN
       personas p4 ON a.id_miembro3 = p4.idpersonas
-    WHERE 
+    LEFT JOIN
+      tesis_participacion tp ON a.id_participantes = tp.id_participantes
+    LEFT JOIN
+      personas p5 ON tp.id_asesor1 = p5.idpersonas
+    LEFT JOIN
+      personas p6 ON tp.id_asesor2 = p6.idpersonas
+    WHERE
       a.id = ?
   `;
   executeQuery(query, [id], (err, results) => {
@@ -91,56 +93,31 @@ export const getActaSustentacionById = (id, callback) => {
 };
 
 
-export const deleteActaSustentacionById = (id, callback) => {
-  // Primero obtenemos el id_participantes de la acta
-  const queryGetParticipantes = 'SELECT id_participantes FROM acta_sustentacion WHERE id = ?';
 
-  executeQuery(queryGetParticipantes, [id], (err, results) => {
+
+export const deleteActaSustentacionById = (id, callback) => {
+  // Actualizamos la tabla de documentos
+  const queryUpdateDocumentos = 'UPDATE documentos SET actasust_id = NULL WHERE actasust_id = ?';
+
+  executeQuery(queryUpdateDocumentos, [id], (err, results) => {
     if (err) {
-      console.error('Error al obtener id_participantes:', err);
+      console.error('Error al actualizar documentos:', err);
       return callback(err, null);
     }
 
-    if (results.length === 0) {
-      const error = new Error('No se encontró el acta con el id proporcionado.');
-      console.error('Error:', error);
-      return callback(error, null);
-    }
+    // Finalmente, eliminamos el acta
+    const queryDeleteActa = 'DELETE FROM acta_sustentacion WHERE id = ?';
 
-    const idParticipantes = results[0].id_participantes;
-
-    // Luego eliminamos la participación
-    const queryDeleteParticipacion = 'DELETE FROM tesis_participacion WHERE id_participantes = ?';
-
-    executeQuery(queryDeleteParticipacion, [idParticipantes], (err, results) => {
+    executeQuery(queryDeleteActa, [id], (err, results) => {
       if (err) {
-        console.error('Error al eliminar participación de acta:', err);
+        console.error('Error al eliminar acta:', err);
         return callback(err, null);
       }
 
-      // Luego actualizamos la tabla de documentos
-      const queryUpdateDocumentos = 'UPDATE documentos SET actasust_id = NULL WHERE actasust_id = ?';
-
-      executeQuery(queryUpdateDocumentos, [id], (err, results) => {
-        if (err) {
-          console.error('Error al actualizar documentos:', err);
-          return callback(err, null);
-        }
-
-        // Finalmente, eliminamos el acta
-        const queryDeleteActa = 'DELETE FROM acta_sustentacion WHERE id = ?';
-
-        executeQuery(queryDeleteActa, [id], (err, results) => {
-          if (err) {
-            console.error('Error al eliminar acta:', err);
-            return callback(err, null);
-          }
-
-          callback(null, results.affectedRows);
-        });
-      });
+      callback(null, results.affectedRows);
     });
   });
 };
+
 
 

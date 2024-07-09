@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import ModalTwoCol from './ModalTwoCol';
 import { Button, FormField, Input, Select, SpaceBetween, Container, Header, ColumnLayout } from '@cloudscape-design/components';
 import { fetchActaById } from '../../../../../../src/apis/escuela_upg/modals/ApiActaSustentacionModal';
+import { fetchDatosByDni } from '../../../../../../api';
 
 const ActaSustentacionModalVer = ({ onClose, documentos }) => {
   const [formData, setFormData] = useState({
@@ -10,31 +11,95 @@ const ActaSustentacionModalVer = ({ onClose, documentos }) => {
     asesores: []
   });
   const [fileUrl, setFileUrl] = useState('');
+  const [loadingState, setLoadingState] = useState({
+    presidente: true,
+    miembros: [true, true, true],
+    asesores: [true, true]
+  });
+
+  const gradoOptions = [
+    { label: 'Bachiller', value: '1' },
+    { label: 'Magister', value: '2' },
+    { label: 'Doctor', value: '3' }
+  ];
+
+  const fetchAndSetDataByDni = async (dni, type, index) => {
+    try {
+      const data = await fetchDatosByDni(1, dni); // Assuming tipoIdentificacionId is always 1 for DNI
+      const gradoLabel = gradoOptions.find(option => option.value === data.grado_academico_id.toString())?.label || '';
+
+      if (type === 'presidente') {
+        setFormData(prev => ({
+          ...prev,
+          presidente: {
+            nombre: data.nombre,
+            apellido: data.apellido,
+            dni: data.identificacion_id,
+            grado: gradoLabel
+          }
+        }));
+        setLoadingState(prev => ({ ...prev, presidente: false }));
+      } else if (type === 'miembros') {
+        setFormData(prev => ({
+          ...prev,
+          miembros: prev.miembros.map((miembro, idx) => idx === index ? {
+            nombre: data.nombre,
+            apellido: data.apellido,
+            dni: data.identificacion_id,
+            grado: gradoLabel
+          } : miembro)
+        }));
+        setLoadingState(prev => ({
+          ...prev,
+          miembros: prev.miembros.map((loading, idx) => idx === index ? false : loading)
+        }));
+      } else if (type === 'asesores') {
+        setFormData(prev => ({
+          ...prev,
+          asesores: prev.asesores.map((asesor, idx) => idx === index ? {
+            nombre: data.nombre,
+            apellido: data.apellido,
+            dni: data.identificacion_id,
+            grado: gradoLabel
+          } : asesor)
+        }));
+        setLoadingState(prev => ({
+          ...prev,
+          asesores: prev.asesores.map((loading, idx) => idx === index ? false : loading)
+        }));
+      }
+    } catch (error) {
+      console.error('Error al obtener datos del DNI:', error);
+    }
+  };
 
   useEffect(() => {
     if (documentos.actasust_id) {
       fetchActaById(documentos.actasust_id).then(data => {
-        setFormData({
+        setFormData(prev => ({
+          ...prev,
           presidente: {
-            nombre: data.presidente_nombre,
-            apellido: data.presidente_apellido,
-            dni: data.presidente_numero_documento,
-            grado: data.presidente_grado_id === 1 ? 'Doctor' : 'Magister'
+            ...prev.presidente,
+            dni: data.presidente_dni
           },
-          miembros: data.miembros.map(miembro => ({
-            nombre: miembro.nombre,
-            apellido: miembro.apellido,
-            dni: miembro.numero_documento,
-            grado: miembro.grado_id === 1 ? 'Doctor' : 'Magister'
-          })),
-          asesores: data.asesores.map(asesor => ({
-            nombre: asesor.nombre,
-            apellido: asesor.apellido,
-            dni: asesor.dni,
-            titulo: asesor.titulo,
-            orcid: asesor.orcid
-          }))
-        });
+          miembros: [
+            { ...prev.miembros[0], dni: data.miembro1_dni },
+            { ...prev.miembros[1], dni: data.miembro2_dni },
+            ...(data.miembro3_dni ? [{ dni: data.miembro3_dni }] : [])
+          ],
+          asesores: [
+            { dni: data.asesor1_dni },
+            ...(data.asesor2_dni ? [{ dni: data.asesor2_dni }] : [])
+          ]
+        }));
+
+        fetchAndSetDataByDni(data.presidente_dni, 'presidente');
+        fetchAndSetDataByDni(data.miembro1_dni, 'miembros', 0);
+        fetchAndSetDataByDni(data.miembro2_dni, 'miembros', 1);
+        if (data.miembro3_dni) fetchAndSetDataByDni(data.miembro3_dni, 'miembros', 2);
+        fetchAndSetDataByDni(data.asesor1_dni, 'asesores', 0);
+        if (data.asesor2_dni) fetchAndSetDataByDni(data.asesor2_dni, 'asesores', 1);
+
         setFileUrl(data.file_url);
       }).catch(error => {
         console.error('Error al obtener el acta:', error);
@@ -53,6 +118,7 @@ const ActaSustentacionModalVer = ({ onClose, documentos }) => {
         </>
       }
       fileUrl={fileUrl}
+      mode={'view'}
       formContent={
         <SpaceBetween direction="vertical" size="l">
           <Container header={<Header variant="h3">Formulario de Acta de Sustentación</Header>}>
@@ -60,10 +126,10 @@ const ActaSustentacionModalVer = ({ onClose, documentos }) => {
               <Header variant="h5">Presidente</Header>
               <ColumnLayout columns={2}>
                 <FormField label="Nombres">
-                  <Input value={formData.presidente.nombre} readOnly />
+                  <Input value={loadingState.presidente ? 'Cargando...' : formData.presidente.nombre} readOnly />
                 </FormField>
                 <FormField label="Apellidos">
-                  <Input value={formData.presidente.apellido} readOnly />
+                  <Input value={loadingState.presidente ? 'Cargando...' : formData.presidente.apellido} readOnly />
                 </FormField>
               </ColumnLayout>
               <ColumnLayout columns={2}>
@@ -73,10 +139,7 @@ const ActaSustentacionModalVer = ({ onClose, documentos }) => {
                 <FormField label="Grado">
                   <Select
                     selectedOption={{ label: formData.presidente.grado, value: formData.presidente.grado }}
-                    options={[
-                      { label: 'Doctor', value: 'Doctor' },
-                      { label: 'Magister', value: 'Magister' }
-                    ]}
+                    options={gradoOptions}
                     readOnly
                   />
                 </FormField>
@@ -88,10 +151,10 @@ const ActaSustentacionModalVer = ({ onClose, documentos }) => {
             <Container key={index} header={<Header variant="h5">Miembro del Jurado {index + 1}</Header>}>
               <ColumnLayout columns={2}>
                 <FormField label="Nombres">
-                  <Input value={miembro.nombre} readOnly />
+                  <Input value={loadingState.miembros[index] ? 'Cargando...' : miembro.nombre} readOnly />
                 </FormField>
                 <FormField label="Apellidos">
-                  <Input value={miembro.apellido} readOnly />
+                  <Input value={loadingState.miembros[index] ? 'Cargando...' : miembro.apellido} readOnly />
                 </FormField>
               </ColumnLayout>
               <ColumnLayout columns={2}>
@@ -101,10 +164,7 @@ const ActaSustentacionModalVer = ({ onClose, documentos }) => {
                 <FormField label="Grado">
                   <Select
                     selectedOption={{ label: miembro.grado, value: miembro.grado }}
-                    options={[
-                      { label: 'Doctor', value: 'Doctor' },
-                      { label: 'Magister', value: 'Magister' }
-                    ]}
+                    options={gradoOptions}
                     readOnly
                   />
                 </FormField>
@@ -116,18 +176,22 @@ const ActaSustentacionModalVer = ({ onClose, documentos }) => {
             <Container key={index} header={<Header variant="h5">Datos del Asesor {index + 1}</Header>}>
               <ColumnLayout columns={2}>
                 <FormField label="Nombres">
-                  <Input value={asesor.nombre} readOnly />
+                  <Input value={loadingState.asesores[index] ? 'Cargando...' : asesor.nombre} readOnly />
                 </FormField>
                 <FormField label="Apellidos">
-                  <Input value={asesor.apellido} readOnly />
+                  <Input value={loadingState.asesores[index] ? 'Cargando...' : asesor.apellido} readOnly />
                 </FormField>
               </ColumnLayout>
               <ColumnLayout columns={2}>
                 <FormField label="Número de Documento">
                   <Input value={asesor.dni} readOnly />
                 </FormField>
-                <FormField label="URL de ORCID">
-                  <Input value={asesor.orcid} readOnly />
+                <FormField label="Grado">
+                  <Select
+                    selectedOption={{ label: asesor.grado, value: asesor.grado }}
+                    options={gradoOptions}
+                    readOnly
+                  />
                 </FormField>
               </ColumnLayout>
             </Container>

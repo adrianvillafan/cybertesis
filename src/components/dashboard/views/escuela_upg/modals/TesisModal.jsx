@@ -34,7 +34,7 @@ const TesisModal = ({ onClose, alumnoData, onSave, readOnly, fileUrl, formData: 
       dni: '',
       nombre: '',
       apellido: '',
-      titulo: '',
+      grado: '',
       orcid: '',
       orcidConfirmed: false,
       tipoDocumento: 'DNI'
@@ -44,12 +44,10 @@ const TesisModal = ({ onClose, alumnoData, onSave, readOnly, fileUrl, formData: 
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: 6 }, (_, i) => currentYear - i);
 
-  const gradoOptions = alumnoData?.grado_academico_id === 1 ? [
-    { label: 'Bachiller', value: 'Bachiller' },
-    { label: 'Título Profesional', value: 'Título Profesional' }
-  ] : [
-    { label: 'Magister', value: 'Magister' },
-    { label: 'Doctorado', value: 'Doctorado' }
+  const gradoOptions = [
+    { label: 'Bachiller', value: '1' },
+    { label: 'Magister', value: '2' },
+    { label: 'Doctorado', value: '3' }
   ];
 
   const isFormComplete = () => {
@@ -72,14 +70,14 @@ const TesisModal = ({ onClose, alumnoData, onSave, readOnly, fileUrl, formData: 
         String(asesor.nombre),
         String(asesor.apellido),
         String(asesor.dni),
-        String(asesor.titulo),
+        String(asesor.grado),
         String(asesor.orcid)
       ])
     ];
 
     return requiredFields.every(field => typeof field === 'string' && field.trim().length > 0);
   };
-console.log("docs",documentos_id.id)
+
   useEffect(() => {
     if (readOnly) {
       fetchTesisById(documentos_id.id).then((data) => {
@@ -116,7 +114,7 @@ console.log("docs",documentos_id.id)
             dni: data.asesor1_dni,
             nombre: '',
             apellido: '',
-            titulo: '',
+            grado: '',
             orcid: '',
             orcidConfirmed: false,
             tipoDocumento: 'DNI'
@@ -128,7 +126,7 @@ console.log("docs",documentos_id.id)
             dni: data.asesor2_dni,
             nombre: '',
             apellido: '',
-            titulo: '',
+            grado: '',
             orcid: '',
             orcidConfirmed: false,
             tipoDocumento: 'DNI'
@@ -157,9 +155,12 @@ console.log("docs",documentos_id.id)
     setLoadingDni(prev => ({ ...prev, [type]: { ...prev[type], [index]: true } }));
     try {
       const data = await fetchDatosByDni(tipoIdentificacionId, identificacionId);
+      const gradoLabel = gradoOptions.find(option => option.value === data.grado_academico_id.toString())?.label || '';
+
       handleChange('id', data.idpersonas, index, type);
       handleChange('nombre', data.nombre || '', index, type);
       handleChange('apellido', data.apellido || '', index, type);
+      handleChange('grado', gradoLabel, index, type);
       if (type === 'autores') {
         handleChange('telefono', data.telefono || '', index, type);
         handleChange('email', data.email || '', index, type);
@@ -217,7 +218,7 @@ console.log("docs",documentos_id.id)
     if (formData.asesores.length < 2) {
       setFormData(prev => ({
         ...prev,
-        asesores: [...prev.asesores, { id: '', nombre: '', apellido: '', dni: '', titulo: 'Magister', orcid: '', orcidConfirmed: false, tipoDocumento: 'DNI' }]
+        asesores: [...prev.asesores, { id: '', nombre: '', apellido: '', dni: '', grado: 'Magister', orcid: '', orcidConfirmed: false, tipoDocumento: 'DNI' }]
       }));
     }
   };
@@ -238,6 +239,7 @@ console.log("docs",documentos_id.id)
       handleChange('nombre', 'Cargando...', index, type);
       handleChange('apellido', 'Cargando...', index, type);
       handleChange('orcid', 'Cargando...', index, type);
+      handleChange('grado', 'Cargando...', index, type);
       if (type === 'autores') {
         handleChange('telefono', 'Cargando...', index, type);
         handleChange('email', 'Cargando...', index, type);
@@ -271,23 +273,23 @@ console.log("docs",documentos_id.id)
   const handleSave = async () => {
     console.log("formData:", formData);
     console.log("file:", file);
-  
+
     if (isFormComplete()) {
       try {
         // Define the new file name
         const newFileName = `${formData.autores[0].dni}_${formData.tipo}_${formData.grado}_${formData.year}.pdf`;
         console.log("newFileName:", newFileName);
-  
+
         // Create a new file object with the new name
         const newFile = new File([file], newFileName, { type: file.type });
         console.log("newFile:", newFile);
-  
+
         // Subir el archivo
         console.log("Tratando de subir archivo...");
         const uploadResponse = await uploadTesisFile(newFile);
         const { fileName } = uploadResponse;
         console.log("uploadResponse:", uploadResponse);
-  
+
         // Guardar los detalles de la tesis
         const tesisData = {
           ...formData,
@@ -298,9 +300,9 @@ console.log("docs",documentos_id.id)
           asesor2: formData.asesores[1]?.id || null,
           documentos_id: documentos_id.id
         };
-  
+
         const saveResponse = await saveTesis(tesisData);
-  
+
         onSave({ formData, fileUrl });
         onClose();
       } catch (error) {
@@ -327,6 +329,7 @@ console.log("docs",documentos_id.id)
       setFileUrl={setLocalFileUrl}
       showForm={showForm}
       setShowForm={setShowForm}
+      mode={'upload'}
       isFormComplete={isFormComplete}
       formContent={
         <SpaceBetween direction="vertical" size="l">
@@ -356,7 +359,8 @@ console.log("docs",documentos_id.id)
                   <Select
                     selectedOption={{ label: formData.grado, value: formData.grado }}
                     options={gradoOptions}
-                    onChange={({ detail }) => setFormData(prev => ({ ...prev, grado: detail.selectedOption.value }))}
+                    onChange={({ detail }) => setFormData(prev => ({ ...prev, grado: detail.selectedOption.label }))}
+                    readOnly
                   />
                 </FormField>
                 <FormField label="Año">
@@ -514,14 +518,9 @@ console.log("docs",documentos_id.id)
                   />
                 </FormField>
                 <FormField label="Grado">
-                  <Select
-                    selectedOption={{ label: asesor.titulo, value: asesor.titulo }}
-                    options={[
-                      { label: 'Doctor', value: 'Doctor' },
-                      { label: 'Magister', value: 'Magister' },
-                      { label: 'Bachiller', value: 'Bachiller' }
-                    ]}
-                    onChange={({ detail }) => handleChange('titulo', detail.selectedOption.value, index, 'asesores')}
+                  <Input
+                    value={loadingDni.asesores[index] ? 'Cargando...' : asesor.grado}
+                    readOnly
                   />
                 </FormField>
               </ColumnLayout>

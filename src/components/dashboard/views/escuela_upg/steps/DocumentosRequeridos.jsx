@@ -99,18 +99,6 @@ const DocumentosRequeridos = ({
     setCanProceed(allDocumentsCompleted);
   }, [savedDocuments, setCanProceed]);
 
-  const handleDeleteDocument = async () => {
-    try {
-      await deleteTesis(savedDocuments[deleteDocType]);
-      setSavedDocuments(prev => ({ ...prev, [deleteDocType]: null }));
-      setShowDeleteConfirmation(false);
-      await fetchDocumentos(); // Actualiza los documentos después de eliminar
-    } catch (error) {
-      setErrorMessage('Error al eliminar el documento: ' + error.message);
-      setShowDeleteConfirmation(false);
-    }
-  };
-
   const isTesisComplete = !!savedDocuments['Tesis'];
   const isActaSustentacionComplete = !!savedDocuments['Acta de Sustentación'];
 
@@ -231,10 +219,10 @@ const DocumentosRequeridos = ({
           documentos={documentos}
         />
       )}
-      {showDeleteConfirmation && (
+      {showDeleteConfirmation && deleteDocType === 'Tesis'  &&(
         <TesisModalDelete
           visible={showDeleteConfirmation}
-          onClose={() => setShowDeleteConfirmation(false)}
+          onClose={handleModalClose}
           onConfirm={handleDeleteDocument}
           documentos={documentos}
         />

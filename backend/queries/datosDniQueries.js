@@ -11,7 +11,8 @@ export function fetchDatosByDni(tipoIdentificacionId, identificacionId, callback
             apellidos_mat,
             telefono, 
             correo_institucional AS email, 
-            orcid
+            orcid,
+            grado_academico_id
         FROM personas
         WHERE tipo_identificacion_id = ? AND identificacion_id = ?;
     `;
