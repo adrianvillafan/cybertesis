@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useContext, useCallback } from 'react';
+import React, { useState, useEffect, useContext, useCallback, useRef } from 'react';
 import ModalTwoCol from './ModalTwoCol';
-import { Button, FormField, Input, Select, SpaceBetween, Container, Header, ColumnLayout, DatePicker } from '@cloudscape-design/components';
+import { Button, FormField, Input, Multiselect, Select, SpaceBetween, Container, Header, ColumnLayout, DatePicker } from '@cloudscape-design/components';
 import UserContext from '../../../contexts/UserContext';
 import { fetchDatosByDni, fetchTesisById, fetchActaById, uploadMetadataFile, createMetadata, fetchLineasInvestigacion, fetchGruposInvestigacion, fetchDisciplinasOCDE } from '../../../../../../api';
 
@@ -27,11 +27,13 @@ const MetadatosModal = ({ onClose, onSave, documentos }) => {
     anoInicio: '',
     anoFin: '',
     anoInvestigacionType: '',
-    urlDisciplinasOCDE: ''
+    urlDisciplinasOCDE: []
   });
   const [lineasInvestigacion, setLineasInvestigacion] = useState([]);
   const [gruposInvestigacion, setGruposInvestigacion] = useState([]);
   const [disciplinasOCDE, setDisciplinasOCDE] = useState([]);
+
+  const timerRef = useRef(null);
 
   useEffect(() => {
     const fetchParticipantsData = async () => {
@@ -124,12 +126,11 @@ const MetadatosModal = ({ onClose, onSave, documentos }) => {
         throw new Error('Error en la solicitud');
       }
       const data = await response.json();
-      console.log("nobre",data.display_name)
       return {
         pais: data.address.country || '',
         departamento: data.address.region || data.address.state,
         provincia: data.address.county || data.address.region,
-        distrito: data.address.city ||'',
+        distrito: data.address.city || '',
         direccion: data.display_name || ''
       };
     } catch (error) {
@@ -165,8 +166,18 @@ const MetadatosModal = ({ onClose, onSave, documentos }) => {
         }));
       }
     };
-    const timer = setTimeout(handleFetch, 3000);
-    return () => clearTimeout(timer);
+
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+    }
+
+    timerRef.current = setTimeout(handleFetch, 4000);
+
+    return () => {
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+      }
+    };
   }, []);
 
   const handleLatLongChange = (lat, lon) => {
@@ -183,6 +194,15 @@ const MetadatosModal = ({ onClose, onSave, documentos }) => {
       ...prev,
       [key]: String(value)
     }));
+  };
+
+  const handleMultiselectChange = (key, selectedOptions) => {
+    if (selectedOptions.length <= 3) {
+      setFormData(prev => ({
+        ...prev,
+        [key]: selectedOptions
+      }));
+    }
   };
 
   const handleAnoInvestigacionChange = (value) => {
@@ -461,11 +481,12 @@ const MetadatosModal = ({ onClose, onSave, documentos }) => {
               </ColumnLayout>
             )}
             <FormField label="URL de Disciplinas OCDE">
-              <Select
-                selectedOption={{ label: disciplinasOCDE.find(d => d.value === formData.urlDisciplinasOCDE)?.label, value: formData.urlDisciplinasOCDE }}
+              <Multiselect
+                selectedOptions={formData.urlDisciplinasOCDE}
+                onChange={({ detail }) => handleMultiselectChange('urlDisciplinasOCDE', detail.selectedOptions)}
                 options={disciplinasOCDE}
                 filteringType="auto"
-                onChange={({ detail }) => handleSelectChange('urlDisciplinasOCDE', detail.selectedOption.value)}
+                placeholder="Seleccione hasta 3 disciplinas"
               />
             </FormField>
           </Container>
