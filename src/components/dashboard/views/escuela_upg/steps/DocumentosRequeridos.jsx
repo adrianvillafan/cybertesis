@@ -85,6 +85,13 @@ const DocumentosRequeridos = ({
     await fetchDocumentos(); // Actualiza los documentos después de guardar
   };
 
+  const handleDeleteDocument = async () => {
+    console.log('Eliminando documento:', deleteDocType);
+    setSavedDocuments(prev => ({ ...prev, [deleteDocType]: null }));
+    setSelectedDoc(null);
+    await fetchDocumentos(); // Actualiza los documentos después de eliminar
+  };
+
   const documentosRequeridos = [
     { id: 1, nombre: 'Tesis' },
     { id: 2, nombre: 'Acta de Sustentación' },
@@ -222,7 +229,7 @@ const DocumentosRequeridos = ({
       {showDeleteConfirmation && deleteDocType === 'Tesis'  &&(
         <TesisModalDelete
           visible={showDeleteConfirmation}
-          onClose={handleModalClose}
+          onClose={() => setShowDeleteConfirmation(false)}
           onConfirm={handleDeleteDocument}
           documentos={documentos}
         />
