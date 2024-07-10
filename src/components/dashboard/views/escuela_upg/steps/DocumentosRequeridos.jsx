@@ -209,8 +209,6 @@ const DocumentosRequeridos = ({
       {selectedDoc?.type === 'Hoja de Metadatos' && (
         <MetadatosModal
           onClose={handleModalClose}
-          autores={autores}
-          jurados={jurados}
           onSave={(data) => handleSaveDocument('Hoja de Metadatos', data)}
           readOnly={!selectedDoc.editing}
           fileUrl={selectedDoc.editing ? '' : savedDocuments['Hoja de Metadatos']?.file_url || ''}

@@ -5,6 +5,13 @@ import { createOrFetchDocumentos } from '../queries/documentQueries.js';
 import { insertTesis, deleteTesisById, getTesisById, getTesisByStudentId } from '../queries/tesisQueries.js';
 import { getSolicitudesByEstudianteId } from '../queries/solicitudQueries.js';
 import { insertActaSustentacion, deleteActaSustentacionById, getActaSustentacionById } from '../queries/actaQueries.js';
+import { insertMetadata,
+  deleteMetadataById,
+  getMetadataById,
+  getLineasInvestigacion, 
+  getGruposInvestigacion, 
+  getDisciplinasOCDE
+} from '../queries/metadataQueries.js';
 
 const router = express.Router();
 const storage = multer.memoryStorage();
@@ -241,6 +248,101 @@ router.get('/acta/:id', async (req, res) => {
   } catch (error) {
     res.status(500).send('Error al obtener detalles de acta de sustentación: ' + error.message);
   }
+});
+
+// ------------------ Metadata Routes ------------------
+
+router.post('/metadata/insert', async (req, res) => {
+  const metadataDetails = req.body;
+  console.log('metadataDetails', metadataDetails);
+  try {
+    insertMetadata(metadataDetails, (err, metadataId) => {
+      if (err) {
+        res.status(500).send('Error al insertar metadata: ' + err.message);
+      } else {
+        res.json({ message: 'Metadata insertada correctamente', metadataId });
+      }
+    });
+  } catch (error) {
+    res.status(500).send('Error al insertar metadata: ' + error.message);
+  }
+});
+
+router.delete('/metadata/delete/:id', async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const metadata = await new Promise((resolve, reject) => {
+      getMetadataById(id, (err, result) => {
+        if (err) reject(err);
+        else resolve(result);
+      });
+    });
+
+    if (!metadata) {
+      return res.status(404).send('Metadata no encontrada.');
+    }
+
+    await new Promise((resolve, reject) => {
+      deleteMetadataById(id, (err, results) => {
+        if (err) reject(err);
+        else resolve(results);
+      });
+    });
+
+    res.json({ message: 'Metadata eliminada correctamente' });
+  } catch (error) {
+    res.status(500).send('Error al eliminar metadata: ' + error.message);
+  }
+});
+
+router.get('/metadata/:id', async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    getMetadataById(id, async (err, metadata) => {
+      if (err) {
+        res.status(500).send('Error al obtener detalles de metadata: ' + err.message);
+      } else if (!metadata) {
+        res.status(404).send('Metadata no encontrada.');
+      } else {
+        res.json(metadata);
+      }
+    });
+  } catch (error) {
+    res.status(500).send('Error al obtener detalles de metadata: ' + error.message);
+  }
+});
+
+router.get('/lineas-investigacion', (req, res) => {
+  getLineasInvestigacion((err, lineas) => {
+    if (err) {
+      res.status(500).send('Error al obtener líneas de investigación: ' + err.message);
+    } else {
+      res.json(lineas);
+    }
+  });
+});
+
+router.get('/grupos-investigacion/:facultadId', (req, res) => {
+  const { facultadId } = req.params;
+  getGruposInvestigacion(facultadId, (err, grupos) => {
+    if (err) {
+      res.status(500).send('Error al obtener grupos de investigación: ' + err.message);
+    } else {
+      res.json(grupos);
+    }
+  });
+});
+
+router.get('/disciplinas-ocde', (req, res) => {
+  getDisciplinasOCDE((err, disciplinas) => {
+    if (err) {
+      res.status(500).send('Error al obtener disciplinas OCDE: ' + err.message);
+    } else {
+      res.json(disciplinas);
+    }
+  });
 });
 
 // ------------------ Document Handling Routes ------------------

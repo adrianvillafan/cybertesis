@@ -1,172 +1,233 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useCallback } from 'react';
 import ModalTwoCol from './ModalTwoCol';
-import { Button, FormField, Input, Select, SpaceBetween, Container, Header, ColumnLayout, Icon, DatePicker } from '@cloudscape-design/components';
+import { Button, FormField, Input, Select, SpaceBetween, Container, Header, ColumnLayout, DatePicker } from '@cloudscape-design/components';
 import UserContext from '../../../contexts/UserContext';
+import { fetchDatosByDni, fetchTesisById, fetchActaById, uploadMetadataFile, createMetadata, fetchLineasInvestigacion, fetchGruposInvestigacion, fetchDisciplinasOCDE } from '../../../../../../api';
 
-const MetadatosModal = ({ onClose, autores, jurados, onSave }) => {
+const MetadatosModal = ({ onClose, onSave, documentos }) => {
   const { user } = useContext(UserContext);
   const [file, setFile] = useState(null);
   const [fileUrl, setFileUrl] = useState('');
-  const [showForm, setShowForm] = useState(false); // Default to true since no file upload required
+  const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
-    autores: autores,
-    jurados: jurados,
+    autores: [],
+    jurados: [],
+    presidente: {},
+    asesores: [],
     lineaInvestigacion: '',
     grupoInvestigacion: '',
     agenciaFinanciamiento: '',
-    ubicacion: {
-      pais: 'Perú',
-      departamento: '',
-      provincia: '',
-      distrito: '',
-      direccion: '',
-      latitud: '',
-      longitud: ''
-    },
-    anoInvestigacion: '',
-    urlDisciplinasOCDE: '',
-    ubicacionOpcional: [],
+    pais: 'Perú',
+    departamento: '',
+    provincia: '',
+    distrito: '',
+    direccion: '',
+    latitud: '',
+    longitud: '',
+    anoInicio: '',
+    anoFin: '',
+    anoInvestigacionType: '',
+    urlDisciplinasOCDE: ''
   });
-
-  const [countries, setCountries] = useState([]);
-  const [departments, setDepartments] = useState([]);
-  const [filteredDepartments, setFilteredDepartments] = useState([]);
-  const [provinces, setProvinces] = useState([]);
-  const [filteredProvinces, setFilteredProvinces] = useState([]);
-  const [districts, setDistricts] = useState([]);
-  const [filteredDistricts, setFilteredDistricts] = useState([]);
-  const [anoInvestigacionType, setAnoInvestigacionType] = useState('');
+  const [lineasInvestigacion, setLineasInvestigacion] = useState([]);
+  const [gruposInvestigacion, setGruposInvestigacion] = useState([]);
+  const [disciplinasOCDE, setDisciplinasOCDE] = useState([]);
 
   useEffect(() => {
-    // Fetch countries data
-    fetch('https://raw.githubusercontent.com/millan2993/countries/master/json/countries.json')
-      .then(response => response.json())
-      .then(data => {
-        const sortedCountries = data.countries.sort((a, b) => a.name === 'Perú' ? -1 : a.name.localeCompare(b.name));
-        setCountries(sortedCountries.map(country => ({ label: country.name, value: country.name })));
-      });
+    const fetchParticipantsData = async () => {
+      try {
+        const tesisData = await fetchTesisById(documentos.tesis_id);
+        console.log('tesisData:', tesisData);
 
-    // Fetch departments data
-    fetch('https://raw.githubusercontent.com/ernestorivero/Ubigeo-Peru/master/json/ubigeo_peru_2016_departamentos.json')
-      .then(response => response.json())
-      .then(data => {
-        setDepartments(data.map(department => ({ label: department.name, value: department.id })));
-      });
+        const autores = [];
+        if (tesisData.autor1_dni) {
+          const tipoDocumento1 = isNaN(tesisData.autor1_dni) ? 2 : 1;
+          autores.push(await fetchDatosByDni(tipoDocumento1, tesisData.autor1_dni));
+        }
+        if (tesisData.autor2_dni) {
+          const tipoDocumento2 = isNaN(tesisData.autor2_dni) ? 2 : 1;
+          autores.push(await fetchDatosByDni(tipoDocumento2, tesisData.autor2_dni));
+        }
 
-    // Fetch provinces data
-    fetch('https://raw.githubusercontent.com/ernestorivero/Ubigeo-Peru/master/json/ubigeo_peru_2016_provincias.json')
-      .then(response => response.json())
-      .then(data => {
-        setProvinces(data);
-      });
+        const actaData = await fetchActaById(documentos.actasust_id);
+        console.log('actaData:', actaData);
 
-    // Fetch districts data
-    fetch('https://raw.githubusercontent.com/ernestorivero/Ubigeo-Peru/master/json/ubigeo_peru_2016_distritos.json')
-      .then(response => response.json())
-      .then(data => {
-        setDistricts(data);
-      });
+        const presidente = actaData.presidente_dni ? await fetchDatosByDni(isNaN(actaData.presidente_dni) ? 2 : 1, actaData.presidente_dni) : {};
+
+        const jurados = [];
+        if (actaData.miembro1_dni) {
+          const tipoDocumento1 = isNaN(actaData.miembro1_dni) ? 2 : 1;
+          jurados.push(await fetchDatosByDni(tipoDocumento1, actaData.miembro1_dni));
+        }
+        if (actaData.miembro2_dni) {
+          const tipoDocumento2 = isNaN(actaData.miembro2_dni) ? 2 : 1;
+          jurados.push(await fetchDatosByDni(tipoDocumento2, actaData.miembro2_dni));
+        }
+        if (actaData.miembro3_dni) {
+          const tipoDocumento3 = isNaN(actaData.miembro3_dni) ? 2 : 1;
+          jurados.push(await fetchDatosByDni(tipoDocumento3, actaData.miembro3_dni));
+        }
+
+        const asesores = [];
+        if (tesisData.asesor1_dni) {
+          const tipoDocumento1 = isNaN(tesisData.asesor1_dni) ? 2 : 1;
+          asesores.push(await fetchDatosByDni(tipoDocumento1, tesisData.asesor1_dni));
+        }
+        if (tesisData.asesor2_dni) {
+          const tipoDocumento2 = isNaN(tesisData.asesor2_dni) ? 2 : 1;
+          asesores.push(await fetchDatosByDni(tipoDocumento2, tesisData.asesor2_dni));
+        }
+
+        console.log('autores:', autores);
+        console.log('presidente:', presidente);
+        console.log('jurados:', jurados);
+        console.log('asesores:', asesores);
+
+        setFormData(prev => ({
+          ...prev,
+          presidente,
+          jurados,
+          asesores,
+          autores
+        }));
+      } catch (error) {
+        console.error('Error al obtener datos de participantes:', error);
+      }
+    };
+
+    fetchParticipantsData();
+  }, [documentos]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [lineas, grupos, disciplinas] = await Promise.all([
+          fetchLineasInvestigacion(),
+          fetchGruposInvestigacion(user.facultad_id),
+          fetchDisciplinasOCDE()
+        ]);
+        setLineasInvestigacion(lineas.map(linea => ({ label: linea.linea, value: String(linea.id) })));
+        setGruposInvestigacion(grupos.map(grupo => ({ label: `${grupo.grupo_nombre} (${grupo.grupo_nombre_corto})`, value: String(grupo.id) })));
+        setDisciplinasOCDE(disciplinas.map(disciplina => ({ label: disciplina.disciplina, value: String(disciplina.id) })));
+      } catch (error) {
+        console.error('Error al obtener datos:', error);
+      }
+    };
+
+    fetchData();
+  }, [documentos.facultad_id]);
+
+  const fetchLocationData = async (lat, lon) => {
+    try {
+      const response = await fetch(`https://us1.locationiq.com/v1/reverse?key=pk.35749067d8b52db39f835a2b3cf77387&lat=${lat}&lon=${lon}&format=json`);
+      if (!response.ok) {
+        throw new Error('Error en la solicitud');
+      }
+      const data = await response.json();
+      console.log("nobre",data.display_name)
+      return {
+        pais: data.address.country || '',
+        departamento: data.address.region || data.address.state,
+        provincia: data.address.county || data.address.region,
+        distrito: data.address.city ||'',
+        direccion: data.display_name || ''
+      };
+    } catch (error) {
+      console.error('Error al obtener datos de ubicación:', error);
+      return {
+        pais: 'Perú',
+        departamento: '',
+        provincia: '',
+        distrito: '',
+        direccion: ''
+      };
+    }
+  };
+
+  const debounceFetchLocationData = useCallback((lat, lon) => {
+    const handleFetch = async () => {
+      if (lat && lon) {
+        setFormData(prev => ({
+          ...prev,
+          pais: 'Cargando...',
+          departamento: 'Cargando...',
+          provincia: 'Cargando...',
+          distrito: 'Cargando...'
+        }));
+        const locationData = await fetchLocationData(lat, lon);
+        setFormData(prev => ({
+          ...prev,
+          pais: locationData.pais,
+          departamento: locationData.departamento,
+          provincia: locationData.provincia,
+          distrito: locationData.distrito,
+          direccion: locationData.direccion
+        }));
+      }
+    };
+    const timer = setTimeout(handleFetch, 3000);
+    return () => clearTimeout(timer);
   }, []);
 
-  const handleInputChange = (key, value, type = 'ubicacion') => {
+  const handleLatLongChange = (lat, lon) => {
     setFormData(prev => ({
       ...prev,
-      [type]: {
-        ...prev[type],
-        [key]: value
-      }
+      latitud: lat,
+      longitud: lon
     }));
-
-    // Filter dependent dropdowns
-    if (key === 'departamento' && type === 'ubicacion') {
-      const filteredProvinces = provinces.filter(province => province.department_id === value);
-      setFilteredProvinces(filteredProvinces.map(province => ({ label: province.name, value: province.id })));
-      setFilteredDistricts([]);
-      setFormData(prev => ({
-        ...prev,
-        ubicacion: {
-          ...prev.ubicacion,
-          provincia: '',
-          distrito: ''
-        }
-      }));
-    }
-
-    if (key === 'provincia' && type === 'ubicacion') {
-      const filteredDistricts = districts.filter(district => district.province_id === value);
-      setFilteredDistricts(filteredDistricts.map(district => ({ label: district.name, value: district.id })));
-      setFormData(prev => ({
-        ...prev,
-        ubicacion: {
-          ...prev.ubicacion,
-          distrito: ''
-        }
-      }));
-    }
+    debounceFetchLocationData(lat, lon);
   };
 
   const handleSelectChange = (key, value) => {
     setFormData(prev => ({
       ...prev,
-      [key]: value
+      [key]: String(value)
     }));
   };
 
-  const handleSave = () => {
-    onSave(formData);
-    onClose();
+  const handleAnoInvestigacionChange = (value) => {
+    setFormData(prev => ({
+      ...prev,
+      anoInvestigacionType: value
+    }));
+  };
+
+  const handleSave = async () => {
+    const metadataData = {
+      ...formData,
+      created_by: user.user_id,
+      updated_by: user.user_id,
+      documentos_id: documentos.id
+    };
+
+    try {
+      if (file) {
+        const uploadResponse = await uploadMetadataFile(file);
+        metadataData.file_url = uploadResponse.fileName;
+      }
+      await createMetadata(metadataData);
+      onSave();
+      onClose();
+    } catch (error) {
+      console.error('Error al guardar metadata:', error);
+    }
   };
 
   const isFormComplete = () => {
-    // Check if all required fields are filled
     const requiredFields = [
       formData.lineaInvestigacion,
       formData.grupoInvestigacion,
       formData.agenciaFinanciamiento,
-      formData.ubicacion.pais,
-      formData.ubicacion.departamento,
-      formData.ubicacion.provincia,
-      formData.ubicacion.distrito,
-      formData.ubicacion.direccion,
-      formData.ubicacion.latitud,
-      formData.ubicacion.longitud,
-      formData.anoInvestigacion,
-      formData.urlDisciplinasOCDE,
-      ...formData.autores.flatMap(autor => [
-        String(autor.nombre),
-        String(autor.apellido),
-        String(autor.dni),
-        String(autor.orcid)
-      ]),
-      ...formData.jurados.flatMap(jurado => [
-        String(jurado.nombre),
-        String(jurado.apellido),
-        String(jurado.dni)
-      ])
+      formData.pais,
+      formData.departamento,
+      formData.provincia,
+      formData.distrito,
+      formData.latitud,
+      formData.longitud,
+      formData.anoInicio,
+      formData.anoFin
     ];
-    return requiredFields.every(field => typeof field === 'string' && field.trim().length > 0);
-  };
-
-  const handleAnoInvestigacionChange = ({ detail }) => {
-    setAnoInvestigacionType(detail.selectedOption.value);
-  };
-
-  const handleAddOptionalField = (type) => {
-    setFormData(prev => ({
-      ...prev,
-      ubicacionOpcional: [
-        ...prev.ubicacionOpcional,
-        { type, value: '' }
-      ]
-    }));
-  };
-
-  const handleOptionalFieldChange = (index, value) => {
-    setFormData(prev => {
-      const updatedOpcional = [...prev.ubicacionOpcional];
-      updatedOpcional[index].value = value;
-      return { ...prev, ubicacionOpcional: updatedOpcional };
-    });
+    return requiredFields.every(field => field && field.trim().length > 0);
   };
 
   return (
@@ -185,76 +246,105 @@ const MetadatosModal = ({ onClose, autores, jurados, onSave }) => {
       setFileUrl={setFileUrl}
       showForm={showForm}
       setShowForm={setShowForm}
+      mode={'upload'}
       isFormComplete={isFormComplete}
       formContent={
         <SpaceBetween direction="vertical" size="l">
-          <Container header={<Header variant="h3">Autores</Header>}>
-            {formData.autores.map((autor, index) => (
-              <ColumnLayout key={index} columns={2}>
+          {formData.autores.length > 0 && (
+            <Container header={<Header variant="h3">Autor</Header>}>
+              {formData.autores.map((autor, index) => (
+                <ColumnLayout key={index} columns={2}>
+                  <FormField label="Nombres">
+                    <Input value={autor.nombre} readOnly />
+                  </FormField>
+                  <FormField label="Apellidos">
+                    <Input value={autor.apellido} readOnly />
+                  </FormField>
+                  <FormField label="Tipo de Documento">
+                    <Input value="DNI" readOnly />
+                  </FormField>
+                  <FormField label="Número de Documento">
+                    <Input value={autor.identificacion_id} readOnly />
+                  </FormField>
+                  <FormField label="URL de ORCID">
+                    <Input value={autor.orcid} readOnly />
+                  </FormField>
+                </ColumnLayout>
+              ))}
+            </Container>
+          )}
+          {formData.asesores.length > 0 && (
+            formData.asesores.map((asesor, index) => (
+              <Container key={index} header={<Header variant="h3">{index === 0 ? "Asesor" : "Asesor 2"}</Header>}>
+                <ColumnLayout columns={2}>
+                  <FormField label="Nombres">
+                    <Input value={asesor.nombre} readOnly />
+                  </FormField>
+                  <FormField label="Apellidos">
+                    <Input value={asesor.apellido} readOnly />
+                  </FormField>
+                  <FormField label="Tipo de Documento">
+                    <Input value="DNI" readOnly />
+                  </FormField>
+                  <FormField label="Número de Documento">
+                    <Input value={asesor.identificacion_id} readOnly />
+                  </FormField>
+                </ColumnLayout>
+              </Container>
+            ))
+          )}
+          {formData.presidente && (
+            <Container header={<Header variant="h3">Presidente</Header>}>
+              <ColumnLayout columns={2}>
                 <FormField label="Nombres">
-                  <Input value={autor.nombre} readOnly onChange={() => {}} />
+                  <Input value={formData.presidente.nombre} readOnly />
                 </FormField>
                 <FormField label="Apellidos">
-                  <Input value={autor.apellido} readOnly onChange={() => {}} />
+                  <Input value={formData.presidente.apellido} readOnly />
                 </FormField>
                 <FormField label="Tipo de Documento">
-                  <Input value="DNI" readOnly onChange={() => {}} />
+                  <Input value="DNI" readOnly />
                 </FormField>
                 <FormField label="Número de Documento">
-                  <Input value={autor.dni} readOnly onChange={() => {}} />
-                </FormField>
-                <FormField label="URL de ORCID">
-                  <Input value={autor.orcid} onChange={({ detail }) => {
-                    setFormData(prev => {
-                      const updatedAutores = [...prev.autores];
-                      updatedAutores[index].orcid = detail.value;
-                      return { ...prev, autores: updatedAutores };
-                    });
-                  }} />
+                  <Input value={formData.presidente.identificacion_id} readOnly />
                 </FormField>
               </ColumnLayout>
-            ))}
-          </Container>
-          <Container header={<Header variant="h3">Jurados</Header>}>
-            {formData.jurados.map((jurado, index) => (
-              <ColumnLayout key={index} columns={2}>
-                <FormField label="Nombres">
-                  <Input value={jurado.nombre} readOnly onChange={() => {}} />
-                </FormField>
-                <FormField label="Apellidos">
-                  <Input value={jurado.apellido} readOnly onChange={() => {}} />
-                </FormField>
-                <FormField label="Tipo de Documento">
-                  <Input value="DNI" readOnly onChange={() => {}} />
-                </FormField>
-                <FormField label="Número de Documento">
-                  <Input value={jurado.dni} readOnly onChange={() => {}} />
-                </FormField>
-              </ColumnLayout>
-            ))}
-          </Container>
+            </Container>
+          )}
+          {formData.jurados.length > 0 && (
+            formData.jurados.map((jurado, index) => (
+              <Container key={index} header={<Header variant="h3">{`Jurado ${index + 1}`}</Header>}>
+                <ColumnLayout columns={2}>
+                  <FormField label="Nombres">
+                    <Input value={jurado.nombre} readOnly />
+                  </FormField>
+                  <FormField label="Apellidos">
+                    <Input value={jurado.apellido} readOnly />
+                  </FormField>
+                  <FormField label="Tipo de Documento">
+                    <Input value="DNI" readOnly />
+                  </FormField>
+                  <FormField label="Número de Documento">
+                    <Input value={jurado.identificacion_id} readOnly />
+                  </FormField>
+                </ColumnLayout>
+              </Container>
+            ))
+          )}
           <Container header={<Header variant="h3">Información Adicional</Header>}>
             <FormField label="Línea de Investigación">
               <Select
-                selectedOption={{ label: formData.lineaInvestigacion, value: formData.lineaInvestigacion }}
-                options={[
-                  { label: 'A.1.1.1. Biodiversidad y Ecología de Ecosistemas Acuáticos', value: 'A.1.1.1. Biodiversidad y Ecología de Ecosistemas Acuáticos' },
-                  { label: 'A.1.1.2. Biodiversidad y Ecología de Ecosistemas terrestres', value: 'A.1.1.2. Biodiversidad y Ecología de Ecosistemas terrestres' },
-                  // Agrega todas las opciones aquí
-                ]}
+                selectedOption={{ label: lineasInvestigacion.find(l => l.value === formData.lineaInvestigacion)?.label, value: formData.lineaInvestigacion }}
+                options={lineasInvestigacion}
+                filteringType="auto"
                 onChange={({ detail }) => handleSelectChange('lineaInvestigacion', detail.selectedOption.value)}
               />
             </FormField>
             <FormField label="Grupo de Investigación">
               <Select
-                selectedOption={{ label: formData.grupoInvestigacion, value: formData.grupoInvestigacion }}
-                options={[
-                  { label: 'No aplica', value: 'No aplica' },
-                  { label: 'Grupo de Investigación 1', value: 'Grupo de Investigación 1' },
-                  { label: 'Grupo de Investigación 2', value: 'Grupo de Investigación 2' },
-                  // Agrega todas las opciones aquí
-                ]}
-                disabled={user.grado_id === 1}
+                selectedOption={{ label: gruposInvestigacion.find(g => g.value === formData.grupoInvestigacion)?.label, value: formData.grupoInvestigacion }}
+                options={gruposInvestigacion}
+                filteringType="auto"
                 onChange={({ detail }) => handleSelectChange('grupoInvestigacion', detail.selectedOption.value)}
               />
             </FormField>
@@ -271,169 +361,111 @@ const MetadatosModal = ({ onClose, autores, jurados, onSave }) => {
             <Header variant="h4">Ubicación Geográfica de la Investigación</Header>
             <ColumnLayout columns={2}>
               <FormField label="País">
-                <Select
-                  selectedOption={{ label: formData.ubicacion.pais, value: formData.ubicacion.pais }}
-                  options={countries}
-                  onChange={({ detail }) => handleInputChange('pais', detail.selectedOption.value)}
-                />
+                <Input value={formData.pais} readOnly />
               </FormField>
-              {formData.ubicacion.pais === 'Perú' ? (
-                <>
-                  <FormField label="Departamento">
-                    <Select
-                      selectedOption={{ label: departments.find(d => d.value === formData.ubicacion.departamento)?.label, value: formData.ubicacion.departamento }}
-                      options={departments}
-                      onChange={({ detail }) => handleInputChange('departamento', detail.selectedOption.value)}
-                      filteringType="auto"
-                    />
-                  </FormField>
-                  <FormField label="Provincia">
-                    <Select
-                      selectedOption={{ label: filteredProvinces.find(p => p.value === formData.ubicacion.provincia)?.label, value: formData.ubicacion.provincia }}
-                      options={filteredProvinces}
-                      onChange={({ detail }) => handleInputChange('provincia', detail.selectedOption.value)}
-                      filteringType="auto"
-                    />
-                  </FormField>
-                  <FormField label="Distrito">
-                    <Select
-                      selectedOption={{ label: filteredDistricts.find(d => d.value === formData.ubicacion.distrito)?.label, value: formData.ubicacion.distrito }}
-                      options={filteredDistricts}
-                      onChange={({ detail }) => handleInputChange('distrito', detail.selectedOption.value)}
-                      filteringType="auto"
-                    />
-                  </FormField>
-                </>
-              ) : (
-                <>
-                  <FormField label="Departamento">
-                    <Input
-                      value={formData.ubicacion.departamento}
-                      onChange={({ detail }) => handleInputChange('departamento', detail.value)}
-                    />
-                  </FormField>
-                  <FormField label="Provincia">
-                    <Input
-                      value={formData.ubicacion.provincia}
-                      onChange={({ detail }) => handleInputChange('provincia', detail.value)}
-                    />
-                  </FormField>
-                  <FormField label="Distrito">
-                    <Input
-                      value={formData.ubicacion.distrito}
-                      onChange={({ detail }) => handleInputChange('distrito', detail.value)}
-                    />
-                  </FormField>
-                </>
-              )}
-              <FormField label="Dirección">
-                <Input
-                  value={formData.ubicacion.direccion}
-                  onChange={({ detail }) => handleInputChange('direccion', detail.value)}
-                />
+              <FormField label="Departamento">
+                <Input value={formData.departamento} readOnly />
+              </FormField>
+              <FormField label="Provincia">
+                <Input value={formData.provincia} readOnly />
+              </FormField>
+              <FormField label="Distrito">
+                <Input value={formData.distrito} readOnly />
               </FormField>
               <FormField label="Latitud">
                 <Input
-                  value={formData.ubicacion.latitud}
-                  onChange={({ detail }) => handleInputChange('latitud', detail.value)}
+                  value={formData.latitud}
+                  onChange={({ detail }) => handleLatLongChange(detail.value, formData.longitud)}
                 />
               </FormField>
               <FormField label="Longitud">
                 <Input
-                  value={formData.ubicacion.longitud}
-                  onChange={({ detail }) => handleInputChange('longitud', detail.value)}
+                  value={formData.longitud}
+                  onChange={({ detail }) => handleLatLongChange(formData.latitud, detail.value)}
                 />
               </FormField>
             </ColumnLayout>
-            <Button iconName="add-plus" onClick={() => handleAddOptionalField('address')} iconAlign="left">Agregar campo opcional</Button>
-            {formData.ubicacionOpcional.map((field, index) => (
-              <FormField key={index} label={`Campo Opcional ${index + 1}`}>
-                <Input
-                  value={field.value}
-                  onChange={({ detail }) => handleOptionalFieldChange(index, detail.value)}
-                  placeholder="Ingrese el valor"
-                />
-              </FormField>
-            ))}
             <FormField label="Año o rango de años en que se realizó la investigación">
               <Select
-                selectedOption={{ label: anoInvestigacionType, value: anoInvestigacionType }}
+                selectedOption={{ label: formData.anoInvestigacionType, value: formData.anoInvestigacionType }}
                 options={[
                   { label: 'Un año', value: 'Un año' },
                   { label: 'Intervalo de año', value: 'Intervalo de año' },
                   { label: 'Un año con mes', value: 'Un año con mes' },
                   { label: 'Intervalo de año con meses', value: 'Intervalo de año con meses' },
                 ]}
-                onChange={handleAnoInvestigacionChange}
+                onChange={({ detail }) => handleAnoInvestigacionChange(detail.selectedOption.value)}
               />
             </FormField>
-            {anoInvestigacionType === 'Un año' && (
+            {formData.anoInvestigacionType === 'Un año' && (
               <FormField label="Año">
                 <Select
-                  selectedOption={{ label: formData.anoInvestigacion, value: formData.anoInvestigacion }}
+                  selectedOption={{ label: formData.anoInicio, value: formData.anoInicio }}
                   options={Array.from({ length: 6 }, (_, i) => {
                     const year = new Date().getFullYear() - i;
                     return { label: String(year), value: String(year) };
                   })}
-                  onChange={({ detail }) => handleSelectChange('anoInvestigacion', detail.selectedOption.value)}
+                  onChange={({ detail }) => handleSelectChange('anoInicio', detail.selectedOption.value)}
                 />
               </FormField>
             )}
-            {anoInvestigacionType === 'Intervalo de año' && (
+            {formData.anoInvestigacionType === 'Intervalo de año' && (
               <ColumnLayout columns={2}>
                 <FormField label="Desde">
                   <Select
-                    selectedOption={{ label: formData.anoInvestigacion, value: formData.anoInvestigacion }}
+                    selectedOption={{ label: formData.anoInicio, value: formData.anoInicio }}
                     options={Array.from({ length: 6 }, (_, i) => {
                       const year = new Date().getFullYear() - i;
                       return { label: String(year), value: String(year) };
                     })}
-                    onChange={({ detail }) => handleSelectChange('anoInvestigacionDesde', detail.selectedOption.value)}
+                    onChange={({ detail }) => handleSelectChange('anoInicio', detail.selectedOption.value)}
                   />
                 </FormField>
                 <FormField label="Hasta">
                   <Select
-                    selectedOption={{ label: formData.anoInvestigacionHasta, value: formData.anoInvestigacionHasta }}
+                    selectedOption={{ label: formData.anoFin, value: formData.anoFin }}
                     options={Array.from({ length: 6 }, (_, i) => {
                       const year = new Date().getFullYear() - i;
                       return { label: String(year), value: String(year) };
                     })}
-                    onChange={({ detail }) => handleSelectChange('anoInvestigacionHasta', detail.selectedOption.value)}
+                    onChange={({ detail }) => handleSelectChange('anoFin', detail.selectedOption.value)}
                   />
                 </FormField>
               </ColumnLayout>
             )}
-            {anoInvestigacionType === 'Un año con mes' && (
+            {formData.anoInvestigacionType === 'Un año con mes' && (
               <FormField label="Fecha">
                 <DatePicker
-                  value={formData.anoInvestigacionConMes}
-                  onChange={({ detail }) => handleSelectChange('anoInvestigacionConMes', detail.value)}
+                  value={formData.anoInicio}
+                  onChange={({ detail }) => handleSelectChange('anoInicio', detail.value)}
                   granularity="month"
                 />
               </FormField>
             )}
-            {anoInvestigacionType === 'Intervalo de año con meses' && (
+            {formData.anoInvestigacionType === 'Intervalo de año con meses' && (
               <ColumnLayout columns={2}>
                 <FormField label="Desde">
                   <DatePicker
-                    value={formData.anoInvestigacionDesdeConMes}
-                    onChange={({ detail }) => handleSelectChange('anoInvestigacionDesdeConMes', detail.value)}
+                    value={formData.anoInicio}
+                    onChange={({ detail }) => handleSelectChange('anoInicio', detail.value)}
                     granularity="month"
                   />
                 </FormField>
                 <FormField label="Hasta">
                   <DatePicker
-                    value={formData.anoInvestigacionHastaConMes}
-                    onChange={({ detail }) => handleSelectChange('anoInvestigacionHastaConMes', detail.value)}
+                    value={formData.anoFin}
+                    onChange={({ detail }) => handleSelectChange('anoFin', detail.value)}
                     granularity="month"
                   />
                 </FormField>
               </ColumnLayout>
             )}
-            <FormField label="URL de disciplinas OCDE">
-              <Input
-                value={formData.urlDisciplinasOCDE}
-                onChange={({ detail }) => handleSelectChange('urlDisciplinasOCDE', detail.value)}
+            <FormField label="URL de Disciplinas OCDE">
+              <Select
+                selectedOption={{ label: disciplinasOCDE.find(d => d.value === formData.urlDisciplinasOCDE)?.label, value: formData.urlDisciplinasOCDE }}
+                options={disciplinasOCDE}
+                filteringType="auto"
+                onChange={({ detail }) => handleSelectChange('urlDisciplinasOCDE', detail.selectedOption.value)}
               />
             </FormField>
           </Container>
