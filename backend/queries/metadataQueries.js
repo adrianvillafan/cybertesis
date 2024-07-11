@@ -18,11 +18,12 @@ export const insertMetadata = (metadataDetails, callback) => {
       id_disciplina_1,
       id_disciplina_2,
       id_disciplina_3,
+      file_url,
       created_by,
       updated_by,
       created_at,
       updated_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
   const metadataValues = [
     metadataDetails.id_participantes,
@@ -35,11 +36,12 @@ export const insertMetadata = (metadataDetails, callback) => {
     metadataDetails.distrito,
     metadataDetails.latitud,
     metadataDetails.longitud,
-    metadataDetails.anoInicio,
-    metadataDetails.anoFin,
+    metadataDetails.ano_inicio,
+    metadataDetails.ano_fin,
     metadataDetails.id_disciplina_1,
     metadataDetails.id_disciplina_2,
     metadataDetails.id_disciplina_3,
+    metadataDetails.file_url,  // Añadido el campo file_url
     metadataDetails.created_by,
     metadataDetails.updated_by,
     new Date(),
@@ -88,6 +90,7 @@ export const getMetadataById = (id, callback) => {
       id_disciplina_1,
       id_disciplina_2,
       id_disciplina_3,
+      file_url,  // Añadido el campo file_url
       created_by,
       updated_by,
       created_at,
