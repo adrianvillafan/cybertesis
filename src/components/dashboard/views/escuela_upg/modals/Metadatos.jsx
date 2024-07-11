@@ -230,6 +230,25 @@ const MetadatosModal = ({ onClose, onSave, documentos }) => {
 
   const handleSave = async () => {
     const { anoInicio, anoFin, anoInvestigacionType } = formData;
+    let ano_inicio = '';
+    let ano_fin = '';
+
+    if (anoInvestigacionType === 'Un año') {
+      ano_fin = anoInicio;
+    } else if (anoInvestigacionType === 'Un año con mes') {
+      ano_fin = formatDate(anoInicio);
+    } else if (anoInvestigacionType === 'Intervalo de año') {
+      ano_inicio = anoInicio;
+      ano_fin = anoFin;
+    } else if (anoInvestigacionType === 'Intervalo de año con meses') {
+      ano_inicio = formatDate(anoInicio);
+      ano_fin = formatDate(anoFin);
+    }
+
+    if (ano_inicio && ano_fin && new Date(ano_inicio) > new Date(ano_fin)) {
+      setErrorMessage('El año de inicio no puede ser mayor al año de fin.');
+      return;
+    }
 
     const metadataData = {
       id_participantes: formData.id_participantes,
@@ -242,8 +261,8 @@ const MetadatosModal = ({ onClose, onSave, documentos }) => {
       distrito: formData.distrito,
       latitud: formData.latitud,
       longitud: formData.longitud,
-      ano_inicio: '',
-      ano_fin: '',
+      ano_inicio,
+      ano_fin,
       id_disciplina_1: formData.urlDisciplinasOCDE[0]?.value || null,
       id_disciplina_2: formData.urlDisciplinasOCDE[1]?.value || null,
       id_disciplina_3: formData.urlDisciplinasOCDE[2]?.value || null,
@@ -252,23 +271,6 @@ const MetadatosModal = ({ onClose, onSave, documentos }) => {
       documentos_id: documentos.id,
       file_url: fileUrl
     };
-
-    if (anoInvestigacionType === 'Un año') {
-      metadataData.ano_fin = formatDate(anoInicio);
-    } else if (anoInvestigacionType === 'Intervalo de año') {
-      metadataData.ano_inicio = formatDate(anoInicio);
-      metadataData.ano_fin = formatDate(anoFin);
-    } else if (anoInvestigacionType === 'Un año con mes') {
-      metadataData.ano_fin = formatDate(anoInicio);
-    } else if (anoInvestigacionType === 'Intervalo de año con meses') {
-      metadataData.ano_inicio = formatDate(anoInicio);
-      metadataData.ano_fin = formatDate(anoFin);
-    }
-
-    if (metadataData.ano_inicio && metadataData.ano_fin && new Date(metadataData.ano_inicio) > new Date(metadataData.ano_fin)) {
-      setErrorMessage('La fecha de fin no puede ser anterior a la fecha de inicio.');
-      return;
-    }
 
     try {
       if (file) {
@@ -286,6 +288,7 @@ const MetadatosModal = ({ onClose, onSave, documentos }) => {
   };
 
   const isFormComplete = () => {
+    const { anoInicio, anoFin, anoInvestigacionType } = formData;
     const requiredFields = [
       formData.lineaInvestigacion,
       formData.grupoInvestigacion,
@@ -295,11 +298,16 @@ const MetadatosModal = ({ onClose, onSave, documentos }) => {
       formData.provincia,
       formData.distrito,
       formData.latitud,
-      formData.longitud,
-      formData.anoInicio,
-      formData.anoFin
+      formData.longitud
     ];
-    return requiredFields.every(field => field && field.trim().length > 0);
+
+    const anoComplete =
+      (anoInvestigacionType === 'Un año' && anoInicio) ||
+      (anoInvestigacionType === 'Un año con mes' && anoInicio) ||
+      (anoInvestigacionType === 'Intervalo de año' && anoInicio && anoFin) ||
+      (anoInvestigacionType === 'Intervalo de año con meses' && anoInicio && anoFin);
+
+    return requiredFields.every(field => field && field.trim().length > 0) && anoComplete;
   };
 
   return (
