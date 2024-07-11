@@ -54,7 +54,7 @@ export const insertMetadata = (metadataDetails, callback) => {
       const metadataId = results.insertId;
 
       const queryUpdateDocumentos = `
-        UPDATE documentos SET metadata_id = ? WHERE id = ?
+        UPDATE documentos SET metadatos_id = ? WHERE id = ?
       `;
       executeQuery(queryUpdateDocumentos, [metadataId, metadataDetails.documentos_id], (err, results) => {
         if (err) {
