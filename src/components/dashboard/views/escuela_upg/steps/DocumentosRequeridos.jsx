@@ -8,6 +8,8 @@ import ActaSustentacionModalDelete from '../modals/ActaSustentacionModalDelete';
 import CertificadoSimilitud from '../modals/CertificadoSimilitud';
 import AutoCyber from '../modals/AutoCyber';
 import MetadatosModal from '../modals/Metadatos';
+import MetadatosModalVer from '../modals/MetadatosVer';
+import MetadatosModalDelete from '../modals/MetadatosDelete';
 import RepTurnitinModal from '../modals/RepTurnitin';
 import TesisModalDelete from '../modals/TesisModalDelete';
 import { createOrFetchDocumentos } from '../../../../../../api';
@@ -72,15 +74,7 @@ const DocumentosRequeridos = ({
   };
 
   const handleSaveDocument = async (docType, data) => {
-    setSavedDocuments(prev => ({ ...prev, [docType]: data }));
-    if (docType === 'Tesis' && data.formData && data.formData.asesores) {
-      setAsesores(data.formData.asesores);
-      setAutores(data.formData.autores);
-      setTesisCompletada(true);
-    }
-    if (docType === 'Acta de Sustentación' && data.formData) {
-      setJurados(data.formData.miembros);
-    }
+
     console.log(`Datos guardados del modal (${docType}):`, data);
     await fetchDocumentos(); // Actualiza los documentos después de guardar
   };
@@ -207,13 +201,21 @@ const DocumentosRequeridos = ({
         />
       )}
       {selectedDoc?.type === 'Hoja de Metadatos' && (
-        <MetadatosModal
-          onClose={handleModalClose}
-          onSave={(data) => handleSaveDocument('Hoja de Metadatos', data)}
-          readOnly={!selectedDoc.editing}
-          fileUrl={selectedDoc.editing ? '' : savedDocuments['Hoja de Metadatos']?.file_url || ''}
-          documentos={documentos}
-        />
+        selectedDoc.editing ? (
+          <MetadatosModal
+            onClose={handleModalClose}
+            onSave={(data) => handleSaveDocument('Hoja de Metadatos', data)}
+            readOnly={false}
+            fileUrl={''}
+            formData={{}}
+            documentos={documentos}
+          />
+        ) : (
+          <MetadatosModalVer
+            onClose={handleModalClose}
+            documentos={documentos}
+          />
+        )
       )}
       {selectedDoc?.type === 'Reporte de Turnitin' && (
         <RepTurnitinModal
@@ -234,6 +236,14 @@ const DocumentosRequeridos = ({
       )}
       {showDeleteConfirmation && deleteDocType === 'Acta de Sustentación' && (
         <ActaSustentacionModalDelete
+          visible={showDeleteConfirmation}
+          onClose={() => setShowDeleteConfirmation(false)}
+          onConfirm={handleDeleteDocument}
+          documentos={documentos}
+        />
+      )}
+      {showDeleteConfirmation && deleteDocType === 'Hoja de Metadatos' && (
+        <MetadatosModalDelete
           visible={showDeleteConfirmation}
           onClose={() => setShowDeleteConfirmation(false)}
           onConfirm={handleDeleteDocument}

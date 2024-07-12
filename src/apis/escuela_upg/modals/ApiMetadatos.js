@@ -78,9 +78,9 @@ export const deleteMetadata = async (id) => {
 
 //----------------   Fetch Datos de Grupos , Lineas y Disciplinas   ----------------
 
-export const fetchLineasInvestigacion = async () => {
+export const fetchLineasInvestigacion = async (facultadId) => {
   try {
-    const response = await fetch('http://localhost:3000/api/files/lineas-investigacion', {
+    const response = await fetch(`http://localhost:3000/api/files/lineas-investigacion/${facultadId}`, {
       headers: {
         'Authorization': `Bearer ${getToken()}`
       }

@@ -105,13 +105,13 @@ const MetadatosModal = ({ onClose, onSave, documentos }) => {
     const fetchData = async () => {
       try {
         const [lineas, grupos, disciplinas] = await Promise.all([
-          fetchLineasInvestigacion(),
+          fetchLineasInvestigacion(user.facultad_id),
           fetchGruposInvestigacion(user.facultad_id),
           fetchDisciplinasOCDE()
         ]);
         setLineasInvestigacion(lineas.map(linea => ({ label: linea.linea, value: String(linea.id) })));
         setGruposInvestigacion(grupos.map(grupo => ({ label: `${grupo.grupo_nombre} (${grupo.grupo_nombre_corto})`, value: String(grupo.id) })));
-        setDisciplinasOCDE(disciplinas.map(disciplina => ({ label: disciplina.disciplina, value: String(disciplina.id) })));
+        setDisciplinasOCDE(disciplinas);
       } catch (error) {
         console.error('Error al obtener datos:', error);
       }
@@ -215,18 +215,7 @@ const MetadatosModal = ({ onClose, onSave, documentos }) => {
     }));
   };
 
-  const formatDate = (date) => {
-    if (!date) return '';
-    const d = new Date(date);
-    let month = '' + (d.getMonth() + 1);
-    let day = '' + d.getDate();
-    const year = d.getFullYear();
 
-    if (month.length < 2) month = '0' + month;
-    if (day.length < 2) day = '0' + day;
-
-    return [year, month, day].join('-');
-  };
 
   const handleSave = async () => {
     const { anoInicio, anoFin, anoInvestigacionType } = formData;
@@ -236,13 +225,13 @@ const MetadatosModal = ({ onClose, onSave, documentos }) => {
     if (anoInvestigacionType === 'Un año') {
       ano_fin = anoInicio;
     } else if (anoInvestigacionType === 'Un año con mes') {
-      ano_fin = formatDate(anoInicio);
+      ano_fin = anoInicio;
     } else if (anoInvestigacionType === 'Intervalo de año') {
       ano_inicio = anoInicio;
       ano_fin = anoFin;
     } else if (anoInvestigacionType === 'Intervalo de año con meses') {
-      ano_inicio = formatDate(anoInicio);
-      ano_fin = formatDate(anoFin);
+      ano_inicio = anoInicio;
+      ano_fin = anoFin;
     }
 
     if (ano_inicio && ano_fin && new Date(ano_inicio) > new Date(ano_fin)) {
@@ -286,6 +275,7 @@ const MetadatosModal = ({ onClose, onSave, documentos }) => {
       console.error('Error al guardar metadata:', error);
     }
   };
+
 
   const isFormComplete = () => {
     const { anoInicio, anoFin, anoInvestigacionType } = formData;
@@ -334,7 +324,7 @@ const MetadatosModal = ({ onClose, onSave, documentos }) => {
           {formData.autores.length > 0 && (
             <Container header={<Header variant="h3">Autor</Header>}>
               {formData.autores.map((autor, index) => (
-                <ColumnLayout key={index} columns={2}>
+                <ColumnLayout key={`autor-${autor.idpersonas}`} columns={2}>
                   <FormField label="Nombres">
                     <Input value={autor.nombre} readOnly />
                   </FormField>
@@ -356,7 +346,7 @@ const MetadatosModal = ({ onClose, onSave, documentos }) => {
           )}
           {formData.asesores.length > 0 && (
             formData.asesores.map((asesor, index) => (
-              <Container key={index} header={<Header variant="h3">{index === 0 ? "Asesor" : "Asesor 2"}</Header>}>
+              <Container key={`asesor-${asesor.idpersonas}-${index}`} header={<Header variant="h3">{index === 0 ? "Asesor" : "Asesor 2"}</Header>}>
                 <ColumnLayout columns={2}>
                   <FormField label="Nombres">
                     <Input value={asesor.nombre} readOnly />
@@ -375,7 +365,7 @@ const MetadatosModal = ({ onClose, onSave, documentos }) => {
             ))
           )}
           {formData.presidente && (
-            <Container header={<Header variant="h3">Presidente</Header>}>
+            <Container key={`presidente-${formData.presidente.idpersonas}`} header={<Header variant="h3">Presidente</Header>}>
               <ColumnLayout columns={2}>
                 <FormField label="Nombres">
                   <Input value={formData.presidente.nombre} readOnly />
@@ -394,7 +384,7 @@ const MetadatosModal = ({ onClose, onSave, documentos }) => {
           )}
           {formData.jurados.length > 0 && (
             formData.jurados.map((jurado, index) => (
-              <Container key={index} header={<Header variant="h3">{`Jurado ${index + 1}`}</Header>}>
+              <Container key={`jurado-${jurado.idpersonas}-${index}`} header={<Header variant="h3">{`Jurado ${index + 1}`}</Header>}>
                 <ColumnLayout columns={2}>
                   <FormField label="Nombres">
                     <Input value={jurado.nombre} readOnly />
@@ -412,6 +402,7 @@ const MetadatosModal = ({ onClose, onSave, documentos }) => {
               </Container>
             ))
           )}
+
           <Container header={<Header variant="h3">Información Adicional</Header>}>
             <FormField label="Línea de Investigación">
               <Select
@@ -541,6 +532,7 @@ const MetadatosModal = ({ onClose, onSave, documentos }) => {
                 </FormField>
               </ColumnLayout>
             )}
+
             <FormField label="URL de Disciplinas OCDE">
               <Multiselect
                 selectedOptions={formData.urlDisciplinasOCDE}

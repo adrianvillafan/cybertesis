@@ -283,6 +283,10 @@ router.delete('/metadata/delete/:id', async (req, res) => {
       return res.status(404).send('Metadata no encontrada.');
     }
 
+    if (metadata.file_url) {
+      await deleteFileFromMinIO('metadatos', metadata.file_url);
+    }
+
     await new Promise((resolve, reject) => {
       deleteMetadataById(id, (err, results) => {
         if (err) reject(err);
@@ -306,7 +310,13 @@ router.get('/metadata/:id', async (req, res) => {
       } else if (!metadata) {
         res.status(404).send('Metadata no encontrada.');
       } else {
-        res.json(metadata);
+        try {
+          const fileUrl = await getDownloadUrlFromMinIO('metadatos', metadata.file_url);
+          metadata.file_url = fileUrl;
+          res.json(metadata);
+        } catch (fileError) {
+          res.status(500).send('Error al obtener la URL del archivo: ' + fileError.message);
+        }
       }
     });
   } catch (error) {
@@ -314,8 +324,9 @@ router.get('/metadata/:id', async (req, res) => {
   }
 });
 
-router.get('/lineas-investigacion', (req, res) => {
-  getLineasInvestigacion((err, lineas) => {
+router.get('/lineas-investigacion/:facultadId', (req, res) => {
+  const { facultadId } = req.params;
+  getLineasInvestigacion(facultadId,(err, lineas) => {
     if (err) {
       res.status(500).send('Error al obtener líneas de investigación: ' + err.message);
     } else {
