@@ -4,3 +4,5 @@ export * from './src/apis/escuela_upg/steps/ApiConfirmarDatos.js';
 export * from './src/apis/escuela_upg/modals/ApiTesisModal.js';
 export * from './src/apis/escuela_upg/modals/ApiActaSustentacionModal.js';
 export * from './src/apis/escuela_upg/modals/ApiMetadatos.js';
+export * from './src/apis/escuela_upg/modals/ApiCertificadoSimilitud.js';
+export * from './src/apis/escuela_upg/modals/ApiAutoCyber.js';

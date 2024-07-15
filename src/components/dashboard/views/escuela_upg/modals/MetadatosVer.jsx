@@ -75,6 +75,17 @@ const MetadatosVer = ({ onClose, documentos }) => {
           asesores.push(await fetchDatosByDni(tipoDocumento2, tesisData.asesor2_dni));
         }
 
+        const disciplinasOCDE = [];
+        if (metadataData.disciplina_1) {
+          disciplinasOCDE.push({ label: metadataData.disciplina_1, value: metadataData.uri_disciplina_1, description: metadataData.uri_disciplina_1 });
+        }
+        if (metadataData.disciplina_2) {
+          disciplinasOCDE.push({ label: metadataData.disciplina_2, value: metadataData.uri_disciplina_2, description: metadataData.uri_disciplina_2 });
+        }
+        if (metadataData.disciplina_3) {
+          disciplinasOCDE.push({ label: metadataData.disciplina_3, value: metadataData.uri_disciplina_3, description: metadataData.uri_disciplina_3 });
+        }
+
         console.log('autores:', autores);
         console.log('presidente:', presidente);
         console.log('jurados:', jurados);
@@ -97,11 +108,7 @@ const MetadatosVer = ({ onClose, documentos }) => {
           longitud: metadataData.longitud,
           anoInicio: metadataData.ano_inicio,
           anoFin: metadataData.ano_fin,
-          disciplinasOCDE: [
-            { label: metadataData.disciplina_1, value: metadataData.uri_disciplina_1, description: metadataData.uri_disciplina_1 },
-            { label: metadataData.disciplina_2, value: metadataData.uri_disciplina_2, description: metadataData.uri_disciplina_2 },
-            { label: metadataData.disciplina_3, value: metadataData.uri_disciplina_3, description: metadataData.uri_disciplina_3 }
-          ]
+          disciplinasOCDE
         }));
         setFileUrl(metadataData.file_url);
       } catch (error) {

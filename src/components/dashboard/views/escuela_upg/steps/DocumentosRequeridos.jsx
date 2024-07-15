@@ -6,7 +6,11 @@ import ActaSustentacionModal from '../modals/ActaSustentacionModal';
 import ActaSustentacionModalVer from '../modals/ActaSustentacionModalVer';
 import ActaSustentacionModalDelete from '../modals/ActaSustentacionModalDelete';
 import CertificadoSimilitud from '../modals/CertificadoSimilitud';
+import CertificadoSimilitudVer from '../modals/CertificadoSimilitudVer';
+import CertificadoSimilitudDelete from '../modals/CertificadoSimilitudDelete';
 import AutoCyber from '../modals/AutoCyber';
+import AutoCyberVer from '../modals/AutoCyberVer';
+import AutoCyberDelete from '../modals/AutoCyberDelete';
 import MetadatosModal from '../modals/Metadatos';
 import MetadatosModalVer from '../modals/MetadatosVer';
 import MetadatosModalDelete from '../modals/MetadatosDelete';
@@ -16,7 +20,7 @@ import { createOrFetchDocumentos } from '../../../../../../api';
 
 const DocumentosRequeridos = ({
   documentos,
-  setDocumentos, // Agregar esta prop para actualizar documentos
+  setDocumentos,
   handleNextStep,
   setErrorMessage,
   alumnoData,
@@ -45,7 +49,7 @@ const DocumentosRequeridos = ({
         'Hoja de Metadatos': updatedDocumentos.metadatos_id,
         'Reporte de Turnitin': updatedDocumentos.repturnitin_id
       });
-      setDocumentos(updatedDocumentos); // Actualizar la variable documentos
+      setDocumentos(updatedDocumentos);
     } catch (error) {
       console.error('Error al actualizar los documentos:', error);
     }
@@ -66,7 +70,7 @@ const DocumentosRequeridos = ({
 
   const handleModalClose = async () => {
     setSelectedDoc(null);
-    await fetchDocumentos(); // Actualiza los documentos después de cerrar el modal
+    await fetchDocumentos();
   };
 
   const handleModalOpen = (docType, editing = false) => {
@@ -74,16 +78,15 @@ const DocumentosRequeridos = ({
   };
 
   const handleSaveDocument = async (docType, data) => {
-
     console.log(`Datos guardados del modal (${docType}):`, data);
-    await fetchDocumentos(); // Actualiza los documentos después de guardar
+    await fetchDocumentos();
   };
 
   const handleDeleteDocument = async () => {
     console.log('Eliminando documento:', deleteDocType);
     setSavedDocuments(prev => ({ ...prev, [deleteDocType]: null }));
     setSelectedDoc(null);
-    await fetchDocumentos(); // Actualiza los documentos después de eliminar
+    await fetchDocumentos();
   };
 
   const documentosRequeridos = [
@@ -181,24 +184,36 @@ const DocumentosRequeridos = ({
         )
       )}
       {selectedDoc?.type === 'Certificado de Similitud' && (
-        <CertificadoSimilitud
-          onClose={handleModalClose}
-          alumnoData={alumnoData}
-          onSave={(data) => handleSaveDocument('Certificado de Similitud', data)}
-          readOnly={!selectedDoc.editing}
-          fileUrl={selectedDoc.editing ? '' : savedDocuments['Certificado de Similitud']?.file_url || ''}
-          documentos={documentos}
-        />
+        selectedDoc.editing ? (
+          <CertificadoSimilitud
+            onClose={handleModalClose}
+            onSave={(data) => handleSaveDocument('Certificado de Similitud', data)}
+            readOnly={false}
+            fileUrl={savedDocuments['Certificado de Similitud']?.file_url || ''}
+            documentos={documentos}
+          />
+        ) : (
+          <CertificadoSimilitudVer
+            onClose={handleModalClose}
+            documentos={documentos}
+          />
+        )
       )}
       {selectedDoc?.type === 'Autorización para el depósito de obra en Cybertesis' && (
-        <AutoCyber
-          onClose={handleModalClose}
-          alumnoData={alumnoData}
-          onSave={(data) => handleSaveDocument('Autorización para el depósito de obra en Cybertesis', data)}
-          readOnly={!selectedDoc.editing}
-          fileUrl={selectedDoc.editing ? '' : savedDocuments['Autorización para el depósito de obra en Cybertesis']?.file_url || ''}
-          documentos={documentos}
-        />
+        selectedDoc.editing ? (
+          <AutoCyber
+            onClose={handleModalClose}
+            onSave={(data) => handleSaveDocument('Autorización para el depósito de obra en Cybertesis', data)}
+            readOnly={false}
+            fileUrl={savedDocuments['Autorización para el depósito de obra en Cybertesis']?.file_url || ''}
+            documentos={documentos}
+          />
+        ) : (
+          <AutoCyberVer
+            onClose={handleModalClose}
+            documentos={documentos}
+          />
+        )
       )}
       {selectedDoc?.type === 'Hoja de Metadatos' && (
         selectedDoc.editing ? (
@@ -236,6 +251,22 @@ const DocumentosRequeridos = ({
       )}
       {showDeleteConfirmation && deleteDocType === 'Acta de Sustentación' && (
         <ActaSustentacionModalDelete
+          visible={showDeleteConfirmation}
+          onClose={() => setShowDeleteConfirmation(false)}
+          onConfirm={handleDeleteDocument}
+          documentos={documentos}
+        />
+      )}
+      {showDeleteConfirmation && deleteDocType === 'Certificado de Similitud' && (
+        <CertificadoSimilitudDelete
+          visible={showDeleteConfirmation}
+          onClose={() => setShowDeleteConfirmation(false)}
+          onConfirm={handleDeleteDocument}
+          documentos={documentos}
+        />
+      )}
+      {showDeleteConfirmation && deleteDocType === 'Autorización para el depósito de obra en Cybertesis' && (
+        <AutoCyberDelete
           visible={showDeleteConfirmation}
           onClose={() => setShowDeleteConfirmation(false)}
           onConfirm={handleDeleteDocument}

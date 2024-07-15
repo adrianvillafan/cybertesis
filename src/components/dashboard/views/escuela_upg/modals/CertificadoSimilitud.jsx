@@ -1,16 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import ModalOneCol from './ModalOneCol';
-import { Button } from '@cloudscape-design/components';
+import { Button, Alert } from '@cloudscape-design/components';
+import { uploadCertificadoFile, createCertificadoSimilitud } from '../../../../../../api';
+import UserContext from '../../../contexts/UserContext';
 
-const CertificadoSimilitud = ({ onClose, onSave, readOnly, fileUrl: initialFileUrl }) => {
+const CertificadoSimilitud = ({ onClose, onSave, documentos }) => {
+  const { user } = useContext(UserContext);
   const [file, setFile] = useState(null);
-  const [fileUrl, setFileUrl] = useState(readOnly ? initialFileUrl : '');
-
-  useEffect(() => {
-    if (readOnly && initialFileUrl) {
-      setFileUrl(initialFileUrl);
-    }
-  }, [readOnly, initialFileUrl]);
+  const [fileUrl, setFileUrl] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
 
   const handleFileChange = (file) => {
     setFile(file);
@@ -24,9 +22,30 @@ const CertificadoSimilitud = ({ onClose, onSave, readOnly, fileUrl: initialFileU
     }
   };
 
-  const handleSave = () => {
-    onSave({ fileUrl });
-    onClose();
+  const handleSave = async () => {
+    try {
+      let uploadedFileUrl = fileUrl;
+
+      if (file) {
+        const uploadResponse = await uploadCertificadoFile(file);
+        uploadedFileUrl = uploadResponse.fileName;
+      }
+
+      const certificadoData = {
+        file_url: uploadedFileUrl,
+        created_by: user.user_id,
+        updated_by: user.user_id,
+        documentos_id: documentos.id
+      };
+      console.log('certificadoData:', certificadoData);
+
+      await createCertificadoSimilitud(certificadoData);
+      onSave();
+      onClose();
+    } catch (error) {
+      setErrorMessage('Error al guardar el certificado de similitud.');
+      console.error('Error al guardar el certificado de similitud:', error);
+    }
   };
 
   return (
@@ -36,17 +55,19 @@ const CertificadoSimilitud = ({ onClose, onSave, readOnly, fileUrl: initialFileU
       footerButtons={
         <>
           <Button onClick={onClose} variant="secondary">Cancelar</Button>
-          <Button onClick={handleSave} disabled={!fileUrl}>Guardar</Button>
+          <Button onClick={handleSave} disabled={!fileUrl && !file}>Guardar</Button>
         </>
       }
       file={file}
       setFile={handleFileChange}
       fileUrl={fileUrl}
       setFileUrl={setFileUrl}
-      showForm={Boolean(fileUrl)}
+      showForm={Boolean(fileUrl || file)}
       setShowForm={() => {}}
-      readOnly={readOnly}
-    />
+      mode='upload'
+    >
+      {errorMessage && <Alert type="error">{errorMessage}</Alert>}
+    </ModalOneCol>
   );
 };
 

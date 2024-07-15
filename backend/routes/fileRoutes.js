@@ -12,6 +12,7 @@ import { insertMetadata,
   getGruposInvestigacion, 
   getDisciplinasOCDE
 } from '../queries/metadataQueries.js';
+import { insertCertificadoSimilitud, deleteCertificadoSimilitudById, getCertificadoSimilitudById } from '../queries/certificadosQueries.js';
 
 const router = express.Router();
 const storage = multer.memoryStorage();
@@ -354,6 +355,144 @@ router.get('/disciplinas-ocde', (req, res) => {
       res.json(disciplinas);
     }
   });
+});
+
+// ------------------ Certificado Similitud Routes ------------------
+
+router.post('/certificado/insert', async (req, res) => {
+  const certificadoDetails = req.body;
+  console.log('certificadoDetails', certificadoDetails);
+  try {
+    insertCertificadoSimilitud(certificadoDetails, (err, certificadoId) => {
+      if (err) {
+        res.status(500).send('Error al insertar certificado de similitud: ' + err.message);
+      } else {
+        res.json({ message: 'Certificado de similitud insertado correctamente', certificadoId });
+      }
+    });
+  } catch (error) {
+    res.status(500).send('Error al insertar certificado de similitud: ' + error.message);
+  }
+});
+
+
+router.get('/certificado/:id', async (req, res) => {
+  const { id } = req.params;
+  getCertificadoSimilitudById(id, async (err, certificado) => {
+    if (err) {
+      res.status(500).send('Error al obtener detalles de certificado de similitud: ' + err.message);
+    } else if (!certificado) {
+      res.status(404).send('Certificado de similitud no encontrado.');
+    } else {
+      try {
+        const fileUrl = await getDownloadUrlFromMinIO('certificados', certificado.file_url);
+        certificado.file_url = fileUrl;
+        res.json(certificado);
+      } catch (fileError) {
+        res.status(500).send('Error al obtener la URL del archivo: ' + fileError.message);
+      }
+    }
+  });
+});
+
+router.delete('/certificado/delete/:id', async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const certificado = await new Promise((resolve, reject) => {
+      getCertificadoSimilitudById(id, (err, result) => {
+        if (err) reject(err);
+        else resolve(result);
+      });
+    });
+
+    if (!certificado) {
+      return res.status(404).send('Certificado de similitud no encontrado.');
+    }
+
+    await deleteFileFromMinIO(BUCKETS.CERTIFICADOS, certificado.file_url);
+    await new Promise((resolve, reject) => {
+      deleteCertificadoSimilitudById(id, (err, results) => {
+        if (err) reject(err);
+        else resolve(results);
+      });
+    });
+
+    res.json({ message: 'Certificado de similitud eliminado correctamente' });
+  } catch (error) {
+    res.status(500).send('Error al eliminar certificado de similitud: ' + error.message);
+  }
+});
+
+// ------------------ AutoCyber Routes ------------------
+
+router.post('/autocyber/insert', async (req, res) => {
+  const autoCyberDetails = req.body;
+  console.log('autoCyberDetails', autoCyberDetails);
+  try {
+    insertAutoCyber(autoCyberDetails, (err, autoCyberId) => {
+      if (err) {
+        res.status(500).send('Error al insertar AutoCyber: ' + err.message);
+      } else {
+        res.json({ message: 'AutoCyber insertado correctamente', autoCyberId });
+      }
+    });
+  } catch (error) {
+    res.status(500).send('Error al insertar AutoCyber: ' + error.message);
+  }
+});
+
+router.delete('/autocyber/delete/:id', async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const autoCyber = await new Promise((resolve, reject) => {
+      getAutoCyberById(id, (err, result) => {
+        if (err) reject(err);
+        else resolve(result);
+      });
+    });
+
+    if (!autoCyber) {
+      return res.status(404).send('AutoCyber no encontrado.');
+    }
+
+    await deleteFileFromMinIO(BUCKETS.CYBER, autoCyber.file_url);
+    await new Promise((resolve, reject) => {
+      deleteAutoCyberById(id, (err, results) => {
+        if (err) reject(err);
+        else resolve(results);
+      });
+    });
+
+    res.json({ message: 'AutoCyber eliminado correctamente' });
+  } catch (error) {
+    res.status(500).send('Error al eliminar AutoCyber: ' + error.message);
+  }
+});
+
+router.get('/autocyber/:id', async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    getAutoCyberById(id, async (err, autoCyber) => {
+      if (err) {
+        res.status(500).send('Error al obtener detalles de AutoCyber: ' + err.message);
+      } else if (!autoCyber) {
+        res.status(404).send('AutoCyber no encontrado.');
+      } else {
+        try {
+          const fileUrl = await getDownloadUrlFromMinIO('cyber', autoCyber.file_url);
+          autoCyber.file_url = fileUrl;
+          res.json(autoCyber);
+        } catch (fileError) {
+          res.status(500).send('Error al obtener la URL del archivo: ' + fileError.message);
+        }
+      }
+    });
+  } catch (error) {
+    res.status(500).send('Error al obtener detalles de AutoCyber: ' + error.message);
+  }
 });
 
 // ------------------ Document Handling Routes ------------------
