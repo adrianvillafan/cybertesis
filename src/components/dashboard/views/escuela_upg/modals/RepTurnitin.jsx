@@ -1,10 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import ModalOneCol from './ModalOneCol'; // Asegúrate de que la ruta sea correcta
-import { Button } from '@cloudscape-design/components';
+import { Button, Alert } from '@cloudscape-design/components';
+import { uploadReporteTurnitinFile, createReporteTurnitin } from '../../../../../../api';
+import UserContext from '../../../contexts/UserContext';
 
-const RepTurnitinModal = ({ onClose, onSave, readOnly, fileUrl: initialFileUrl }) => {
+const RepTurnitinModal = ({ onClose, onSave, readOnly, fileUrl: initialFileUrl, documentos }) => {
+  const { user } = useContext(UserContext);
   const [file, setFile] = useState(null);
   const [fileUrl, setFileUrl] = useState(readOnly ? initialFileUrl : '');
+  const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
     if (readOnly && initialFileUrl) {
@@ -24,9 +28,29 @@ const RepTurnitinModal = ({ onClose, onSave, readOnly, fileUrl: initialFileUrl }
     }
   };
 
-  const handleSave = () => {
-    onSave({ fileUrl });
-    onClose();
+  const handleSave = async () => {
+    try {
+      let uploadedFileUrl = fileUrl;
+
+      if (file) {
+        const uploadResponse = await uploadReporteTurnitinFile(file);
+        uploadedFileUrl = uploadResponse.fileName;
+      }
+
+      const reporteData = {
+        file_url: uploadedFileUrl,
+        created_by: user.user_id,
+        updated_by: user.user_id,
+        documentos_id: documentos.id
+      };
+
+      await createReporteTurnitin(reporteData);
+      onSave();
+      onClose();
+    } catch (error) {
+      setErrorMessage('Error al guardar el reporte de Turnitin.');
+      console.error('Error al guardar el reporte de Turnitin:', error);
+    }
   };
 
   return (
@@ -36,17 +60,20 @@ const RepTurnitinModal = ({ onClose, onSave, readOnly, fileUrl: initialFileUrl }
       footerButtons={
         <>
           <Button onClick={onClose} variant="secondary">Cancelar</Button>
-          <Button onClick={handleSave} disabled={!fileUrl}>Guardar</Button>
+          <Button onClick={handleSave} disabled={!fileUrl && !file}>Guardar</Button>
         </>
       }
       file={file}
       setFile={handleFileChange}
       fileUrl={fileUrl}
       setFileUrl={setFileUrl}
-      showForm={Boolean(fileUrl)}
+      showForm={Boolean(fileUrl || file)}
       setShowForm={() => {}}
       readOnly={readOnly}
-    />
+      mode={'upload'}
+    >
+      {errorMessage && <Alert type="error">{errorMessage}</Alert>}
+    </ModalOneCol>
   );
 };
 

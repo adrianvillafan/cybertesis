@@ -13,6 +13,8 @@ import { insertMetadata,
   getDisciplinasOCDE
 } from '../queries/metadataQueries.js';
 import { insertCertificadoSimilitud, deleteCertificadoSimilitudById, getCertificadoSimilitudById } from '../queries/certificadosQueries.js';
+import { insertAutoCyber, deleteAutoCyberById, getAutoCyberById } from '../queries/autocyberQueries.js';
+import { insertReporteTurnitin, deleteReporteTurnitinById, getReporteTurnitinById } from '../queries/turnitinQueries.js';
 
 const router = express.Router();
 const storage = multer.memoryStorage();
@@ -22,7 +24,7 @@ const BUCKETS = {
   TESIS: process.env.BUCKET_TESIS,
   ACTAS: process.env.BUCKET_ACTAS,
   CERTIFICADOS: process.env.BUCKET_CERTIFICADOS,
-  CYBER: process.env.BUCKET_CYBER,
+  CYBER: process.env.BUCKET_AUTOCYBER,
   METADATOS: process.env.BUCKET_METADATOS,
   TURNITIN: process.env.BUCKET_TURNITIN
 };
@@ -35,6 +37,7 @@ router.post('/upload', upload.single('file'), async (req, res) => {
 
   console.log('file', file);
   console.log('type', type);
+  console.log('BUCKETS', getBucketName(type));
 
   if (!file) {
     return res.status(400).send('No se subió ningún archivo.');
@@ -42,7 +45,6 @@ router.post('/upload', upload.single('file'), async (req, res) => {
 
   try {
     const bucketName = getBucketName(type);
-    console.log('bucketNameReal', process.env.BUCKET_TESIS);
     console.log('bucketName', bucketName);
 
     if (!bucketName) {
@@ -457,7 +459,7 @@ router.delete('/autocyber/delete/:id', async (req, res) => {
       return res.status(404).send('AutoCyber no encontrado.');
     }
 
-    await deleteFileFromMinIO(BUCKETS.CYBER, autoCyber.file_url);
+    await deleteFileFromMinIO(BUCKET_AUTOCYBER, autoCyber.file_url);
     await new Promise((resolve, reject) => {
       deleteAutoCyberById(id, (err, results) => {
         if (err) reject(err);
@@ -482,7 +484,7 @@ router.get('/autocyber/:id', async (req, res) => {
         res.status(404).send('AutoCyber no encontrado.');
       } else {
         try {
-          const fileUrl = await getDownloadUrlFromMinIO('cyber', autoCyber.file_url);
+          const fileUrl = await getDownloadUrlFromMinIO('autocyber', autoCyber.file_url);
           autoCyber.file_url = fileUrl;
           res.json(autoCyber);
         } catch (fileError) {
@@ -494,6 +496,73 @@ router.get('/autocyber/:id', async (req, res) => {
     res.status(500).send('Error al obtener detalles de AutoCyber: ' + error.message);
   }
 });
+
+// ------------------ Reporte Turnitin Routes ------------------
+
+router.post('/reporte-turnitin/insert', async (req, res) => {
+  const reporteDetails = req.body;
+  console.log('reporteDetails', reporteDetails);
+  try {
+    insertReporteTurnitin(reporteDetails, (err, reporteId) => {
+      if (err) {
+        res.status(500).send('Error al insertar reporte de Turnitin: ' + err.message);
+      } else {
+        res.json({ message: 'Reporte de Turnitin insertado correctamente', reporteId });
+      }
+    });
+  } catch (error) {
+    res.status(500).send('Error al insertar reporte de Turnitin: ' + error.message);
+  }
+});
+
+router.get('/reporte-turnitin/:id', async (req, res) => {
+  const { id } = req.params;
+  getReporteTurnitinById(id, async (err, reporte) => {
+    if (err) {
+      res.status (500).send('Error al obtener detalles de reporte de Turnitin: ' + err.message);
+    } else if (!reporte) {
+      res.status(404).send('Reporte de Turnitin no encontrado.');
+    } else {
+      try {
+        const fileUrl = await getDownloadUrlFromMinIO('turnitin', reporte.file_url);
+        reporte.file_url = fileUrl;
+        res.json(reporte);
+      } catch (fileError) {
+        res.status(500).send('Error al obtener la URL del archivo: ' + fileError.message);
+      }
+    }
+  });
+});
+
+router.delete('/reporte-turnitin/delete/:id', async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const reporte = await new Promise((resolve, reject) => {
+      getReporteTurnitinById(id, (err, result) => {
+        if (err) reject(err);
+        else resolve(result);
+      });
+    });
+
+    if (!reporte) {
+      return res.status(404).send('Reporte de Turnitin no encontrado.');
+    }
+
+    await deleteFileFromMinIO(BUCKETS.TURNITIN, reporte.file_url);
+    await new Promise((resolve, reject) => {
+      deleteReporteTurnitinById(id, (err, results) => {
+        if (err) reject(err);
+        else resolve(results);
+      });
+    });
+
+    res.json({ message: 'Reporte de Turnitin eliminado correctamente' });
+  } catch (error) {
+    res.status(500).send('Error al eliminar reporte de Turnitin: ' + error.message);
+  }
+});
+
 
 // ------------------ Document Handling Routes ------------------
 

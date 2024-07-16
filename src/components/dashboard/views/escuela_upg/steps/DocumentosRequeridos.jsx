@@ -15,6 +15,8 @@ import MetadatosModal from '../modals/Metadatos';
 import MetadatosModalVer from '../modals/MetadatosVer';
 import MetadatosModalDelete from '../modals/MetadatosDelete';
 import RepTurnitinModal from '../modals/RepTurnitin';
+import RepTurnitinModalVer from '../modals/RepTurnitinModalVer';
+import RepTurnitinModalDelete from '../modals/RepTurnitinModalDelete';
 import TesisModalDelete from '../modals/TesisModalDelete';
 import { createOrFetchDocumentos } from '../../../../../../api';
 
@@ -115,17 +117,17 @@ const DocumentosRequeridos = ({
           columnDefinitions={[
             { id: 'tipoDocumento', header: 'Tipo de Documento', cell: (item) => item.nombre },
             { id: 'verModelo', header: 'Ver Modelo', cell: (item) => <Link href={`/path/to/model/${item.nombre}.pdf`} external={true}>Ver modelo</Link> },
-            { 
-              id: 'cargarEditar', 
-              header: 'Acciones', 
+            {
+              id: 'cargarEditar',
+              header: 'Acciones',
               cell: (item) => savedDocuments[item.nombre] ? (
                 <SpaceBetween direction="horizontal" size="xs">
                   <Button onClick={() => handleModalOpen(item.nombre, false)}>Ver</Button>
                   <Button onClick={() => { setDeleteDocType(item.nombre); setShowDeleteConfirmation(true); }}>Eliminar</Button>
                 </SpaceBetween>
               ) : (
-                <Button 
-                  onClick={() => handleModalOpen(item.nombre, true)} 
+                <Button
+                  onClick={() => handleModalOpen(item.nombre, true)}
                   disabled={
                     (item.nombre === 'Acta de Sustentación' && !isTesisComplete) ||
                     (item.nombre === 'Hoja de Metadatos' && (!isTesisComplete || !isActaSustentacionComplete))
@@ -133,16 +135,16 @@ const DocumentosRequeridos = ({
                 >
                   Cargar
                 </Button>
-              ) 
+              )
             },
-            { 
-              id: 'estado', 
-              header: 'Estado', 
+            {
+              id: 'estado',
+              header: 'Estado',
               cell: (item) => savedDocuments[item.nombre] && savedDocuments[item.nombre] !== null ? (
                 <StatusIndicator type="success">Completado</StatusIndicator>
               ) : (
                 <StatusIndicator type="error">Pendiente</StatusIndicator>
-              ) 
+              )
             },
           ]}
         />
@@ -153,7 +155,7 @@ const DocumentosRequeridos = ({
       </Box>
       {selectedDoc?.type === 'Tesis' && (
         selectedDoc.editing ? (
-          <TesisModal 
+          <TesisModal
             onClose={handleModalClose}
             alumnoData={alumnoData}
             onSave={(data) => handleSaveDocument('Tesis', data)}
@@ -233,15 +235,22 @@ const DocumentosRequeridos = ({
         )
       )}
       {selectedDoc?.type === 'Reporte de Turnitin' && (
-        <RepTurnitinModal
-          onClose={handleModalClose}
-          onSave={(data) => handleSaveDocument('Reporte de Turnitin', data)}
-          readOnly={!selectedDoc.editing}
-          fileUrl={selectedDoc.editing ? '' : savedDocuments['Reporte de Turnitin']?.file_url || ''}
-          documentos={documentos}
-        />
+        selectedDoc.editing ? (
+          <RepTurnitinModal
+            onClose={handleModalClose}
+            onSave={(data) => handleSaveDocument('Reporte de Turnitin', data)}
+            readOnly={false}
+            fileUrl={savedDocuments['Reporte de Turnitin']?.file_url || ''}
+            documentos={documentos}
+          />
+        ) : (
+          <RepTurnitinModalVer
+            onClose={handleModalClose}
+            documentos={documentos}
+          />
+        )
       )}
-      {showDeleteConfirmation && deleteDocType === 'Tesis'  &&(
+      {showDeleteConfirmation && deleteDocType === 'Tesis' && (
         <TesisModalDelete
           visible={showDeleteConfirmation}
           onClose={() => setShowDeleteConfirmation(false)}
@@ -275,6 +284,14 @@ const DocumentosRequeridos = ({
       )}
       {showDeleteConfirmation && deleteDocType === 'Hoja de Metadatos' && (
         <MetadatosModalDelete
+          visible={showDeleteConfirmation}
+          onClose={() => setShowDeleteConfirmation(false)}
+          onConfirm={handleDeleteDocument}
+          documentos={documentos}
+        />
+      )}
+      {showDeleteConfirmation && deleteDocType === 'Reporte de Turnitin' && (
+        <RepTurnitinModalDelete
           visible={showDeleteConfirmation}
           onClose={() => setShowDeleteConfirmation(false)}
           onConfirm={handleDeleteDocument}
