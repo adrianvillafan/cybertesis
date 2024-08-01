@@ -16,6 +16,17 @@ router.get('/alumnosunidades/:escuelaId/:gradoId', (req, res) => {
   });
 });
 
+router.get('/alumnosprogramas/:programaId', (req, res) => {
+  const { programaId } = req.params;
+  fetchListaAlumnosByProgramaId(programaId, (error, alumnado) => {
+    if (error) {
+      res.status(500).send({ message: "Error al obtener el listado de alumnos del programa", error: error.toString() });
+    } else {
+      res.json(alumnado);
+    }
+  });
+});
+
 router.get('/datosalumno/:studentId', (req, res) => {
   const { studentId } = req.params;
   fetchAlumnoData(studentId, (error, alumnoData) => {
@@ -23,6 +34,17 @@ router.get('/datosalumno/:studentId', (req, res) => {
       res.status(500).send({ message: "Error al obtener los datos del alumno", error: error.toString() });
     } else {
       res.json(alumnoData);
+    }
+  });
+});
+
+router.get('/programas/:facultadId', (req, res) => {
+  const { facultadId } = req.params;
+  fetchProgramasByFacultadId(facultadId, (error, programas) => {
+    if (error) {
+      res.status(500).send({ message: "Error al obtener la lista de programas de la facultad", error: error.toString() });
+    } else {
+      res.json(programas);
     }
   });
 });

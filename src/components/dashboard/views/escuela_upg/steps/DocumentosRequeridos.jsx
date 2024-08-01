@@ -155,8 +155,10 @@ const DocumentosRequeridos = ({
         />
       </SpaceBetween>
       <Box margin={{ top: 'l' }}>
+      <SpaceBetween direction="horizontal" size="xs" >
         <Button onClick={() => setStep(1)}>Atrás</Button>
         <Button onClick={handleNextStep} disabled={!canProceed}>Siguiente</Button>
+      </SpaceBetween>
       </Box>
       {selectedDoc?.type === 'Tesis' && (
         selectedDoc.editing ? (

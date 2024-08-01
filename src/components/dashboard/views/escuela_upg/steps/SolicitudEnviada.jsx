@@ -1,11 +1,11 @@
 import React from 'react';
 import { Box, Header, Button } from '@cloudscape-design/components';
 
-const SolicitudEnviada = ({ solicitudId, setStep }) => {
+const SolicitudEnviada = ({ documentoId, setStep }) => {
   return (
     <Box>
-      <Header variant="h2">Solicitud Enviada</Header>
-      <p>Su solicitud ha sido enviada exitosamente. Su número de solicitud es {solicitudId}.</p>
+      <Header variant="h2">Documentos Cargados</Header>
+      <p>Sus documentos han sido cargados exitosamente. Su número de registro de documentos es <b>#{documentoId}</b>.</p>
       <Box margin={{ top: 'l' }}>
         <Button onClick={() => setStep(1)}>Inicio</Button>
       </Box>

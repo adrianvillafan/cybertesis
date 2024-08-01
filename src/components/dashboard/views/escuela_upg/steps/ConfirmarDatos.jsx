@@ -126,8 +126,11 @@ const ConfirmarDatos = ({ setStep, handleAlumnoSelection, setDocumentos }) => {
               </Container>
             )}
             <Box>
-              <Button onClick={handleCancelar}>Cancelar</Button>
-              <Button onClick={handleSiguiente} disabled={!selectedAlumno}>Siguiente</Button>
+              <SpaceBetween direction="horizontal" size="xs" >
+                <Button onClick={handleCancelar}>Cancelar</Button>
+                <Button onClick={handleSiguiente} disabled={!selectedAlumno}>Siguiente</Button>
+              </SpaceBetween>
+
             </Box>
           </>
         )}

@@ -38,8 +38,14 @@ export const createSolicitud = (solicitud, callback) => {
   });
 };
 
-
-
-
-
-
+export const updateEstadoIdByDocumentId = (documentId, estadoId, callback) => {
+  const sql = `UPDATE documentos SET estado_id = ? WHERE id = ?`;
+  const values = [estadoId, documentId];
+  executeQuery(sql, values, (err, results) => {
+    if (err) {
+      callback(err, null);
+    } else {
+      callback(null, results);
+    }
+  });
+};

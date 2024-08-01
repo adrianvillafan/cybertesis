@@ -6,7 +6,6 @@ import ConfirmarDatos from './steps/ConfirmarDatos';
 import DocumentosRequeridos from './steps/DocumentosRequeridos';
 import DeclaracionJurada from './steps/DeclaracionJurada';
 import SolicitudEnviada from './steps/SolicitudEnviada';
-import { submitDocumentos } from '../../../../../api';
 
 const IngresarDoc = () => {
   const { user } = useContext(UserContext);
@@ -25,18 +24,8 @@ const IngresarDoc = () => {
       setStep(4);
   };
 
-  const handleBack = () => {
-    setStep(step - 1);
-  };
+  console.log('documentos:', documentos.id);
 
-  const enviarSolicitud = async () => {
-    try {
-      await submitDocumentos(alumnoData.codigo_estudiante);
-      setStep(5);
-    } catch (error) {
-      setErrorMessage('Failed to send request. Please try again.');
-    }
-  };
 
   return (
     <Container>
@@ -52,8 +41,8 @@ const IngresarDoc = () => {
           setDocumentos={setDocumentos}
         />
       )}
-      {step === 4 && <DeclaracionJurada enviarSolicitud={enviarSolicitud} setStep={setStep} handleBack={handleBack} />}
-      {step === 5 && <SolicitudEnviada setStep={setStep} />}
+      {step === 4 && <DeclaracionJurada setStep={setStep} documentos={documentos} />}
+      {step === 5 && <SolicitudEnviada setStep={setStep} documentoId={documentos.id}/>}
     </Container>
   );
 };
