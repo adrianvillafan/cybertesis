@@ -26,32 +26,29 @@ const DocumentosRequeridos = ({
   handleNextStep,
   setErrorMessage,
   alumnoData,
-  setCanProceed,
-  canProceed,
   setStep
 }) => {
   const [selectedDoc, setSelectedDoc] = useState(null);
   const [savedDocuments, setSavedDocuments] = useState({});
-  const [asesores, setAsesores] = useState([]);
-  const [jurados, setJurados] = useState([]);
-  const [autores, setAutores] = useState([]);
-  const [tesisCompletada, setTesisCompletada] = useState(false);
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const [deleteDocType, setDeleteDocType] = useState(null);
+  const [canProceed, setCanProceed] = useState(false);
 
   const fetchDocumentos = async () => {
     try {
       const updatedDocumentos = await createOrFetchDocumentos(alumnoData.grado_id, alumnoData.id, alumnoData.usuarioCarga_id);
       console.log('Documentos actualizados:', updatedDocumentos);
-      setSavedDocuments({
+      const documents = {
         'Tesis': updatedDocumentos.tesis_id,
         'Acta de Sustentación': updatedDocumentos.actasust_id,
         'Certificado de Similitud': updatedDocumentos.certsimil_id,
         'Autorización para el depósito de obra en Cybertesis': updatedDocumentos.autocyber_id,
         'Hoja de Metadatos': updatedDocumentos.metadatos_id,
         'Reporte de Turnitin': updatedDocumentos.repturnitin_id
-      });
+      };
+      setSavedDocuments(documents);
       setDocumentos(updatedDocumentos);
+      checkIfCanProceed(documents);
     } catch (error) {
       console.error('Error al actualizar los documentos:', error);
     }
@@ -59,16 +56,25 @@ const DocumentosRequeridos = ({
 
   useEffect(() => {
     if (documentos) {
-      setSavedDocuments({
+      const documents = {
         'Tesis': documentos.tesis_id,
         'Acta de Sustentación': documentos.actasust_id,
         'Certificado de Similitud': documentos.certsimil_id,
         'Autorización para el depósito de obra en Cybertesis': documentos.autocyber_id,
         'Hoja de Metadatos': documentos.metadatos_id,
         'Reporte de Turnitin': documentos.repturnitin_id
-      });
+      };
+      setSavedDocuments(documents);
+      checkIfCanProceed(documents);
     }
   }, [documentos]);
+
+  const checkIfCanProceed = (documents) => {
+    const allDocumentsCompleted = Object.values(documents).every(id => id !== null);
+    console.log('allDocumentsCompleted:', allDocumentsCompleted);
+    setCanProceed(allDocumentsCompleted);
+    console.log('Can proceed:', allDocumentsCompleted);
+  };
 
   const handleModalClose = async () => {
     setSelectedDoc(null);
@@ -86,7 +92,11 @@ const DocumentosRequeridos = ({
 
   const handleDeleteDocument = async () => {
     console.log('Eliminando documento:', deleteDocType);
-    setSavedDocuments(prev => ({ ...prev, [deleteDocType]: null }));
+    setSavedDocuments(prev => {
+      const updated = { ...prev, [deleteDocType]: null };
+      checkIfCanProceed(updated);
+      return updated;
+    });
     setSelectedDoc(null);
     await fetchDocumentos();
   };
@@ -99,11 +109,6 @@ const DocumentosRequeridos = ({
     { id: 5, nombre: 'Hoja de Metadatos' },
     { id: 6, nombre: 'Reporte de Turnitin' }
   ];
-
-  useEffect(() => {
-    const allDocumentsCompleted = documentosRequeridos.every(doc => savedDocuments[doc.nombre] && savedDocuments[doc.nombre] !== null);
-    setCanProceed(allDocumentsCompleted);
-  }, [savedDocuments, setCanProceed]);
 
   const isTesisComplete = !!savedDocuments['Tesis'];
   const isActaSustentacionComplete = !!savedDocuments['Acta de Sustentación'];

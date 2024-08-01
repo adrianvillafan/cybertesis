@@ -42,7 +42,7 @@ const TesisModalDelete = ({ visible, onClose, onConfirm, documentos }) => {
         </SpaceBetween>
       }
     >
-      <p>¿Estás seguro de que deseas eliminar esta tesis? Esta acción también eliminará los registros asociados en Acta de Sustentación y Hoja de Metadatos.</p>
+      <p>¿Estás seguro de que deseas eliminar esta tesis? Esta acción <b>también eliminará</b> los registros asociados en <b>Acta de Sustentación</b> y <b>Hoja de Metadatos</b>.</p>
       {tesisDetails && (
         <div>
           <p><strong>Título:</strong> {tesisDetails.titulo}</p>

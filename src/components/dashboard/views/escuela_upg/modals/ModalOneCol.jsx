@@ -10,6 +10,7 @@ pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/$
 const ModalOneCol = ({ onClose, headerText, footerButtons, file, setFile, fileUrl, setFileUrl, mode }) => {
     const [numPages, setNumPages] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
+    const [isDataLoading, setIsDataLoading] = useState(mode === 'view' && !fileUrl); // Estado para manejar la carga de datos en modo view
     const fileInputRef = useRef(null);
     const containerRef = useRef(null);
     const [width, setWidth] = useState(0);
@@ -34,15 +35,19 @@ const ModalOneCol = ({ onClose, headerText, footerButtons, file, setFile, fileUr
         if (containerRef.current) {
             setWidth(containerRef.current.offsetWidth);
         }
-    }, [fileUrl]);
+        if (fileUrl || mode === 'upload') {
+            setIsLoading(false); // Desactiva el spinner cuando el contenido está listo
+        }
+    }, [fileUrl, mode]);
 
     useEffect(() => {
-        if (mode === 'view' && !fileUrl) {
-            setIsLoading(true);
-        } else {
-            setIsLoading(false);
+        if (mode === 'view' && isDataLoading) {
+            // Simulación de la carga de datos
+            setTimeout(() => {
+                setIsDataLoading(false); // Desactiva el spinner cuando los datos se hayan cargado
+            }, 2000); // Puedes ajustar este tiempo según sea necesario
         }
-    }, [mode, fileUrl]);
+    }, [mode, isDataLoading]);
 
     const handleFileChange = ({ detail }) => {
         const selectedFile = detail.value[0];
@@ -112,7 +117,7 @@ const ModalOneCol = ({ onClose, headerText, footerButtons, file, setFile, fileUr
             visible={true}
             closeAriaLabel="Cerrar modal"
             header={headerText}
-            size={fileUrl ? 'large' : 'medium'}
+            size={(isLoading || isDataLoading) ? 'medium' : (fileUrl) ? 'large' : 'medium'}
             footer={
                 <Box float='right'>
                     <SpaceBetween direction="horizontal" size="m">
@@ -122,7 +127,7 @@ const ModalOneCol = ({ onClose, headerText, footerButtons, file, setFile, fileUr
             }
         >
             <SpaceBetween direction="vertical" size="xl" content="div">
-                {isLoading ? (
+                {isLoading || isDataLoading ? (
                     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '30vh' }}>
                         <Spinner size="large" />
                     </div>

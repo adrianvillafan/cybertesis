@@ -11,7 +11,6 @@ import { submitDocumentos } from '../../../../../api';
 const IngresarDoc = () => {
   const { user } = useContext(UserContext);
   const [step, setStep] = useState(1);
-  const [canProceed, setCanProceed] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [documentos, setDocumentos] = useState({});
   const [alumnoData, setAlumnoData] = useState(null);
@@ -23,9 +22,7 @@ const IngresarDoc = () => {
   };
 
   const handleNextStep = () => {
-    if (canProceed) {
       setStep(4);
-    }
   };
 
   const handleBack = () => {
@@ -52,7 +49,6 @@ const IngresarDoc = () => {
           handleNextStep={handleNextStep}
           setErrorMessage={setErrorMessage}
           alumnoData={alumnoData}
-          setCanProceed={setCanProceed}
           setDocumentos={setDocumentos}
         />
       )}
