@@ -1,5 +1,5 @@
 import express from 'express';
-import { fetchListaAlumnos, fetchAlumnoData , fetchEscuelaUpgData } from '../queries/escuelaUpgQueries.js'
+import { fetchListaAlumnos, fetchAlumnoData , fetchEscuelaUpgData,fetchListaAlumnosByProgramaId, fetchProgramasByFacultadId } from '../queries/escuelaUpgQueries.js'
 import { fetchDatosByDni } from '../queries/datosDniQueries.js';
 import fetch from 'node-fetch';
 

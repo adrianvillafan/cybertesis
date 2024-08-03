@@ -75,11 +75,16 @@ export function fetchAlumnoData(studentId, callback) {
         estudiante.*,
         personas.*,
         facultad.nombre AS facultad_nombre,
-        escuela.nombre AS escuela_nombre
+        escuela.nombre AS escuela_nombre,
+        CASE
+            WHEN estudiante.programa_id IS NOT NULL THEN facultad_programa.programa
+            ELSE NULL
+        END AS programa_nombre
     FROM estudiante
     INNER JOIN personas ON estudiante.persona_id = personas.idpersonas
     INNER JOIN facultad ON estudiante.facultad_id = facultad.id
     INNER JOIN escuela ON estudiante.escuela_id = escuela.id
+    LEFT JOIN facultad_programa ON estudiante.programa_id = facultad_programa.id
     WHERE estudiante.codigo_estudiante = ?;
   `;
 
@@ -94,6 +99,54 @@ export function fetchAlumnoData(studentId, callback) {
   });
 }
 
+export function fetchProgramasByFacultadId(facultadId, callback) {
+  const sql = `
+    SELECT 
+        id,
+        facultad_id,
+        programa,
+        tipo,
+        parent_id
+    FROM 
+        facultad_programa
+    WHERE 
+        facultad_id = ? AND level = 2 AND tipo != 'pregrado' ;
+  `;
+
+  executeQuery(sql, [facultadId], (err, results) => {
+    if (err) {
+      console.error('Error al obtener la lista de programas de la facultad:', err);
+      callback({ message: 'Error al obtener la lista de programas de la facultad' }, null);
+    } else {
+      console.log('Programas de la facultad encontrados:', results);
+      callback(null, results);
+    }
+  });
+}
 
 
+export function fetchListaAlumnosByProgramaId(programaId, callback) {
+  const sql = `
+    SELECT 
+        estudiante.codigo_estudiante,
+        estudiante.user_id,
+        estudiante.persona_id,
+        personas.identificacion_id AS dni,
+        personas.nombre,
+        CONCAT(personas.apellidos_pat, ' ', personas.apellidos_mat) AS apellidos
+    FROM estudiante
+    INNER JOIN personas ON estudiante.persona_id = personas.idpersonas
+    WHERE estudiante.programa_id = ?;
+  `;
+
+  executeQuery(sql, [programaId], (err, results) => {
+    if (err) {
+      console.error('Error al buscar datos de alumnos del programa:', err);
+      callback({ message: 'Error al buscar datos de alumnos del programa' }, null);
+    } else {
+      console.log('Datos de alumnos del programa encontrados:', results);
+      callback(null, results);
+    }
+  });
+}
 

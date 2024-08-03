@@ -7,6 +7,7 @@ const TesisModalVer = ({ onClose, documentos }) => {
   const [formData, setFormData] = useState({
     facultad: '',
     escuela: '',
+    programa: '',
     titulo: '',
     tipo: '',
     grado: '',
@@ -68,7 +69,8 @@ const TesisModalVer = ({ onClose, documentos }) => {
         if (data) {
           setFormData({
             facultad: data.facultad_nombre,
-            escuela: data.escuela_nombre,
+            escuela: data.grado_id === 1 ? data.escuela_nombre : '',
+            programa: data.grado_id === 2 ? data.programa_nombre : '',
             titulo: data.titulo,
             tipo: data.tipo_tesis,
             grado: data.grado_academico,
@@ -151,8 +153,8 @@ const TesisModalVer = ({ onClose, documentos }) => {
               <FormField label="Facultad">
                 <Input value={formData.facultad} readOnly />
               </FormField>
-              <FormField label="Escuela">
-                <Input value={formData.escuela} readOnly />
+              <FormField label={formData.grado === '1' ? "Escuela" : "Programa"}>
+                <Input value={formData.grado === '1' ? formData.escuela : formData.programa} readOnly />
               </FormField>
               <FormField label="Título">
                 <Input value={formData.titulo} readOnly />
@@ -171,10 +173,7 @@ const TesisModalVer = ({ onClose, documentos }) => {
                 <FormField label="Grado">
                   <Select
                     selectedOption={{ label: formData.grado, value: formData.grado }}
-                    options={[
-                      { label: 'Magister', value: 'Magister' },
-                      { label: 'Doctorado', value: 'Doctorado' }
-                    ]}
+                    options={gradoOptions}
                     readOnly
                   />
                 </FormField>

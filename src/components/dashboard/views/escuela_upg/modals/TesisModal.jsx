@@ -13,7 +13,8 @@ const TesisModal = ({ onClose, alumnoData, onSave, readOnly, fileUrl, formData: 
     facultad_id: alumnoData?.facultad_id || '',
     escuela_id: alumnoData?.escuela_id || '',
     facultad: alumnoData?.facultad_nombre || '',
-    escuela: alumnoData?.escuela_nombre || '',
+    escuela: alumnoData?.grado_id === 1 ? alumnoData?.escuela_nombre || '' : '',
+    programa: alumnoData?.grado_id === 2 ? alumnoData?.programa_nombre || '' : '',
     titulo: initialFormData?.titulo || '',
     tipo: initialFormData?.tipo || '',
     grado: initialFormData?.grado || '',
@@ -53,7 +54,7 @@ const TesisModal = ({ onClose, alumnoData, onSave, readOnly, fileUrl, formData: 
   const isFormComplete = () => {
     const requiredFields = [
       formData.facultad,
-      formData.escuela,
+      formData.grado_id === 1 ? formData.escuela : formData.programa,
       formData.titulo,
       formData.tipo,
       formData.grado,
@@ -137,7 +138,8 @@ const TesisModal = ({ onClose, alumnoData, onSave, readOnly, fileUrl, formData: 
           facultad_id: data.id_facultad,
           escuela_id: data.id_escuela,
           facultad: data.facultad_nombre,
-          escuela: data.escuela_nombre,
+          escuela: data.grado_id === 1 ? data.escuela_nombre : '',
+          programa: data.grado_id === 2 ? data.programa_id : '',
           titulo: data.titulo,
           tipo: data.tipo_tesis,
           grado: data.grado_academico,
@@ -338,8 +340,8 @@ const TesisModal = ({ onClose, alumnoData, onSave, readOnly, fileUrl, formData: 
               <FormField label="Facultad">
                 <Input value={formData.facultad} readOnly />
               </FormField>
-              <FormField label="Escuela">
-                <Input value={formData.escuela} readOnly />
+              <FormField label={alumnoData.grado_id === 1 ? "Escuela" : "Programa"}>
+                <Input value={alumnoData.grado_id === 1 ? formData.escuela : formData.programa} readOnly />
               </FormField>
               <FormField label="Título">
                 <Input value={formData.titulo} onChange={({ detail }) => setFormData(prev => ({ ...prev, titulo: detail.value }))} />
@@ -360,7 +362,6 @@ const TesisModal = ({ onClose, alumnoData, onSave, readOnly, fileUrl, formData: 
                     selectedOption={{ label: formData.grado, value: formData.grado }}
                     options={gradoOptions}
                     onChange={({ detail }) => setFormData(prev => ({ ...prev, grado: detail.selectedOption.label }))}
-                    readOnly
                   />
                 </FormField>
                 <FormField label="Año">

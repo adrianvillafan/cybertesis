@@ -69,7 +69,7 @@ export async function createOrFetchDocumentos(gradeId, studentId, userId) {
 
 export async function fetchProgramasByFacultadId(facultadId) {
   try {
-    const response = await fetch(`http://localhost:3000/api/programas/${facultadId}`);
+    const response = await fetch(`http://localhost:3000/api/estudiantes/programas/${facultadId}`);
     if (!response.ok) {
       throw new Error('No se pudo obtener los programas');
     }

@@ -1,16 +1,30 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { Box, Header, Button, Select, ColumnLayout, Container, SpaceBetween } from '@cloudscape-design/components';
 import UserContext from '../../../contexts/UserContext';
-import { fetchAlumnadoByEscuelaId, fetchDatosByStudentId, createOrFetchDocumentos } from '../../../../../../api';
+import { fetchAlumnadoByProgramaId, fetchDatosByStudentId, createOrFetchDocumentos, fetchProgramasByFacultadId } from '../../../../../../api';
 
 const ConfirmarDatos = ({ setStep, handleAlumnoSelection, setDocumentos }) => {
   const { user } = useContext(UserContext);
+  const [selectedPrograma, setSelectedPrograma] = useState(null);
   const [selectedEscuela, setSelectedEscuela] = useState(null);
   const [selectedAlumno, setSelectedAlumno] = useState(null);
+  const [programas, setProgramas] = useState([]);
   const [alumnos, setAlumnos] = useState([]);
   const [alumnoData, setAlumnoData] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  useEffect(() => {
+    if (user.grado_id === 2 && user.facultad_id) {
+      fetchProgramasByFacultadId(user.facultad_id)
+        .then(data => {
+          setProgramas(data);
+        })
+        .catch(err => {
+          setError(err.message);
+        });
+    }
+  }, [user.grado_id, user.facultad_id]);
 
   useEffect(() => {
     if (selectedEscuela) {
@@ -26,6 +40,21 @@ const ConfirmarDatos = ({ setStep, handleAlumnoSelection, setDocumentos }) => {
         });
     }
   }, [selectedEscuela, user.grado_id]);
+
+  useEffect(() => {
+    if (selectedPrograma) {
+      setIsLoading(true);
+      fetchAlumnadoByProgramaId(selectedPrograma.value)
+        .then(data => {
+          setAlumnos(data);
+          setIsLoading(false);
+        })
+        .catch(err => {
+          setError(err.message);
+          setIsLoading(false);
+        });
+    }
+  }, [selectedPrograma]);
 
   const handleAlumnoChange = (event) => {
     const selectedOption = event.detail.selectedOption;
@@ -64,6 +93,13 @@ const ConfirmarDatos = ({ setStep, handleAlumnoSelection, setDocumentos }) => {
     setAlumnoData(null);
   };
 
+  const handleProgramaChange = (event) => {
+    const selectedOption = event.detail.selectedOption;
+    setSelectedPrograma(selectedOption);
+    setSelectedAlumno(null);
+    setAlumnoData(null);
+  };
+
   const handleCancelar = () => {
     setStep(1);
   };
@@ -79,13 +115,21 @@ const ConfirmarDatos = ({ setStep, handleAlumnoSelection, setDocumentos }) => {
             <SpaceBetween direction="vertical" size="s">
               {user.grado_id === 2 && (
                 <Select
+                  selectedOption={selectedPrograma}
+                  onChange={handleProgramaChange}
+                  placeholder="Seleccione un programa"
+                  options={programas.map(programa => ({ label: programa.programa, value: String(programa.id) }))}
+                />
+              )}
+              {user.grado_id === 1 && (
+                <Select
                   selectedOption={selectedEscuela}
                   onChange={handleEscuelaChange}
                   placeholder="Seleccione una escuela"
                   options={user.escuelas.map(escuela => ({ label: escuela.nombre_escuela, value: String(escuela.id_escuela) }))}
                 />
               )}
-              {(user.grado_id === 1 || selectedEscuela) && (
+              {(selectedEscuela || selectedPrograma) && (
                 <Select
                   selectedOption={selectedAlumno}
                   onChange={handleAlumnoChange}
@@ -126,11 +170,10 @@ const ConfirmarDatos = ({ setStep, handleAlumnoSelection, setDocumentos }) => {
               </Container>
             )}
             <Box>
-              <SpaceBetween direction="horizontal" size="xs" >
+              <SpaceBetween direction="horizontal" size="xs">
                 <Button onClick={handleCancelar}>Cancelar</Button>
                 <Button onClick={handleSiguiente} disabled={!selectedAlumno}>Siguiente</Button>
               </SpaceBetween>
-
             </Box>
           </>
         )}
