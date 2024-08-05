@@ -5,7 +5,8 @@ import {
   ContentLayout,
   Header,
   SideNavigation,
-  Badge
+  Badge,
+  Icon 
 } from '@cloudscape-design/components';
 import { I18nProvider } from '@cloudscape-design/components/i18n';
 import messages from '@cloudscape-design/components/i18n/messages/all.es';
@@ -21,10 +22,11 @@ const Layout = ({ breadcrumbs, navigationItems, contentHeader, children, onNavig
   console.log('User:', user);
   
   const updatedNavigationItems = [
-    { type: "link", text: <a onClick={() => onNavigation('inicio')}>Inicio</a>, href: '#inicio' },
-    { type: "link", text: <a onClick={() => onNavigation('notifications')}>Notificaciones</a>, href: '#notificacion', info: <Badge color="red">23</Badge> },
+    { type: "link", text: <a onClick={() => onNavigation('inicio')}> <Icon name="user-profile" /> Inicio</a>, href: '#inicio' },
     ...navigationItems, // Opciones específicas del usuario
-    { type: "link", text: <a onClick={onLogoutClick}>Cerrar Sesión</a>, href: '#' } // Botón de Cerrar Sesión al final
+    { type: "divider" },
+    { type: "link", text: <a onClick={() => onNavigation('notifications')}> <Icon name="notification" />  Notificaciones</a>, href: '#notificacion', info: <Badge color="red">23</Badge> },
+    { type: "link", text: <a onClick={onLogoutClick}> <Icon name="redo" /> Cerrar Sesión</a>, href: '#' } // Botón de Cerrar Sesión al final
   ];
 
   return (
@@ -56,6 +58,12 @@ const Layout = ({ breadcrumbs, navigationItems, contentHeader, children, onNavig
                 ),
               }}
               items={updatedNavigationItems}
+              onFollow={event => {
+                if (!event.detail.external) {
+                  event.preventDefault();
+                  setActiveHref(event.detail.href);
+                }
+              }}
             />
           }
           content={

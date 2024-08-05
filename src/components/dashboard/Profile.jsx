@@ -3,6 +3,7 @@ import Layout from './components/Layout';
 import { useNavigate } from 'react-router-dom';
 import { handleLogout } from '../../../api';
 import UserContext from './contexts/UserContext';
+import {Icon} from '@cloudscape-design/components';
 
 // Importar los componentes de las vistas específicas
 import ManageUsers from './views/admin/ManageUsers';
@@ -71,9 +72,9 @@ const Profile = ({ isLoggedIn, setIsLoggedIn }) => {
         ];
       case 3: // Escuela UPG
         return [
-          { type: "link", text: <a onClick={() => setActiveView('alumnos')}>Estudiantes</a>, href: '#reports' },
-          { type: "link", text: <a onClick={() => setActiveView('ingreso-docs')}>Ingresar Documentos</a>, href: '#reports' },
-          { type: "link", text: <a onClick={() => setActiveView('reports')}>Reportes</a>, href: '#reports' }
+          { type: "link", text: <a onClick={() => setActiveView('alumnos')}> <Icon name="group-active" /> Estudiantes</a>, href: '#students' },
+          { type: "link", text: <a onClick={() => setActiveView('ingreso-docs')}>  <Icon name="folder-open" /> Ingresar Documentos</a>, href: '#docs' },
+          { type: "link", text: <a onClick={() => setActiveView('reports')}> <Icon name="file-open" /> Reportes</a>, href: '#reports' }
         ];
       case 4: // RecepDocs
         return [

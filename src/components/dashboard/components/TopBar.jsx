@@ -19,7 +19,7 @@ const TopBar = () => {
         <img src="src\components\dashboard\components\logo-pa-vrip1.png" alt="Logo Left" style={{ height: '80px' }} />
       </div>
       <div>
-        <h1 style={headerStyle}>Recepción de Documentos de Grado y Títulos en Cybertesis</h1>
+        <h1 style={headerStyle}>Recepción de Documentos de Grados y Títulos en CYBERTESIS</h1>
       </div>
       <div>
         <img src="src\components\dashboard\components\biblioteca_pedro_zulen-scaled.jpg" alt="Logo Right" style={{ height: '50px' }} />

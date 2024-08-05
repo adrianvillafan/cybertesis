@@ -112,7 +112,7 @@ const ConfirmarDatos = ({ setStep, handleAlumnoSelection, setDocumentos }) => {
   return (
     <Box>
       <SpaceBetween direction="vertical" size="l">
-        <Header variant="h2">Paso 1: Confirmar Datos</Header>
+        <Header variant="h2"><u>Paso 1</u>: Confirmar Datos</Header>
         {error ? (
           <p>Error: {error}</p>
         ) : (
