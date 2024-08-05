@@ -88,7 +88,7 @@ export const deleteTesisById = (id, callback) => {
     const idParticipantes = results[0].id_participantes;
 
     // Luego eliminamos los metadatos asociados
-    const queryDeleteMetadatos = 'DELETE FROM metadatos WHERE id_participantes = ?';
+    const queryDeleteMetadatos = 'DELETE FROM metadata WHERE id_participantes = ?';
 
     executeQuery(queryDeleteMetadatos, [idParticipantes], (err, results) => {
       if (err) {
