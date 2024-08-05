@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { Table, Button, Modal, TextFilter, Header, Pagination, SpaceBetween, Box } from '@cloudscape-design/components'; // Asegúrate de importar los componentes correctos de Cloudscape
+import { Table, Button, Modal, TextFilter, Header, Pagination, SpaceBetween, Box } from '@cloudscape-design/components';
 import UserContext from '../../contexts/UserContext';
 import { fetchAlumnadoByEscuelaId } from '../../../../../api';
 
@@ -15,16 +15,25 @@ const Alumnos = () => {
   const [pageSize, setPageSize] = useState(10);
 
   useEffect(() => {
-    setIsLoading(true);
-    fetchAlumnadoByEscuelaId(user.escuelas.id_escuela, user.grado_id)
-      .then(data => {
-        setAlumnos(data);
+    const fetchAlumnos = async () => {
+      setIsLoading(true);
+      try {
+        const allAlumnos = await Promise.all(
+          user.escuelas.map(escuela =>
+            fetchAlumnadoByEscuelaId(escuela.id_escuela, user.grado_id)
+          )
+        );
+        const mergedAlumnos = allAlumnos.flat();
+        setAlumnos(mergedAlumnos);
         setIsLoading(false);
-      })
-      .catch(err => {
+      } catch (err) {
         setError(err.message);
         setIsLoading(false);
-      });
+      }
+    };
+
+    fetchAlumnos();
+    console.log('Alumnos:', alumnos);
   }, [user]);
 
   useEffect(() => {
@@ -58,10 +67,9 @@ const Alumnos = () => {
 
   const startIndex = (pageNumber - 1) * pageSize;
   const filteredAlumnos = alumnos.filter(alumno =>
-    alumno.name.toLowerCase().includes(filteringText.toLowerCase())
+    alumno.nombre.toLowerCase().includes(filteringText.toLowerCase())
   );
   const paginatedAlumnos = filteredAlumnos.slice(startIndex, startIndex + pageSize);
-
 
   if (error) {
     return <p>Error al cargar alumnos: {error}</p>;
@@ -92,7 +100,7 @@ const Alumnos = () => {
         columnDefinitions={[
           { id: 'codigo_estudiante', header: 'Código', cell: item => item.codigo_estudiante },
           { id: 'dni', header: 'DNI', cell: item => item.dni },
-          { id: 'name', header: 'Nombre', cell: item => item.name },
+          { id: 'name', header: 'Nombre', cell: item => item.nombre },
           { id: 'email', header: 'Email', cell: item => item.email },
           {
             id: 'ver_info',

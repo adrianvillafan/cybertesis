@@ -14,14 +14,19 @@ const ConfirmarDatos = ({ setStep, handleAlumnoSelection, setDocumentos }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  console.log('user:', user);
+
   useEffect(() => {
     if (user.grado_id === 2 && user.facultad_id) {
+      setIsLoading(true);
       fetchProgramasByFacultadId(user.facultad_id)
         .then(data => {
           setProgramas(data);
+          setIsLoading(false);
         })
         .catch(err => {
           setError(err.message);
+          setIsLoading(false);
         });
     }
   }, [user.grado_id, user.facultad_id]);
@@ -119,6 +124,9 @@ const ConfirmarDatos = ({ setStep, handleAlumnoSelection, setDocumentos }) => {
                   onChange={handleProgramaChange}
                   placeholder="Seleccione un programa"
                   options={programas.map(programa => ({ label: programa.programa, value: String(programa.id) }))}
+                  loadingText="Cargando programas..."
+                  empty="No hay programas disponibles"
+                  statusType={isLoading ? 'loading' : undefined}
                 />
               )}
               {user.grado_id === 1 && (
@@ -142,7 +150,6 @@ const ConfirmarDatos = ({ setStep, handleAlumnoSelection, setDocumentos }) => {
                   loadingText="Cargando alumnos..."
                   empty="No hay alumnos disponibles"
                   statusType={isLoading ? 'loading' : undefined}
-                  loading={isLoading}
                   filteringType="auto"
                 />
               )}

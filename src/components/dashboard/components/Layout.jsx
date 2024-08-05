@@ -1,31 +1,24 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import {
   AppLayout,
   BreadcrumbGroup,
-  Container,
   ContentLayout,
   Header,
-  Link,
   SideNavigation,
   Badge
 } from '@cloudscape-design/components';
 import { I18nProvider } from '@cloudscape-design/components/i18n';
 import messages from '@cloudscape-design/components/i18n/messages/all.es';
-import { applyTheme } from '@cloudscape-design/components/theming';
-import theme from './theme.js';
+import UserContext from '../contexts/UserContext';
+import TopBar from './TopBar'; // Importar el nuevo componente
 
 const LOCALE = 'es';
 
 const Layout = ({ breadcrumbs, navigationItems, contentHeader, children, onNavigation, onLogoutClick }) => {
   const [activeHref, setActiveHref] = React.useState("/");
-  
-  // Aplicar el tema
-  React.useEffect(() => {
-    const { reset } = applyTheme({ theme });
-    return () => {
-      reset();
-    };
-  }, []);
+  const { user } = useContext(UserContext);
+
+  console.log('User:', user);
   
   const updatedNavigationItems = [
     { type: "link", text: <a onClick={() => onNavigation('inicio')}>Inicio</a>, href: '#inicio' },
@@ -36,32 +29,44 @@ const Layout = ({ breadcrumbs, navigationItems, contentHeader, children, onNavig
 
   return (
     <I18nProvider locale={LOCALE} messages={[messages]}>
-      <AppLayout
-        headerVariant="high-contrast"
-        toolsHide={true}
-        breadcrumbs={
-          <BreadcrumbGroup
-            items={breadcrumbs}
-          />
-        }
-        navigation={
-          <SideNavigation
-            activeHref={activeHref}
-            header={{
-              href: '#', 
-              text: 'Service name',
-            }}
-            items={updatedNavigationItems}
-          />
-        }
-        content={
-          <ContentLayout
-            headerVariant="high-contrast"
-            header={<Header variant="h1">{contentHeader}</Header>}>
-              {children}
-          </ContentLayout>
-        }
-      />
+      <div>
+        <TopBar /> {/* Agregar el componente de la barra superior */}
+        <AppLayout
+          headerVariant="high-contrast"
+          toolsHide={true}
+          breadcrumbs={
+            <BreadcrumbGroup
+              items={breadcrumbs}
+            />
+          }
+          navigation={
+            <SideNavigation
+              activeHref={activeHref}
+              header={{
+                href: '#', 
+                text: (
+                  <div>
+                    <div style={{ fontWeight: 'bold', fontSize: '16px' }}>
+                      {user.guard_name}
+                    </div>
+                    <div style={{ fontWeight: 'lighter', fontSize: '12px' }}>
+                      {user.name}
+                    </div>
+                  </div>
+                ),
+              }}
+              items={updatedNavigationItems}
+            />
+          }
+          content={
+            <ContentLayout
+              headerVariant="high-contrast"
+              header={<Header variant="h1">{contentHeader}</Header>}>
+                {children}
+            </ContentLayout>
+          }
+        />
+      </div>
     </I18nProvider>
   );
 };

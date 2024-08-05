@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, Header, Button } from '@cloudscape-design/components';
+import { Box, Header, Button, SpaceBetween } from '@cloudscape-design/components';
 import { updateEstadoId } from '../../../../../../api'; // Importa la función para actualizar el estado
 
 const DeclaracionJurada = ({ setStep, documentos }) => {
