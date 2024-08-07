@@ -6,12 +6,12 @@ import {
   Header,
   SideNavigation,
   Badge,
-  Icon 
+  Icon,
+  TopNavigation
 } from '@cloudscape-design/components';
 import { I18nProvider } from '@cloudscape-design/components/i18n';
 import messages from '@cloudscape-design/components/i18n/messages/all.es';
 import UserContext from '../contexts/UserContext';
-import TopBar from './TopBar'; // Importar el nuevo componente
 
 const LOCALE = 'es';
 
@@ -32,7 +32,53 @@ const Layout = ({ breadcrumbs, navigationItems, contentHeader, children, onNavig
   return (
     <I18nProvider locale={LOCALE} messages={[messages]}>
       <div>
-        <TopBar /> {/* Agregar el componente de la barra superior */}
+        <TopNavigation
+          identity={{
+            href: "#",
+            title: "Recepción de Documentos de Grados y Títulos en CYBERTESIS",
+            logo: {
+              src: "src/components/dashboard/components/logo-pa-vrip1.png",  // Actualiza con la ruta correcta del logo
+              alt: "VRIP Logo"
+            }
+          }}
+          utilities={[
+            {
+              type: "menu-dropdown",
+              text: user.name,
+              description: user.email,
+              iconName: "user-profile",
+              items: [
+                { id: "profile", text: "Profile" },
+                { id: "preferences", text: "Preferences" },
+                { id: "security", text: "Security" },
+                {
+                  id: "support-group",
+                  text: "Support",
+                  items: [
+                    {
+                      id: "documentation",
+                      text: "Documentation",
+                      href: "#",
+                      external: true,
+                      externalIconAriaLabel:
+                        " (opens in new tab)"
+                    },
+                    { id: "support", text: "Support" },
+                    {
+                      id: "feedback",
+                      text: "Feedback",
+                      href: "#",
+                      external: true,
+                      externalIconAriaLabel:
+                        " (opens in new tab)"
+                    }
+                  ]
+                },
+                { id: "signout", text: "Sign out", onClick: onLogoutClick }
+              ]
+            }
+          ]}
+        />
         <AppLayout
           headerVariant="high-contrast"
           toolsHide={true}
