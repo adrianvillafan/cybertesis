@@ -15,7 +15,7 @@ import UserContext from '../contexts/UserContext';
 
 const LOCALE = 'es';
 
-const Layout = ({ breadcrumbs, navigationItems, contentHeader, children, onNavigation, onLogoutClick }) => {
+const Layout = ({ navigationItems, contentHeader, children, onNavigation, onLogoutClick }) => {
   const [activeHref, setActiveHref] = React.useState("/");
   const { user } = useContext(UserContext);
 
@@ -84,7 +84,6 @@ const Layout = ({ breadcrumbs, navigationItems, contentHeader, children, onNavig
           toolsHide={true}
           breadcrumbs={
             <BreadcrumbGroup
-              items={breadcrumbs}
             />
           }
           navigation={

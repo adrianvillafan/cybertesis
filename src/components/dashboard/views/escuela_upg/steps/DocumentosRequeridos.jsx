@@ -116,7 +116,7 @@ const DocumentosRequeridos = ({
   return (
     <Box>
       <SpaceBetween direction="vertical" size="l">
-        <Header variant="h2">Paso 2: Subir Documentos</Header>
+        <Header variant="h2"> <u>Paso 2</u>: Adjuntar Documentos</Header>
         <Table
           items={documentosRequeridos}
           columnDefinitions={[
@@ -146,7 +146,7 @@ const DocumentosRequeridos = ({
               id: 'estado',
               header: 'Estado',
               cell: (item) => savedDocuments[item.nombre] && savedDocuments[item.nombre] !== null ? (
-                <StatusIndicator type="success">Completado</StatusIndicator>
+                <StatusIndicator type="success">Registrado</StatusIndicator>
               ) : (
                 <StatusIndicator type="error">Pendiente</StatusIndicator>
               )

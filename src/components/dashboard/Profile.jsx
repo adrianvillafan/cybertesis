@@ -16,7 +16,7 @@ import RegisterCyberthesis from './views/uoari/RegisterCyberthesis';
 import MyReports from './views/uoari/MyReports';
 import Inicio from './views/Inicio';
 import Notif from './views/Notif';
-import Alumnos from './views/escuela_upg/Alumnos';
+import Solicitudes from './views/escuela_upg/Solicitudes';
 import IngresarDoc from './views/escuela_upg/IngresarDoc';
 
 const Profile = ({ isLoggedIn, setIsLoggedIn }) => {
@@ -36,7 +36,7 @@ const Profile = ({ isLoggedIn, setIsLoggedIn }) => {
       case 'my-reports': return 'Mis Reportes';
       case 'notifications': return 'Notificaciones';
       case 'ingreso-docs': return 'Ingresar Documentos';
-      case 'alumnos': return 'Estudiantes';
+      case 'solicitudes': return 'Solicitudes';
       default: return 'Perfil de Usuario';
     }
   };
@@ -72,7 +72,7 @@ const Profile = ({ isLoggedIn, setIsLoggedIn }) => {
         ];
       case 3: // Escuela UPG
         return [
-          { type: "link", text: <a onClick={() => setActiveView('alumnos')}> <Icon name="group-active" /> Estudiantes</a>, href: '#students' },
+          { type: "link", text: <a onClick={() => setActiveView('solicitudes')}> <Icon name="group-active" /> Solicitudes</a>, href: '#solicitudes' },
           { type: "link", text: <a onClick={() => setActiveView('ingreso-docs')}>  <Icon name="folder-open" /> Ingresar Documentos</a>, href: '#docs' },
           { type: "link", text: <a onClick={() => setActiveView('reports')}> <Icon name="file-open" /> Reportes</a>, href: '#reports' }
         ];
@@ -93,13 +93,6 @@ const Profile = ({ isLoggedIn, setIsLoggedIn }) => {
 
 
   const navigationItems = getNavigationItems();
-
-  const breadcrumbs = [
-    { text:<a onClick={() => setActiveView('inicio')}>Inicio</a>, href: '#' },
-    { text: contentHeader , href: '#' },
-  ]
-
-
 
   const renderView = () => {
     // Verifica que el usuario y su rol estén definidos antes de intentar renderizar una vista específica
@@ -126,9 +119,9 @@ const Profile = ({ isLoggedIn, setIsLoggedIn }) => {
           return <Reports />;
         }
         break;
-      case 'alumnos':
+      case 'solicitudes':
         if (user.current_team_id === 3) {
-          return <Alumnos />;
+          return <Solicitudes />;
         }
         break;
       case 'ingreso-docs':
@@ -171,7 +164,7 @@ const Profile = ({ isLoggedIn, setIsLoggedIn }) => {
 
 
   return (
-    <Layout breadcrumbs={breadcrumbs} navigationItems={navigationItems} onNavigation={handleNavigation} onLogoutClick={onLogoutClick} contentHeader={contentHeader}>
+    <Layout navigationItems={navigationItems} onNavigation={handleNavigation} onLogoutClick={onLogoutClick} contentHeader={contentHeader}>
       {renderView()}
     </Layout>
   );
