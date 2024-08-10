@@ -4,26 +4,17 @@ import { Box, Button, SpaceBetween, Link, TextContent } from '@cloudscape-design
 const RequerimientosInicio = ({ handleStart }) => (
   <Box textAlign="center">
     <SpaceBetween size="xs">
-      <h1>Requerimientos para iniciar la solicitud</h1>
-      <p>La Dirección de la Escuela Profesional (EP) o la Dirección de la Unidad de Posgrado (UPG) enviará la tesis y la documentación al correo:</p>
+      <h1>Procedimiento para Registro de Documentos</h1>
+      <p>La Dirección de la Escuela Profesional (EP) o la Dirección de la Unidad de Posgrado (UPG) enviará la tesis y la documentación:</p>
       
-      <Button variant="primary" onClick={handleStart}>Iniciar Solicitud</Button>
+      <Button variant="primary" onClick={handleStart}>Iniciar Proceso</Button>
     </SpaceBetween>
 
     <div style={{ textAlign: 'left', width: '70%', margin: '0 auto' }}>
       <TextContent>
         <br />
-
-        <p className="color-y"><b>REQUISITOS</b></p>
-        <Box>
-          <ul>
-            <li>El documento de la tesis o trabajo de investigación.</li>
-            <li>Los documentos añadidos.</li>
-          </ul>
-        </Box>
-
         <hr />
-        <p className="color-y"><b>DESCARGABLES</b></p>
+        <p className="color-y"><b>Guías y Formatos</b></p>
         <Box>
           <ul className="descargable">
             <li><Link href="https://drive.google.com/file/d/1bMIPHJhO8_vLGoCQNM-elyye4qKh9X0o/view?usp=sharing" external>Guía de Recepción de los archivos digitales para la publicación en Cybertesis</Link></li>

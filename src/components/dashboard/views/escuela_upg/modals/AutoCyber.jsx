@@ -60,7 +60,7 @@ const AutoCyber = ({ onClose, onSave, readOnly, fileUrl: initialFileUrl, documen
       footerButtons={
         <>
           <Button onClick={onClose} variant="secondary">Cancelar</Button>
-          <Button onClick={handleSave} disabled={!fileUrl && !file}>Guardar</Button>
+          <Button  variant="primary" onClick={handleSave} disabled={!fileUrl && !file}>Guardar</Button>
         </>
       }
       file={file}

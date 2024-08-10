@@ -120,8 +120,9 @@ const DocumentosRequeridos = ({
         <Table
           items={documentosRequeridos}
           columnDefinitions={[
+            { id: 'id', header: 'ID', cell: (item) => item.id },
             { id: 'tipoDocumento', header: 'Tipo de Documento', cell: (item) => item.nombre },
-            { id: 'verModelo', header: 'Ver Modelo', cell: (item) => <Link href={`/path/to/model/${item.nombre}.pdf`} external={true}>Ver modelo</Link> },
+            { id: 'verModelo', header: 'Modelo', cell: (item) => <Link href={`/path/to/model/${item.nombre}.pdf`} external={true}>Ver modelo</Link> },
             {
               id: 'cargarEditar',
               header: 'Acciones',
@@ -138,7 +139,7 @@ const DocumentosRequeridos = ({
                     (item.nombre === 'Hoja de Metadatos' && (!isTesisComplete || !isActaSustentacionComplete))
                   }
                 >
-                  Cargar
+                  Adjuntar
                 </Button>
               )
             },
@@ -157,7 +158,7 @@ const DocumentosRequeridos = ({
       <Box margin={{ top: 'l' }}>
       <SpaceBetween direction="horizontal" size="xs" >
         <Button onClick={() => setStep(1)}>Atrás</Button>
-        <Button onClick={handleNextStep} disabled={!canProceed}>Siguiente</Button>
+        <Button  variant="primary" onClick={handleNextStep} disabled={!canProceed}>Siguiente</Button>
       </SpaceBetween>
       </Box>
       {selectedDoc?.type === 'Tesis' && (

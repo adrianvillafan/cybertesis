@@ -56,11 +56,11 @@ const RepTurnitinModal = ({ onClose, onSave, readOnly, fileUrl: initialFileUrl, 
   return (
     <ModalOneCol
       onClose={onClose}
-      headerText="Subir Reporte de Turnitin"
+      headerText="Adjuntar Reporte de Turnitin"
       footerButtons={
         <>
           <Button onClick={onClose} variant="secondary">Cancelar</Button>
-          <Button onClick={handleSave} disabled={!fileUrl && !file}>Guardar</Button>
+          <Button  variant="primary" onClick={handleSave} disabled={!fileUrl && !file}>Guardar</Button>
         </>
       }
       file={file}

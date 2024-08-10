@@ -36,8 +36,8 @@ const Profile = ({ isLoggedIn, setIsLoggedIn }) => {
       case 'my-reports': return 'Mis Reportes';
       case 'notifications': return 'Notificaciones';
       case 'ingreso-docs': return 'Ingresar Documentos';
-      case 'solicitudes': return 'Solicitudes';
-      default: return 'Perfil de Usuario';
+      case 'solicitudes': return 'Expedientes';
+      default: return 'Inicio';
     }
   };
 
@@ -72,7 +72,7 @@ const Profile = ({ isLoggedIn, setIsLoggedIn }) => {
         ];
       case 3: // Escuela UPG
         return [
-          { type: "link", text: <a onClick={() => setActiveView('solicitudes')}> <Icon name="group-active" /> Solicitudes</a>, href: '#solicitudes' },
+          { type: "link", text: <a onClick={() => setActiveView('solicitudes')}> <Icon name="group-active" /> Expedientes</a>, href: '#solicitudes' },
           { type: "link", text: <a onClick={() => setActiveView('ingreso-docs')}>  <Icon name="folder-open" /> Ingresar Documentos</a>, href: '#docs' },
           { type: "link", text: <a onClick={() => setActiveView('reports')}> <Icon name="file-open" /> Reportes</a>, href: '#reports' }
         ];

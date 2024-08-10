@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { Table, Button, Modal, TextFilter, Header, Pagination, SpaceBetween, Box, Badge, ProgressBar } from '@cloudscape-design/components';
 import UserContext from '../../contexts/UserContext';
-import { fetchAlumnadoByEscuelaId } from '../../../../../api';
+import { fetchDocumentosPorEstudiante } from '../../../../../api';
 
 const Solicitudes = () => {
   const { user } = useContext(UserContext);
@@ -20,7 +20,7 @@ const Solicitudes = () => {
       try {
         const allAlumnos = await Promise.all(
           user.escuelas.map(escuela =>
-            fetchAlumnadoByEscuelaId(escuela.id_escuela, user.grado_id)
+            fetchDocumentosPorEstudiante(user.facultad_id, user.grado_id, [escuela.id_escuela])
           )
         );
         const mergedAlumnos = allAlumnos.flat();
@@ -33,7 +33,6 @@ const Solicitudes = () => {
     };
 
     fetchAlumnos();
-    console.log('Alumnos:', alumnos);
   }, [user]);
 
   useEffect(() => {
@@ -67,12 +66,16 @@ const Solicitudes = () => {
 
   const startIndex = (pageNumber - 1) * pageSize;
   const filteredAlumnos = alumnos.filter(alumno =>
-    alumno.nombre.toLowerCase().includes(filteringText.toLowerCase())
+    alumno.nombre_completo.toLowerCase().includes(filteringText.toLowerCase())
   );
   const paginatedAlumnos = filteredAlumnos.slice(startIndex, startIndex + pageSize);
 
+  // Filtramos solo los que tienen estado_id = 3 para pendientes
+  const pendingAlumnos = paginatedAlumnos.filter(alumno => alumno.estado_id === 3);
+  const registeredAlumnos = paginatedAlumnos.filter(alumno => alumno.estado_id !== 3);
+
   if (error) {
-    return <p>Error al cargar alumnos: {error}</p>;
+    return <Box variant="p">Error al cargar alumnos: {error}</Box>;
   }
 
   const openModal = (alumno) => {
@@ -84,66 +87,58 @@ const Solicitudes = () => {
     setIsModalOpen(false);
   };
 
-  const renderBadge = (estado) => {
-    switch (estado) {
-      case 'Pendiente':
+  const renderBadge = (estado_id) => {
+    switch (estado_id) {
+      case 3:
         return <Badge color="red">Pendiente</Badge>;
-      case 'Registrado':
+      case 1:
         return <Badge color="blue">Registrado</Badge>;
-      case 'Aceptado':
-        return <Badge color="green">Aceptado</Badge>;
+      case 2:
+        return <Badge color="grey">Rechazado</Badge>;
+      case 4:
+        return <Badge color="green">Solicitado</Badge>;
       default:
         return <Badge color="grey">Desconocido</Badge>;
     }
   };
 
-  const generateRandomData = () => {
-    const states = ['Pendiente', 'Registrado', 'Aceptado'];
-    return Array.from({ length: 30 }, (_, id) => ({
-      folio_id: `${id + 1}`.padStart(4, '0'),
-      codigo: `${Math.floor(Math.random() * 90000000) + 10000000}`,
-      dni: `${Math.floor(Math.random() * 100000000)}${Math.random() > 0.5 ? '' : String.fromCharCode(Math.floor(Math.random() * 26) + 65)}`,
-      nombre: `Nombre Apellido${id + 1}`,
-      estado: states[Math.floor(Math.random() * states.length)],
-      proceso: Math.floor(Math.random() * 100)
-    }));
+  const calcularProgreso = (alumno) => {
+    const fields = ['tesis_id', 'actasust_id', 'certsimil_id', 'autocyber_id', 'metadatos_id', 'repturnitin_id'];
+    const totalFields = fields.length;
+    const filledFields = fields.reduce((count, field) => count + (alumno[field] ? 1 : 0), 0);
+    return parseInt((filledFields / totalFields) * 100);
   };
 
-  const alumnosData = generateRandomData();
-
-  const pendingAlumnos = alumnosData.filter(alumno => alumno.estado === 'Pendiente');
-  const registeredAlumnos = alumnosData.filter(alumno => alumno.estado !== 'Pendiente');
-
   return (
-    <div>
+    <Box>
       <SpaceBetween size="l">
         <Box>
           <Table
-            header=<Header>Alumnos Pendientes</Header>
+            header={<Header>Expedientes Pendientes</Header>}
             items={pendingAlumnos}
             loading={isLoading}
-            loadingText="Cargando alumnos pendientes..."
+            loadingText="Cargando Expedientes pendientes..."
             empty={
               <Box margin={{ vertical: 'xs' }} textAlign="center" color="inherit">
                 <SpaceBetween size="m">
-                  <b>No hay alumnos pendientes</b>
+                  <Box variant="p"><strong>No hay Expedientes pendientes</strong></Box>
                 </SpaceBetween>
               </Box>
             }
             columnDefinitions={[
-              { id: 'folio_id', header: 'Folio ID', cell: item => item.folio_id },
-              { id: 'codigo', header: 'Código', cell: item => item.codigo },
-              { id: 'dni', header: 'Doc. Identidad', cell: item => item.dni },
-              { id: 'nombre', header: 'Nombre y Apellido', cell: item => item.nombre },
-              { id: 'estado', header: 'Estado', cell: item => renderBadge(item.estado) },
-              { id: 'documentos', header: 'Documentos', cell: () => <Button>Ver Folio</Button> },
-              { id: 'proceso', header: 'Proceso', cell: item => <ProgressBar value={item.proceso} label={`${item.proceso}%`} /> }
+              { id: 'Expediente_id', header: 'Exp. ID', cell: item => item.documento_id },
+              { id: 'codigo', header: 'Código', cell: item => item.codigo_estudiante },
+              { id: 'dni', header: 'Doc. Identidad', cell: item => item.identificacion_id },
+              { id: 'nombre', header: 'Nombre y Apellido', cell: item => item.nombre_completo },
+              { id: 'estado', header: 'Estado', cell: item => renderBadge(item.estado_id) },
+              { id: 'documentos', header: 'Documentos', cell: item => <Button onClick={() => openModal(item)}>Abrir folio</Button> },
+              { id: 'proceso', header: 'Proceso', cell: item => <ProgressBar value={calcularProgreso(item)} label={`${calcularProgreso(item)}%`} /> }
             ]}
-            ariaLabels={{ tableLabel: 'Tabla de Alumnos Pendientes' }}
+            ariaLabels={{ tableLabel: 'Tabla de Expedientes Pendientes' }}
             filter={
               <TextFilter
                 filteringText={filteringText}
-                filteringPlaceholder="Buscar alumno..."
+                filteringPlaceholder="Buscar Expediente..."
                 onChange={({ detail }) => {
                   handleTextFilter(detail.filteringText);
                 }}
@@ -161,31 +156,31 @@ const Solicitudes = () => {
 
         <Box>
           <Table
-          header=<Header>Alumnos Cargados</Header>
+            header={<Header>Expedientes Ingresados</Header>}
             items={registeredAlumnos}
             loading={isLoading}
-            loadingText="Cargando alumnos cargados..."
+            loadingText="Cargando Expedientes ingresados..."
             empty={
               <Box margin={{ vertical: 'xs' }} textAlign="center" color="inherit">
                 <SpaceBetween size="m">
-                  <b>No hay alumnos cargados</b>
+                  <Box variant="p"><strong>No hay Expedientes ingresados</strong></Box>
                 </SpaceBetween>
               </Box>
             }
             columnDefinitions={[
-              { id: 'folio_id', header: 'Folio ID', cell: item => item.folio_id },
-              { id: 'codigo', header: 'Código', cell: item => item.codigo },
-              { id: 'dni', header: 'Doc. Identidad', cell: item => item.dni },
-              { id: 'nombre', header: 'Nombre y Apellido', cell: item => item.nombre },
-              { id: 'estado', header: 'Estado', cell: item => renderBadge(item.estado) },
-              { id: 'documentos', header: 'Documentos', cell: () => <Button>Ver Folio</Button> },
-              { id: 'proceso', header: 'Proceso', cell: item => <ProgressBar value={item.proceso} label={`${item.proceso}%`} /> }
+              { id: 'Expediente_id', header: 'Exp. ID', cell: item => item.documento_id },
+              { id: 'codigo', header: 'Código', cell: item => item.codigo_estudiante },
+              { id: 'dni', header: 'Doc. Identidad', cell: item => item.identificacion_id },
+              { id: 'nombre', header: 'Nombre y Apellido', cell: item => item.nombre_completo },
+              { id: 'estado', header: 'Estado', cell: item => renderBadge(item.estado_id) },
+              { id: 'documentos', header: 'Documentos', cell: item => <Button onClick={() => openModal(item)}>Abrir folio</Button> },
+              { id: 'proceso', header: 'Proceso', cell: item => <ProgressBar value={calcularProgreso(item)} label={`${calcularProgreso(item)}%`} /> }
             ]}
-            ariaLabels={{ tableLabel: 'Tabla de Alumnos Cargados' }}
+            ariaLabels={{ tableLabel: 'Tabla de Expedientes Ingresados' }}
             filter={
               <TextFilter
                 filteringText={filteringText}
-                filteringPlaceholder="Buscar alumno..."
+                filteringPlaceholder="Buscar Expediente..."
                 onChange={({ detail }) => {
                   handleTextFilter(detail.filteringText);
                 }}
@@ -202,18 +197,21 @@ const Solicitudes = () => {
         </Box>
       </SpaceBetween>
 
-      {isModalOpen && (
+      {isModalOpen && selectedAlumno && (
         <Modal onClose={closeModal}>
-          <div>
-            <h2>Información del Alumno</h2>
-            <p><strong>Nombre:</strong> {selectedAlumno.name}</p>
-            <p><strong>DNI:</strong> {selectedAlumno.dni}</p>
-            <p><strong>Email:</strong> {selectedAlumno.email}</p>
+          <Box>
+            <Box variant="h2">Información del Alumno</Box>
+            <Box variant="p"><strong>Nombre:</strong> {selectedAlumno.nombre_completo}</Box>
+            <Box variant="p"><strong>DNI:</strong> {selectedAlumno.identificacion_id}</Box>
+            <Box variant="p"><strong>Código Estudiante:</strong> {selectedAlumno.codigo_estudiante}</Box>
+            <Box variant="p"><strong>Documento ID:</strong> {selectedAlumno.documento_id}</Box>
+            <Box variant="p"><strong>Fecha de Carga:</strong> {new Date(selectedAlumno.Fecha_Carga).toLocaleDateString()}</Box>
+            <Box variant="p"><strong>Última Modificación:</strong> {new Date(selectedAlumno.Ultima_Modificacion).toLocaleDateString()}</Box>
             {/* Agrega aquí más campos de información del alumno si es necesario */}
-          </div>
+          </Box>
         </Modal>
       )}
-    </div>
+    </Box>
   );
 };
 

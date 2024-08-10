@@ -1,7 +1,6 @@
 import { executeQuery } from '../config/db.js';
 
 export function fetchEscuelaUpgData(userId, callback) {
-
     const sql = `
       SELECT 
           unidades.user_id,
@@ -72,7 +71,6 @@ export function fetchListaAlumnos({ escuelaId, gradoId }, callback) {
   });
 }
 
-  
 export function fetchAlumnoData(studentId, callback) {
   const sql = `
     SELECT 
@@ -128,7 +126,6 @@ export function fetchProgramasByFacultadId(facultadId, callback) {
   });
 }
 
-
 export function fetchListaAlumnosByProgramaId(programaId, callback) {
   const sql = `
     SELECT 
@@ -154,3 +151,47 @@ export function fetchListaAlumnosByProgramaId(programaId, callback) {
   });
 }
 
+// NUEVA FUNCIÓN: fetchDocumentosPorEstudiante
+
+export function fetchDocumentosPorEstudiante({ facultadId, gradoId, escuelaIds }, callback) {
+  const sql = `
+    SELECT 
+        e.id AS estudiante_id,
+        e.codigo_estudiante,
+        p.identificacion_id,
+        CONCAT(p.nombre, ' ', p.apellidos_pat, ' ', p.apellidos_mat) AS nombre_completo,
+        d.id AS documento_id,
+        d.Fecha_Carga,
+        d.estado_id,
+        d.tesis_id,
+        d.actasust_id,
+        d.certsimil_id,
+        d.autocyber_id,
+        d.metadatos_id,
+        d.repturnitin_id,
+        d.postergacion_id,
+        d.usuarioCarga_id,
+        d.Ultima_Modificacion,
+        d.solicitud_id
+    FROM
+        estudiante e
+    JOIN
+        personas p ON e.persona_id = p.idpersonas
+    JOIN
+        documentos d ON e.id = d.estudiante_id
+    WHERE
+        e.facultad_id = ?
+        AND e.grado_id = ?
+        AND e.escuela_id IN (?)
+  `;
+
+  executeQuery(sql, [facultadId, gradoId, escuelaIds.join(',')], (err, results) => {
+    if (err) {
+      console.error('Error al buscar datos de documentos por estudiante:', err);
+      callback({ message: 'Error al buscar datos de documentos por estudiante' }, null);
+    } else {
+      console.log('Datos de documentos por estudiante encontrados:', results);
+      callback(null, results);
+    }
+  });
+}

@@ -199,11 +199,11 @@ const ActaSustentacionModal = ({ onClose, documentos, onSave }) => {
   return (
     <ModalTwoCol
       onClose={onClose}
-      headerText="Subir Acta de Sustentación"
+      headerText="Adjuntar Acta de Sustentación"
       footerButtons={
         <>
           <Button onClick={onClose} variant="secondary">Cancelar</Button>
-          <Button onClick={handleSave} disabled={!isFormComplete()}>Guardar</Button>
+          <Button  variant="primary" onClick={handleSave} disabled={!isFormComplete()}>Guardar</Button>
         </>
       }
       file={file}

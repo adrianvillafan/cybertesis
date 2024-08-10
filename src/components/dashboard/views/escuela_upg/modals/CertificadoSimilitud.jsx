@@ -51,11 +51,11 @@ const CertificadoSimilitud = ({ onClose, onSave, documentos }) => {
   return (
     <ModalOneCol
       onClose={onClose}
-      headerText="Subir Certificado de Similitud"
+      headerText="Adjuntar Certificado de Similitud"
       footerButtons={
         <>
           <Button onClick={onClose} variant="secondary">Cancelar</Button>
-          <Button onClick={handleSave} disabled={!fileUrl && !file}>Guardar</Button>
+          <Button  variant="primary" onClick={handleSave} disabled={!fileUrl && !file}>Guardar</Button>
         </>
       }
       file={file}

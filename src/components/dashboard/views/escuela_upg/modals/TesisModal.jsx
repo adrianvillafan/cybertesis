@@ -318,11 +318,11 @@ const TesisModal = ({ onClose, alumnoData, onSave, readOnly, fileUrl, formData: 
   return (
     <ModalTwoCol
       onClose={onClose}
-      headerText="Subir Tesis"
+      headerText="Adjuntar Tesis"
       footerButtons={
         <>
           <Button onClick={onClose} variant="secondary">Cancelar</Button>
-          <Button onClick={handleSave} disabled={!isFormComplete()}>Guardar</Button>
+          <Button variant="primary" onClick={handleSave} disabled={!isFormComplete()}>Guardar</Button>
         </>
       }
       file={file}
