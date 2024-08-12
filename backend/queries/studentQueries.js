@@ -3,7 +3,7 @@ import { executeQuery } from '../config/db.js';
 export function fetchStudentData(userId, callback) {
   const sql = `
     SELECT 
-        estudiante.id, 
+        estudiante.id AS estudiante_id, 
         estudiante.codigo_estudiante, 
         persona.identificacion_id,  -- O "identificacion_id" si este es el campo equivalente a dni
         persona.nombre,
@@ -46,3 +46,76 @@ export function fetchStudentData(userId, callback) {
     }
   });
 }
+
+// Función para obtener los expedientes del estudiante
+export function fetchExpedientes(estudianteId, gradoId, callback) {
+  const sql = `
+    SELECT *
+    FROM documentos
+    WHERE estado_id = 1
+      AND solicitud_id IS NULL
+      AND grado_id = ?
+      AND estudiante_id = ?;
+  `;
+
+  executeQuery(sql, [gradoId, estudianteId], (err, results) => {
+    if (err) {
+      console.error('Error al buscar expedientes:', err);
+      callback({ message: 'Error al buscar expedientes' }, null);
+    } else {
+      console.log('Expedientes encontrados:', results);
+      callback(null, results);
+    }
+  });
+}
+
+// Función para crear una solicitud y actualizar la tabla documentos
+export function createSolicitud(idFacultad, idDocumento, callback) {
+  const insertSql = `
+    INSERT INTO solicitudes (
+        id_facultad, 
+        id_grado, 
+        id_documentos, 
+        id_alumno, 
+        id_estado, 
+        fecha_alum
+    )
+    SELECT 
+        ?, 
+        d.grado_id, 
+        d.id, 
+        d.estudiante_id, 
+        3,  -- Estado inicial
+        NOW()
+    FROM 
+        documentos d
+    WHERE 
+        d.id = ?;
+  `;
+
+  executeQuery(insertSql, [idFacultad, idDocumento], (insertErr, insertResults) => {
+    if (insertErr) {
+      console.error('Error al crear solicitud:', insertErr);
+      callback({ message: 'Error al crear solicitud' }, null);
+    } else {
+      const solicitudId = insertResults.insertId;
+
+      const updateSql = `
+        UPDATE documentos 
+        SET solicitud_id = ?
+        WHERE id = ?;
+      `;
+
+      executeQuery(updateSql, [solicitudId, idDocumento], (updateErr, updateResults) => {
+        if (updateErr) {
+          console.error('Error al actualizar el documento:', updateErr);
+          callback({ message: 'Error al actualizar el documento' }, null);
+        } else {
+          console.log('Solicitud creada y documento actualizado:', updateResults);
+          callback(null, { solicitudId, updateResults });
+        }
+      });
+    }
+  });
+}
+

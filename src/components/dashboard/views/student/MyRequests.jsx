@@ -4,7 +4,6 @@ import UserContext from '../../contexts/UserContext';
 import DetallesModal from './MyRequests/DetallesModal';
 import EditarModal from './MyRequests/EditarModal';
 import EliminarModal from './MyRequests/EliminarModal';
-import { fetchSolicitudesByStudentId } from '../../../../../api';
 
 const MyRequests = () => {
   const { user } = useContext(UserContext);
@@ -22,18 +21,6 @@ const MyRequests = () => {
 
   useEffect(() => {
     setIsLoading(true);
-    if (user && user.id) {
-      fetchSolicitudesByStudentId(user.id)
-        .then(data => {
-          setSolicitudes(data);
-          setFilteredSolicitudes(data);
-          setIsLoading(false);
-        })
-        .catch(err => {
-          setError(err.message);
-          setIsLoading(false);
-        });
-    }
   }, [user]);
 
   useEffect(() => {

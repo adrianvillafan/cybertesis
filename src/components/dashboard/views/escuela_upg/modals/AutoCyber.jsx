@@ -56,7 +56,7 @@ const AutoCyber = ({ onClose, onSave, readOnly, fileUrl: initialFileUrl, documen
   return (
     <ModalOneCol
       onClose={onClose}
-      headerText="Subir Autorización para el Depósito de Obra en Cybertesis"
+      headerText="Adjuntar Autorización para el Depósito de Obra en Cybertesis"
       footerButtons={
         <>
           <Button onClick={onClose} variant="secondary">Cancelar</Button>

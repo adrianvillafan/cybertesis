@@ -26,18 +26,6 @@ export function getSolicitudesByEstudianteId(estudianteId, callback) {
   });
 }
 
-export const createSolicitud = (solicitud, callback) => {
-  const sql = `INSERT INTO solicitud (estudiante_id, tipoSolicitud_id, estado_id, fechaRegistro) VALUES (?, ?, ?, ?)`;
-  const values = [solicitud.estudianteId, solicitud.tipoSolicitudId, solicitud.estadoId, new Date()];
-  executeQuery(sql, values, (err, results) => {
-    if (err) {
-      callback(err, null);
-    } else {
-      callback(null, results);
-    }
-  });
-};
-
 export const updateEstadoIdByDocumentId = (documentId, estadoId, callback) => {
   const sql = `UPDATE documentos SET estado_id = ? WHERE id = ?`;
   const values = [estadoId, documentId];

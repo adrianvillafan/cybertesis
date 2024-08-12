@@ -1,49 +1,5 @@
 const getToken = () => localStorage.getItem('token');
 
-export async function fetchSolicitudesByStudentId(studentId) {
-  try {
-    const response = await fetch(`http://localhost:3000/api/files/solicitudes/${studentId}`);
-    if (!response.ok) {
-      throw new Error('Algo salió mal al cargar las solicitudes');
-    }
-    const data = await response.json();
-    return data;
-  } catch (error) {
-    throw error;
-  }
-}
-
-export async function fetchDocumentosBySolicitudId(solicitudId) {
-  try {
-    const response = await fetch(`http://localhost:3000/api/solicitudes/documentos/${solicitudId}`);
-    if (!response.ok) {
-      throw new Error('No se pudo obtener los documentos');
-    }
-    const documentos = await response.json();
-    return documentos;
-  } catch (error) {
-    console.error('Error al obtener documentos:', error);
-    throw error;
-  }
-}
-
-
-
-export async function fetchEscuelaByuserId(userId) {
-  try {
-    const response = await fetch(`http://localhost:3000/api/estudiantes/datosunidades/${userId}`);
-    if (!response.ok) {
-      throw new Error('No se pudo obtener los datos de la escuela o upg');
-    }
-    const datos = await response.json();
-    console.log(datos);
-    return datos;
-  } catch (error) {
-    console.error('Error al obtener lista de la escuela:', error);
-    throw error;
-  }
-}
-
 export async function fetchDatosByDni(tipoIdentificacionId, identificacionId) {
   try {
     const response = await fetch(`http://localhost:3000/api/estudiantes/datospersona/${tipoIdentificacionId}/${identificacionId}`);
@@ -76,25 +32,42 @@ export async function fetchDatosOrcid(orcid) {
   }
 }
 
-
-
-export async function submitDocumentos(estudianteId) {
-    try {
-      const response = await fetch(`http://localhost:3000/api/documentos/submit/${estudianteId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${getToken()}`,
-        },
-      });
-  
-      if (!response.ok) {
-        throw new Error('No se pudo actualizar el estado de los documentos');
-      }
-  
-      return await response.json();
-    } catch (error) {
-      console.error('Error al actualizar el estado de los documentos:', error);
-      throw error;
+// Función para obtener expedientes del estudiante
+export async function fetchExpedientes(estudianteId, gradoId) {
+  try {
+    const response = await fetch(`http://localhost:3000/api/solicitudes/expedientes/${estudianteId}/${gradoId}`);
+    if (!response.ok) {
+      throw new Error('No se pudo obtener los expedientes');
     }
+    const expedientes = await response.json();
+    console.log('Expedientes encontrados:', expedientes);
+    return expedientes;
+  } catch (error) {
+    console.error('Error al obtener expedientes:', error);
+    throw error;
   }
+}
+
+// Función para crear una solicitud y actualizar la tabla documentos
+export async function createSolicitud(idFacultad, idDocumento) {
+  try {
+    const response = await fetch('http://localhost:3000/api/solicitudes', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${getToken()}`,
+      },
+      body: JSON.stringify({ idFacultad, idDocumento }),
+    });
+    if (!response.ok) {
+      throw new Error('No se pudo crear la solicitud');
+    }
+    const result = await response.json();
+    console.log('Solicitud creada y documento actualizado:', result);
+    return result;
+  } catch (error) {
+    console.error('Error al crear la solicitud:', error);
+    throw error;
+  }
+}
+
