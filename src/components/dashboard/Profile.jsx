@@ -3,7 +3,7 @@ import Layout from './components/Layout';
 import { useNavigate } from 'react-router-dom';
 import { handleLogout } from '../../../api';
 import UserContext from './contexts/UserContext';
-import {Icon} from '@cloudscape-design/components';
+import { Icon } from '@cloudscape-design/components';
 
 // Importar los componentes de las vistas específicas
 import ManageUsers from './views/admin/ManageUsers';
@@ -18,6 +18,7 @@ import Inicio from './views/Inicio';
 import Notif from './views/Notif';
 import Solicitudes from './views/escuela_upg/Solicitudes';
 import IngresarDoc from './views/escuela_upg/IngresarDoc';
+import NewAlumno from './views/escuela_upg/NewAlumno';
 
 const Profile = ({ isLoggedIn, setIsLoggedIn }) => {
   const navigate = useNavigate();
@@ -25,12 +26,13 @@ const Profile = ({ isLoggedIn, setIsLoggedIn }) => {
   const [activeView, setActiveView] = useState(null);
 
   const getContentHeader = () => {
-    switch(activeView) {
+    switch (activeView) {
       case 'manage-users': return 'Gestión de Usuarios';
       case 'create-request': return 'Crear Solicitud';
       case 'my-requests': return 'Mis Solicitudes';
       case 'reports': return 'Reportes';
       case 'requests': return 'Solicitudes';
+      case 'newalumno': return 'Habilitar Alumno';
       case 'expedient-reports': return 'Reporte de Expedientes';
       case 'register-cyberthesis': return 'Registrar CYBERTESIS';
       case 'my-reports': return 'Mis Reportes';
@@ -72,7 +74,8 @@ const Profile = ({ isLoggedIn, setIsLoggedIn }) => {
         ];
       case 3: // Escuela UPG
         return [
-          { type: "link", text: <a onClick={() => setActiveView('solicitudes')}> <Icon name="group-active" /> Expedientes</a>, href: '#solicitudes' },
+          { type: "link", text: <a onClick={() => setActiveView('newalumno')}> <Icon name="group-active" /> Habilitar alumno</a>, href: '#newalumno' },
+          { type: "link", text: <a onClick={() => setActiveView('solicitudes')}> <Icon name="send" /> Expedientes</a>, href: '#solicitudes' },
           { type: "link", text: <a onClick={() => setActiveView('ingreso-docs')}>  <Icon name="folder-open" /> Ingresar Documentos</a>, href: '#docs' },
           { type: "link", text: <a onClick={() => setActiveView('reports')}> <Icon name="file-open" /> Reportes</a>, href: '#reports' }
         ];
@@ -114,6 +117,11 @@ const Profile = ({ isLoggedIn, setIsLoggedIn }) => {
           return <MyRequests />;
         }
         break;
+      case 'newalumno':
+        if (user.current_team_id === 3) {
+          return <NewAlumno />;
+        }
+        break;
       case 'reports':
         if (user.current_team_id === 3) {
           return <Reports />;
@@ -150,12 +158,12 @@ const Profile = ({ isLoggedIn, setIsLoggedIn }) => {
         }
         break;
       case 'inicio':
-        return <Inicio/>;
+        return <Inicio />;
       case 'notifications':
-          return <Notif/>;
+        return <Notif />;
       default:
         // El caso default incluirá cualquier contenido general que siempre es accesible, como el perfil del usuario
-        return <Inicio/>;
+        return <Inicio />;
     }
 
     // Si intentan acceder a una vista para la cual no tienen permisos

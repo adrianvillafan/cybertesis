@@ -41,7 +41,19 @@ const Inicio = () => {
                 <p><strong>Facultad:</strong> {user.nombre_facultad}</p>
                 <p><strong>Categoria:</strong> {user.nombre_grado}</p>
                 <p><strong>Correo electrónico:</strong> {user.email}</p>
-                <p><strong>Correo electrónico:</strong> {user.email}</p>
+                {
+                  user.current_team_id === 2 && (
+                    <>
+                      <p><strong>Código Estudiante:</strong> {user.codigo_estudiante}</p>
+                      {user.grado_academico_id === 1 ? (
+                        <p><strong>Escuela:</strong> {user.nombre_escuela}</p>
+                      ) : (
+                        <p><strong>Programa:</strong> {user.nombre_programa}</p>
+                      )}
+                      <p><strong>Fecha de Registro:</strong> {new Date(user.fecha_registro).toLocaleDateString()}</p>
+                    </>
+                  )
+                }
               </Box>
             </Box>
           </Container>
@@ -89,17 +101,32 @@ const Inicio = () => {
 
           {/* Sección de Preguntas Frecuentes */}
           <Container header={<Box variant="h2">Preguntas Frecuentes</Box>}>
-            <Box variant="h4">¿Cómo puedo cargar mis documentos?</Box>
-            <Box variant="p">Para cargar tus documentos, dirígete a la sección "Ingresar Documentos" en el menú de la izquierda y sigue las instrucciones.</Box>
+            {user.current_team_id === 2 ? (
+              <>
+                <Box variant="h4">¿Dónde puedo revisar el estado de mi tesis?</Box>
+                <Box variant="p">Puedes revisar el estado de tu tesis en la sección "Solicitudes" en el menú de la izquierda. Ahí verás el progreso y el estado actual de tu solicitud.</Box>
 
-            <Box variant="h4">¿Dónde puedo revisar el estado de mi tesis?</Box>
-            <Box variant="p">Puedes revisar el estado de tu tesis en la sección "Solicitudes" en el menú de la izquierda. Ahí verás el progreso y el estado actual de tu solicitud.</Box>
+                <Box variant="h4">¿Cómo solicito una prórroga para la entrega de mi tesis?</Box>
+                <Box variant="p">Para solicitar una prórroga, debes dirigirte a la sección "Mis Solicitudes" en el menú y elegir la opción "Solicitar Prórroga". Asegúrate de cumplir con los requisitos antes de enviar tu solicitud.</Box>
 
-            <Box variant="h4">¿A quién puedo contactar si tengo problemas?</Box>
-            <Box variant="p">Si experimentas algún problema, por favor contacta al soporte técnico a través de soporte@unmsm.edu.pe.</Box>
+                <Box variant="h4">¿Qué debo tener en cuenta al revisar mis documentos?</Box>
+                <Box variant="p">Asegúrate de que todos tus documentos estén completos y correctos antes de enviarlos. Puedes revisarlos en la sección "Solicitudes" para evitar errores.</Box>
 
-            <Box variant="h4">¿Cómo solicito una prórroga para la entrega de mi tesis?</Box>
-            <Box variant="p">Para solicitar una prórroga, debes dirigirte a la sección "Solicitudes" en el menú y elegir la opción "Solicitar Prórroga". Asegúrate de cumplir con los requisitos antes de enviar tu solicitud.</Box>
+                <Box variant="h4">¿Cómo realizo una solicitud?</Box>
+                <Box variant="p">Para realizar una solicitud, ve a la sección "Realizar Solicitud" en el menú principal y sigue las instrucciones para completar el proceso.</Box>
+              </>
+            ) : (
+              <>
+                <Box variant="h4">¿Cómo gestionar las solicitudes de los estudiantes?</Box>
+                <Box variant="p">Las solicitudes de los estudiantes se pueden gestionar en la sección correspondiente del panel de control. Asegúrate de revisar todas las solicitudes pendientes regularmente.</Box>
+
+                <Box variant="h4">¿Cómo puedo actualizar la información de la escuela o UPG?</Box>
+                <Box variant="p">Para actualizar la información, dirígete a la sección de "Configuración" y selecciona la opción "Actualizar Información de Escuela/UPG".</Box>
+
+                <Box variant="h4">¿Dónde puedo ver las estadísticas de los estudiantes?</Box>
+                <Box variant="p">Puedes ver las estadísticas en el apartado de "Reportes", donde encontrarás información detallada sobre el rendimiento académico y otros indicadores clave.</Box>
+              </>
+            )}
           </Container>
         </SpaceBetween>
       </ColumnLayout>
