@@ -459,7 +459,7 @@ router.delete('/autocyber/delete/:id', async (req, res) => {
       return res.status(404).send('AutoCyber no encontrado.');
     }
 
-    await deleteFileFromMinIO(BUCKET_AUTOCYBER, autoCyber.file_url);
+    await deleteFileFromMinIO(BUCKETS.CYBER, autoCyber.file_url);
     await new Promise((resolve, reject) => {
       deleteAutoCyberById(id, (err, results) => {
         if (err) reject(err);

@@ -47,15 +47,26 @@ export function fetchStudentData(userId, callback) {
   });
 }
 
-// Función para obtener los expedientes del estudiante
 export function fetchExpedientes(estudianteId, gradoId, callback) {
   const sql = `
-    SELECT *
-    FROM documentos
-    WHERE estado_id = 1
-      AND solicitud_id IS NULL
-      AND grado_id = ?
-      AND estudiante_id = ?;
+    SELECT 
+      d.*, 
+      t.titulo AS tesis_titulo,
+      e.programa_id AS estudiante_programa_id,
+      fp.programa AS programa_nombre
+    FROM 
+      documentos d
+    LEFT JOIN 
+      tesis t ON d.tesis_id = t.id_tesis
+    LEFT JOIN 
+      estudiante e ON d.estudiante_id = e.id
+    LEFT JOIN 
+      facultad_programa fp ON e.programa_id = fp.id
+    WHERE 
+      d.estado_id = 1
+      AND d.solicitud_id IS NULL
+      AND d.grado_id = ?
+      AND d.estudiante_id = ?;
   `;
 
   executeQuery(sql, [gradoId, estudianteId], (err, results) => {
@@ -68,6 +79,7 @@ export function fetchExpedientes(estudianteId, gradoId, callback) {
     }
   });
 }
+
 
 // Función para crear una solicitud y actualizar la tabla documentos
 export function createSolicitud(idFacultad, idDocumento, callback) {
@@ -115,6 +127,44 @@ export function createSolicitud(idFacultad, idDocumento, callback) {
           callback(null, { solicitudId, updateResults });
         }
       });
+    }
+  });
+}
+
+// Nueva función para obtener solicitudes de un alumno
+export function fetchSolicitudesByAlumno(idAlumno, callback) {
+  const sql = `
+    SELECT 
+        s.id,
+        s.id_facultad,
+        s.id_grado,
+        s.id_documentos,
+        s.id_alumno,
+        s.id_estado,
+        s.fecha_alum,
+        t.titulo AS tesis_titulo,
+        fp.programa AS programa_nombre
+    FROM 
+        solicitudes s
+    LEFT JOIN 
+        documentos d ON s.id_documentos = d.id
+    LEFT JOIN 
+        tesis t ON d.tesis_id = t.id_tesis
+    LEFT JOIN 
+        estudiante e ON s.id_alumno = e.id
+    LEFT JOIN 
+        facultad_programa fp ON e.programa_id = fp.id
+    WHERE 
+        s.id_alumno = ?;
+  `;
+
+  executeQuery(sql, [idAlumno], (err, results) => {
+    if (err) {
+      console.error('Error al buscar solicitudes:', err);
+      callback({ message: 'Error al buscar solicitudes' }, null);
+    } else {
+      console.log('Solicitudes encontradas:', results);
+      callback(null, results);
     }
   });
 }

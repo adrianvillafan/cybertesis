@@ -33,6 +33,7 @@ const ActaSustentacionModalDelete = ({ visible, onClose, onConfirm, documentos }
     try {
       await deleteActa(documentos.actasust_id);
       onConfirm();
+      onClose();
     } catch (error) {
       console.error('Error al eliminar el acta:', error);
     }

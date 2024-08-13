@@ -29,15 +29,24 @@ const Inicio = () => {
               <img
                 src={
                   imageError
-                    ? "https://upload.wikimedia.org/wikipedia/commons/thumb/1/12/User_icon_2.svg/640px-User_icon_2.svg.png"
+                    ? "https://luiscavibotsample.s3-sa-east-1.amazonaws.com/assets/estudiarensm/facultades/sistemas.webp"
                     : user.foto || `https://sisbib.unmsm.edu.pe/fotos/3/${user.identificacion_id}.jpg`
                 }
                 alt="User Photo"
-                style={{ width: '70%', margin: '30px 0 0 0', position: 'relative', left: '50%', transform: 'translateX(-50%)' }}
+                style={{
+                  width: '150px', // Ancho fijo para la imagen, similar al tamaño carnet
+                  height: '200px', // Alto fijo para la imagen, similar al tamaño carnet
+                  margin: '30px auto', // Margen arriba y centrado horizontalmente
+                  display: 'block', // Asegura que esté centrado
+                  objectFit: 'cover', // Recorta la imagen para llenar el contenedor sin distorsión
+                  borderRadius: '5px', // Opcional: bordes redondeados
+                  boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)', // Sombra opcional para mejorar el estilo
+                }}
                 onError={handleImageError}
               />
+
               <Box>
-                <p><strong>Tipo:</strong> {user.guard_name}</p>
+
                 <p><strong>Facultad:</strong> {user.nombre_facultad}</p>
                 <p><strong>Categoria:</strong> {user.nombre_grado}</p>
                 <p><strong>Correo electrónico:</strong> {user.email}</p>
@@ -114,6 +123,10 @@ const Inicio = () => {
 
                 <Box variant="h4">¿Cómo realizo una solicitud?</Box>
                 <Box variant="p">Para realizar una solicitud, ve a la sección "Realizar Solicitud" en el menú principal y sigue las instrucciones para completar el proceso.</Box>
+
+                <Box variant="h4">Visita nuestro GPT - Turnitin</Box>
+                <Box variant="p">Puedes ver las las directivas del VRIP relacionadas a Turnitin en el sigueinte enlace: <br /> <a style={{ color: 'blue' }} target='_blank' href='https://chatgpt.com/g/g-xFXk0r2Cq-turnitin-vrip-unmsm'>Turnitin VRIP UNMSM</a>.</Box>
+
               </>
             ) : (
               <>
@@ -125,6 +138,9 @@ const Inicio = () => {
 
                 <Box variant="h4">¿Dónde puedo ver las estadísticas de los estudiantes?</Box>
                 <Box variant="p">Puedes ver las estadísticas en el apartado de "Reportes", donde encontrarás información detallada sobre el rendimiento académico y otros indicadores clave.</Box>
+
+                <Box variant="h4">Visita nuestro GPT - Turnitin</Box>
+                <Box variant="p">Puedes ver las las directivas del VRIP relacionadas a Turnitin en el sigueinte enlace: <br /> <a style={{ color: 'blue' }} target='_blank' href='https://chatgpt.com/g/g-xFXk0r2Cq-turnitin-vrip-unmsm'>Turnitin VRIP UNMSM</a>.</Box>
               </>
             )}
           </Container>

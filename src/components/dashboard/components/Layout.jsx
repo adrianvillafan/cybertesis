@@ -48,25 +48,23 @@ const Layout = ({ navigationItems, contentHeader, children, onNavigation, onLogo
               description: user.email,
               iconName: "user-profile",
               items: [
-                { id: "profile", text: "Profile" },
-                { id: "preferences", text: "Preferences" },
-                { id: "security", text: "Security" },
+                { id: "profile", text: "Configuración" },
+                { id: "preferences", text: "Privacidad y Seguridad" },
                 {
                   id: "support-group",
-                  text: "Support",
+                  text: "Ayuda y Soporte",
                   items: [
                     {
                       id: "documentation",
-                      text: "Documentation",
+                      text: "Reportar Problema",
                       href: "#",
                       external: true,
                       externalIconAriaLabel:
                         " (opens in new tab)"
                     },
-                    { id: "support", text: "Support" },
                     {
                       id: "feedback",
-                      text: "Feedback",
+                      text: "Términos Políticos",
                       href: "#",
                       external: true,
                       externalIconAriaLabel:
@@ -74,7 +72,7 @@ const Layout = ({ navigationItems, contentHeader, children, onNavigation, onLogo
                     }
                   ]
                 },
-                { id: "signout", text: "Sign out", onClick: onLogoutClick }
+                { id: "signout", text: <a onClick={onLogoutClick}> <Icon name="redo" /> Cerrar Sesión</a> }
               ]
             }
           ]}

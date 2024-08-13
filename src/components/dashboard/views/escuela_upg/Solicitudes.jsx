@@ -66,8 +66,12 @@ const Solicitudes = () => {
 
   const startIndex = (pageNumber - 1) * pageSize;
   const filteredAlumnos = alumnos.filter(alumno =>
-    alumno.nombre_completo.toLowerCase().includes(filteringText.toLowerCase())
+    (alumno.nombre_completo && String(alumno.nombre_completo).toLowerCase().includes(filteringText.toLowerCase())) ||
+    (alumno.codigo_estudiante && String(alumno.codigo_estudiante).toLowerCase().includes(filteringText.toLowerCase())) ||
+    (alumno.identificacion_id && String(alumno.identificacion_id).toLowerCase().includes(filteringText.toLowerCase())) ||
+    (alumno.documento_id && String(alumno.documento_id).toLowerCase().includes(filteringText.toLowerCase())) // Convertimos a string si es necesario
   );
+
   const paginatedAlumnos = filteredAlumnos.slice(startIndex, startIndex + pageSize);
 
   // Filtramos solo los que tienen estado_id = 3 para pendientes
@@ -109,6 +113,13 @@ const Solicitudes = () => {
     return parseInt((filledFields / totalFields) * 100);
   };
 
+  const calcularProgresoFraccion = (alumno) => {
+    const fields = ['tesis_id', 'actasust_id', 'certsimil_id', 'autocyber_id', 'metadatos_id', 'repturnitin_id'];
+    const totalFields = fields.length;
+    const filledFields = fields.reduce((count, field) => count + (alumno[field] ? 1 : 0), 0);
+    return `${filledFields}/${totalFields}`;
+  };
+
   return (
     <Box>
       <SpaceBetween size="l">
@@ -132,7 +143,7 @@ const Solicitudes = () => {
               { id: 'nombre', header: 'Nombre y Apellido', cell: item => item.nombre_completo },
               { id: 'estado', header: 'Estado', cell: item => renderBadge(item.estado_id) },
               { id: 'documentos', header: 'Documentos', cell: item => <Button onClick={() => openModal(item)}>Abrir folio</Button> },
-              { id: 'proceso', header: 'Proceso', cell: item => <ProgressBar value={calcularProgreso(item)} label={`${calcularProgreso(item)}%`} /> }
+              { id: 'proceso', header: 'Proceso', cell: item => <ProgressBar value={calcularProgreso(item)} label={calcularProgresoFraccion(item)} /> }
             ]}
             ariaLabels={{ tableLabel: 'Tabla de Expedientes Pendientes' }}
             filter={
@@ -174,7 +185,7 @@ const Solicitudes = () => {
               { id: 'nombre', header: 'Nombre y Apellido', cell: item => item.nombre_completo },
               { id: 'estado', header: 'Estado', cell: item => renderBadge(item.estado_id) },
               { id: 'documentos', header: 'Documentos', cell: item => <Button onClick={() => openModal(item)}>Abrir folio</Button> },
-              { id: 'proceso', header: 'Proceso', cell: item => <ProgressBar value={calcularProgreso(item)} label={`${calcularProgreso(item)}%`} /> }
+              { id: 'proceso', header: 'Proceso', cell: item => <ProgressBar value={calcularProgreso(item)} label={calcularProgresoFraccion(item)} /> }
             ]}
             ariaLabels={{ tableLabel: 'Tabla de Expedientes Ingresados' }}
             filter={

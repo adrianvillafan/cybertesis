@@ -51,7 +51,7 @@ export async function fetchExpedientes(estudianteId, gradoId) {
 // Función para crear una solicitud y actualizar la tabla documentos
 export async function createSolicitud(idFacultad, idDocumento) {
   try {
-    const response = await fetch('http://localhost:3000/api/solicitudes', {
+    const response = await fetch('http://localhost:3000/api/solicitudes/solicitudes', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -71,3 +71,23 @@ export async function createSolicitud(idFacultad, idDocumento) {
   }
 }
 
+// Nueva función para obtener solicitudes por alumno
+export async function fetchSolicitudesByAlumno(idAlumno) {
+  try {
+    const response = await fetch(`http://localhost:3000/api/solicitudes/solicitudes/${idAlumno}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${getToken()}`,
+      },
+    });
+    if (!response.ok) {
+      throw new Error('No se pudo obtener las solicitudes');
+    }
+    const solicitudes = await response.json();
+    console.log('Solicitudes encontradas:', solicitudes);
+    return solicitudes;
+  } catch (error) {
+    console.error('Error al obtener solicitudes:', error);
+    throw error;
+  }
+}

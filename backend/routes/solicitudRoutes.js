@@ -1,6 +1,6 @@
 import express from 'express';
-import {  updateEstadoIdByDocumentId } from '../queries/solicitudQueries.js';
-import { fetchExpedientes, createSolicitud } from '../queries/studentQueries.js';
+import { updateEstadoIdByDocumentId } from '../queries/solicitudQueries.js';
+import { fetchExpedientes, createSolicitud, fetchSolicitudesByAlumno } from '../queries/studentQueries.js';
 import { fetchDocumentosPorEstudiante } from '../queries/escuelaUpgQueries.js';
 
 const router = express.Router();
@@ -57,6 +57,19 @@ router.post('/solicitudes', (req, res) => {
       res.status(500).json({ message: 'Error al crear la solicitud', error: err.message });
     } else {
       res.status(201).json({ message: 'Solicitud creada y documento actualizado', result });
+    }
+  });
+});
+
+// Nueva ruta para obtener solicitudes por alumno
+router.get('/solicitudes/:idAlumno', (req, res) => {
+  const { idAlumno } = req.params;
+
+  fetchSolicitudesByAlumno(idAlumno, (err, results) => {
+    if (err) {
+      res.status(500).json({ message: 'Error al obtener solicitudes', error: err.message });
+    } else {
+      res.status(200).json(results);
     }
   });
 });
