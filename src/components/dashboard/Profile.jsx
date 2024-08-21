@@ -18,7 +18,6 @@ import Inicio from './views/Inicio';
 import Notif from './views/Notif';
 import Solicitudes from './views/escuela_upg/Solicitudes';
 import IngresarDoc from './views/escuela_upg/IngresarDoc';
-import NewAlumno from './views/escuela_upg/NewAlumno';
 
 const Profile = ({ isLoggedIn, setIsLoggedIn }) => {
   const navigate = useNavigate();
@@ -32,7 +31,6 @@ const Profile = ({ isLoggedIn, setIsLoggedIn }) => {
       case 'my-requests': return 'Mis Solicitudes';
       case 'reports': return 'Reportes';
       case 'requests': return 'Solicitudes';
-      case 'newalumno': return 'Habilitar Alumno';
       case 'expedient-reports': return 'Reporte de Expedientes';
       case 'register-cyberthesis': return 'Registrar CYBERTESIS';
       case 'my-reports': return 'Mis Reportes';
@@ -74,7 +72,6 @@ const Profile = ({ isLoggedIn, setIsLoggedIn }) => {
         ];
       case 3: // Escuela UPG
         return [
-          { type: "link", text: <a onClick={() => setActiveView('newalumno')}> <Icon name="group-active" /> Habilitar alumno</a>, href: '#newalumno' },
           { type: "link", text: <a onClick={() => setActiveView('solicitudes')}> <Icon name="send" /> Expedientes</a>, href: '#solicitudes' },
           { type: "link", text: <a onClick={() => setActiveView('ingreso-docs')}>  <Icon name="folder-open" /> Ingresar Documentos</a>, href: '#docs' },
           { type: "link", text: <a onClick={() => setActiveView('reports')}> <Icon name="file-open" /> Reportes</a>, href: '#reports' }
@@ -115,11 +112,6 @@ const Profile = ({ isLoggedIn, setIsLoggedIn }) => {
       case 'my-requests':
         if (user.current_team_id === 2) {
           return <MyRequests />;
-        }
-        break;
-      case 'newalumno':
-        if (user.current_team_id === 3) {
-          return <NewAlumno />;
         }
         break;
       case 'reports':
