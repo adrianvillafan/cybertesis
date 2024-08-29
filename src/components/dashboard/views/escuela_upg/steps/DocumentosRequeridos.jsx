@@ -18,6 +18,12 @@ import RepTurnitinModal from '../modals/RepTurnitin';
 import RepTurnitinModalVer from '../modals/RepTurnitinModalVer';
 import RepTurnitinModalDelete from '../modals/RepTurnitinModalDelete';
 import TesisModalDelete from '../modals/TesisModalDelete';
+import ConsentimientoInformado from '../modals/ConsentimientoInformadoModal';  // Nuevos modales
+import ConsentimientoInformadoVer from '../modals/ConsentimientoInformadoVer';
+import ConsentimientoInformadoDelete from '../modals/ConsentimientoInformadoDelete';
+import PostergacionPublicacion from '../modals/PostergacionPublicacionModal';
+import PostergacionPublicacionVer from '../modals/PostergacionPublicacionVer';
+import PostergacionPublicacionDelete from '../modals/PostergacionPublicacionDelete';
 import { createOrFetchDocumentos } from '../../../../../../api';
 
 const DocumentosRequeridos = ({
@@ -44,7 +50,9 @@ const DocumentosRequeridos = ({
         'Certificado de Similitud': updatedDocumentos.certsimil_id,
         'Autorización para el depósito de obra en Cybertesis': updatedDocumentos.autocyber_id,
         'Hoja de Metadatos': updatedDocumentos.metadatos_id,
-        'Reporte de Turnitin': updatedDocumentos.repturnitin_id
+        'Reporte de Turnitin': updatedDocumentos.repturnitin_id,
+        'Consentimiento Informado': updatedDocumentos.consentimiento_id,  // Nuevo documento
+        'Postergación de Publicación': updatedDocumentos.postergacion_id  // Nuevo documento
       };
       setSavedDocuments(documents);
       setDocumentos(updatedDocumentos);
@@ -62,7 +70,9 @@ const DocumentosRequeridos = ({
         'Certificado de Similitud': documentos.certsimil_id,
         'Autorización para el depósito de obra en Cybertesis': documentos.autocyber_id,
         'Hoja de Metadatos': documentos.metadatos_id,
-        'Reporte de Turnitin': documentos.repturnitin_id
+        'Reporte de Turnitin': documentos.repturnitin_id,
+        'Consentimiento Informado': documentos.consentimiento_id,  // Nuevo documento
+        'Postergación de Publicación': documentos.postergacion_id  // Nuevo documento
       };
       setSavedDocuments(documents);
       checkIfCanProceed(documents);
@@ -70,7 +80,7 @@ const DocumentosRequeridos = ({
   }, [documentos]);
 
   const checkIfCanProceed = (documents) => {
-    const allDocumentsCompleted = Object.values(documents).every(id => id !== null);
+    const allDocumentsCompleted = Object.values(documents).every(id => id !== null || documents['Postergación de Publicación']) !== null; //Arreglar logica 
     console.log('allDocumentsCompleted:', allDocumentsCompleted);
     setCanProceed(allDocumentsCompleted);
     console.log('Can proceed:', allDocumentsCompleted);
@@ -107,7 +117,9 @@ const DocumentosRequeridos = ({
     { id: 3, nombre: 'Certificado de Similitud' },
     { id: 4, nombre: 'Autorización para el depósito de obra en Cybertesis' },
     { id: 5, nombre: 'Hoja de Metadatos' },
-    { id: 6, nombre: 'Reporte de Turnitin' }
+    { id: 6, nombre: 'Reporte de Turnitin' },
+    { id: 7, nombre: 'Consentimiento Informado' },  // Nuevo documento
+    { id: 8, nombre: 'Postergación de Publicación' }  // Nuevo documento con especificación de opcional
   ];
 
   const isTesisComplete = !!savedDocuments['Tesis'];
@@ -156,11 +168,16 @@ const DocumentosRequeridos = ({
         />
       </SpaceBetween>
       <Box margin={{ top: 'l' }}>
-      <SpaceBetween direction="horizontal" size="xs" >
-        <Button onClick={() => setStep(1)}>Atrás</Button>
-        <Button  variant="primary" onClick={handleNextStep} disabled={!canProceed}>Siguiente</Button>
-      </SpaceBetween>
+        <SpaceBetween direction="vertical" size="xs">
+        <Box> * El documento de Postergacion de Publicacion es <b>opcional</b> </Box>
+        <SpaceBetween direction="horizontal" size="xs">
+          <Button onClick={() => setStep(1)}>Atrás</Button>
+          <Button variant="primary" onClick={handleNextStep} disabled={!canProceed}>Siguiente</Button>
+        </SpaceBetween>
+        </SpaceBetween>
       </Box>
+
+      {/* Modales para cada documento */}
       {selectedDoc?.type === 'Tesis' && (
         selectedDoc.editing ? (
           <TesisModal
@@ -258,6 +275,38 @@ const DocumentosRequeridos = ({
           />
         )
       )}
+      {selectedDoc?.type === 'Consentimiento Informado' && (
+        selectedDoc.editing ? (
+          <ConsentimientoInformado
+            onClose={handleModalClose}
+            onSave={(data) => handleSaveDocument('Consentimiento Informado', data)}
+            readOnly={false}
+            fileUrl={savedDocuments['Consentimiento Informado']?.file_url || ''}
+            documentos={documentos}
+          />
+        ) : (
+          <ConsentimientoInformadoVer
+            onClose={handleModalClose}
+            documentos={documentos}
+          />
+        )
+      )}
+      {selectedDoc?.type === 'Postergación de Publicación' && (
+        selectedDoc.editing ? (
+          <PostergacionPublicacion
+            onClose={handleModalClose}
+            onSave={(data) => handleSaveDocument('Postergación de Publicación', data)}
+            readOnly={false}
+            fileUrl={savedDocuments['Postergación de Publicación']?.file_url || ''}
+            documentos={documentos}
+          />
+        ) : (
+          <PostergacionPublicacionVer
+            onClose={handleModalClose}
+            documentos={documentos}
+          />
+        )
+      )}
       {showDeleteConfirmation && deleteDocType === 'Tesis' && (
         <TesisModalDelete
           visible={showDeleteConfirmation}
@@ -306,7 +355,24 @@ const DocumentosRequeridos = ({
           documentos={documentos}
         />
       )}
+      {showDeleteConfirmation && deleteDocType === 'Consentimiento Informado' && (
+        <ConsentimientoInformadoDelete
+          visible={showDeleteConfirmation}
+          onClose={() => setShowDeleteConfirmation(false)}
+          onConfirm={handleDeleteDocument}
+          documentos={documentos}
+        />
+      )}
+      {showDeleteConfirmation && deleteDocType === 'Postergación de Publicación' && (
+        <PostergacionPublicacionDelete
+          visible={showDeleteConfirmation}
+          onClose={() => setShowDeleteConfirmation(false)}
+          onConfirm={handleDeleteDocument}
+          documentos={documentos}
+        />
+      )}
     </Box>
+
   );
 };
 

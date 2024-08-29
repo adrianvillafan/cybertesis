@@ -15,11 +15,16 @@ RUN npm install dotenv
 
 
 # Definir variables de entorno para las credenciales sensibles
-ENV DB_HOST=buckhannon.pdx1-mysql-a7-2a.dreamhost.com
-ENV DB_USER=quierochicharron
-ENV DB_PASSWORD=carajo123
-ENV DB_DATABASE=pruebaspruebas_db
+#ENV DB_HOST=buckhannon.pdx1-mysql-a7-2a.dreamhost.com
+#ENV DB_USER=quierochicharron
+#ENV DB_PASSWORD=carajo123
+#ENV DB_DATABASE=pruebaspruebas_db
 
+# Definir variables de entorno para las credenciales de PostgreSQL
+ENV DB_HOST=cybertesis-cybertesis.h.aivencloud.com
+ENV DB_USER=avnadmin
+ENV DB_PASSWORD=AVNS_12534vn8JCCz0xKpNOo
+ENV DB_DATABASE=defaultdb
 
 # Copiar todos los archivos del proyecto al directorio de trabajo del contenedor
 COPY . .

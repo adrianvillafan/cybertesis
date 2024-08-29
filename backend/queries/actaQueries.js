@@ -3,7 +3,8 @@ import { executeQuery } from '../config/db.js';
 export const insertActaSustentacion = (actaDetails, callback) => {
   const queryActa = `
     INSERT INTO acta_sustentacion (id_participantes, id_presidente, id_miembro1, id_miembro2, id_miembro3, file_url, created_by, updated_by, created_at, updated_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+    RETURNING id
   `;
   const actaValues = [
     actaDetails.id_participantes,
@@ -23,10 +24,10 @@ export const insertActaSustentacion = (actaDetails, callback) => {
       console.error('Error al insertar acta de sustentación:', err);
       callback(err, null);
     } else {
-      const actaId = results.insertId;
+      const actaId = results.rows[0].id;  // PostgreSQL utiliza 'rows' para devolver los resultados
 
       const queryUpdateDocumentos = `
-        UPDATE documentos SET actasust_id = ? WHERE id = ?
+        UPDATE documentos SET actasust_id = $1 WHERE id = $2
       `;
       executeQuery(queryUpdateDocumentos, [actaId, actaDetails.documentos_id], (err, results) => {
         if (err) {
@@ -39,7 +40,6 @@ export const insertActaSustentacion = (actaDetails, callback) => {
     }
   });
 };
-
 
 export const getActaSustentacionById = (id, callback) => {
   const query = `
@@ -80,24 +80,21 @@ export const getActaSustentacionById = (id, callback) => {
     LEFT JOIN
       personas p6 ON tp.id_asesor2 = p6.idpersonas
     WHERE
-      a.id = ?
+      a.id = $1
   `;
   executeQuery(query, [id], (err, results) => {
     if (err) {
       console.error('Error al obtener acta de sustentación por ID:', err);
       callback(err, null);
     } else {
-      callback(null, results[0]);
+      callback(null, results.rows[0]);  // PostgreSQL utiliza 'rows' para devolver los resultados
     }
   });
 };
 
-
-
-
 export const deleteActaSustentacionById = (id, callback) => {
   // Actualizamos la tabla de documentos
-  const queryUpdateDocumentos = 'UPDATE documentos SET actasust_id = NULL WHERE actasust_id = ?';
+  const queryUpdateDocumentos = 'UPDATE documentos SET actasust_id = NULL WHERE actasust_id = $1';
 
   executeQuery(queryUpdateDocumentos, [id], (err, results) => {
     if (err) {
@@ -106,7 +103,7 @@ export const deleteActaSustentacionById = (id, callback) => {
     }
 
     // Finalmente, eliminamos el acta
-    const queryDeleteActa = 'DELETE FROM acta_sustentacion WHERE id = ?';
+    const queryDeleteActa = 'DELETE FROM acta_sustentacion WHERE id = $1';
 
     executeQuery(queryDeleteActa, [id], (err, results) => {
       if (err) {
@@ -114,10 +111,7 @@ export const deleteActaSustentacionById = (id, callback) => {
         return callback(err, null);
       }
 
-      callback(null, results.affectedRows);
+      callback(null, results.rowCount);  // PostgreSQL utiliza 'rowCount' para contar las filas afectadas
     });
   });
 };
-
-
-

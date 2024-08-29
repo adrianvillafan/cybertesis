@@ -66,11 +66,12 @@ const Solicitudes = () => {
 
   const startIndex = (pageNumber - 1) * pageSize;
   const filteredAlumnos = alumnos.filter(alumno =>
-    (alumno.nombre_completo && String(alumno.nombre_completo).toLowerCase().includes(filteringText.toLowerCase())) ||
-    (alumno.codigo_estudiante && String(alumno.codigo_estudiante).toLowerCase().includes(filteringText.toLowerCase())) ||
-    (alumno.identificacion_id && String(alumno.identificacion_id).toLowerCase().includes(filteringText.toLowerCase())) ||
-    (alumno.documento_id && String(alumno.documento_id).toLowerCase().includes(filteringText.toLowerCase())) // Convertimos a string si es necesario
+    (alumno.nombre_completo && alumno.nombre_completo.toString().toLowerCase().includes(filteringText.toLowerCase())) ||
+    (alumno.codigo_estudiante && alumno.codigo_estudiante.toString().toLowerCase().includes(filteringText.toLowerCase())) ||
+    (alumno.identificacion_id && alumno.identificacion_id.toString().toLowerCase().includes(filteringText.toLowerCase())) ||
+    (alumno.documento_id && alumno.documento_id.toString().toLowerCase().includes(filteringText.toLowerCase()))
   );
+
 
   const paginatedAlumnos = filteredAlumnos.slice(startIndex, startIndex + pageSize);
 
@@ -107,18 +108,19 @@ const Solicitudes = () => {
   };
 
   const calcularProgreso = (alumno) => {
-    const fields = ['tesis_id', 'actasust_id', 'certsimil_id', 'autocyber_id', 'metadatos_id', 'repturnitin_id'];
-    const totalFields = fields.length;
-    const filledFields = fields.reduce((count, field) => count + (alumno[field] ? 1 : 0), 0);
+    const fields = ['tesis_id', 'actasust_id', 'certsimil_id', 'autocyber_id', 'metadatos_id', 'repturnitin_id', 'consentimiento_id'];
+    const totalFields = fields.length + (alumno.postergacion_id ? 1 : 0); // Sumar 1 si postergacion_id no es null
+    const filledFields = fields.reduce((count, field) => count + (alumno[field] ? 1 : 0), 0) + (alumno.postergacion_id ? 1 : 0);
     return parseInt((filledFields / totalFields) * 100);
   };
 
   const calcularProgresoFraccion = (alumno) => {
-    const fields = ['tesis_id', 'actasust_id', 'certsimil_id', 'autocyber_id', 'metadatos_id', 'repturnitin_id'];
-    const totalFields = fields.length;
-    const filledFields = fields.reduce((count, field) => count + (alumno[field] ? 1 : 0), 0);
+    const fields = ['tesis_id', 'actasust_id', 'certsimil_id', 'autocyber_id', 'metadatos_id', 'repturnitin_id', 'consentimiento_id'];
+    const totalFields = fields.length + (alumno.postergacion_id ? 1 : 0); // Sumar 1 si postergacion_id no es null
+    const filledFields = fields.reduce((count, field) => count + (alumno[field] ? 1 : 0), 0) + (alumno.postergacion_id ? 1 : 0);
     return `${filledFields}/${totalFields}`;
   };
+
 
   return (
     <Box>

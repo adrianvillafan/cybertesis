@@ -3,7 +3,8 @@ import { executeQuery } from '../config/db.js';
 export const insertTesis = (tesisDetails, callback) => {
   const queryTesis = `
     INSERT INTO tesis (id_facultad, id_escuela, titulo, tipo_tesis, grado_academico, año, file_url, fecha_creacion, fecha_modificacion)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+    RETURNING id_tesis
   `;
   const tesisValues = [
     tesisDetails.facultad_id,
@@ -22,11 +23,12 @@ export const insertTesis = (tesisDetails, callback) => {
       console.error('Error al insertar tesis:', err);
       callback(err, null);
     } else {
-      const tesisId = results.insertId;
+      const tesisId = results.rows[0].id_tesis;
 
       const queryParticipacion = `
         INSERT INTO tesis_participacion (id_autor1, id_autor2, id_asesor1, id_asesor2)
-        VALUES (?, ?, ?, ?)
+        VALUES ($1, $2, $3, $4)
+        RETURNING id_participantes
       `;
       const participacionValues = [
         tesisDetails.autor1,
@@ -40,20 +42,20 @@ export const insertTesis = (tesisDetails, callback) => {
           console.error('Error al insertar participación de tesis:', err);
           callback(err, null);
         } else {
-          const idParticipantes = results.insertId;
+          const idParticipantes = results.rows[0].id_participantes;
 
           const queryUpdateTesis = `
-            UPDATE tesis SET id_participantes = ? WHERE id_tesis = ?
+            UPDATE tesis SET id_participantes = $1 WHERE id_tesis = $2
           `;
-          executeQuery(queryUpdateTesis, [idParticipantes, tesisId], (err, results) => {
+          executeQuery(queryUpdateTesis, [idParticipantes, tesisId], (err) => {
             if (err) {
               console.error('Error al actualizar tesis con id_participantes:', err);
               callback(err, null);
             } else {
               const queryUpdateDocumentos = `
-                UPDATE documentos SET tesis_id = ? WHERE id = ?
+                UPDATE documentos SET tesis_id = $1 WHERE id = $2
               `;
-              executeQuery(queryUpdateDocumentos, [tesisId, tesisDetails.documentos_id], (err, results) => {
+              executeQuery(queryUpdateDocumentos, [tesisId, tesisDetails.documentos_id], (err) => {
                 if (err) {
                   console.error('Error al actualizar documentos:', err);
                   callback(err, null);
@@ -70,8 +72,7 @@ export const insertTesis = (tesisDetails, callback) => {
 };
 
 export const deleteTesisById = (id, callback) => {
-  // Primero obtenemos el id_participantes de la tesis
-  const queryGetParticipantes = 'SELECT id_participantes FROM tesis WHERE id_tesis = ?';
+  const queryGetParticipantes = 'SELECT id_participantes FROM tesis WHERE id_tesis = $1';
 
   executeQuery(queryGetParticipantes, [id], (err, results) => {
     if (err) {
@@ -79,43 +80,39 @@ export const deleteTesisById = (id, callback) => {
       return callback(err, null);
     }
 
-    if (results.length === 0) {
+    if (results.rows.length === 0) {
       const error = new Error('No se encontró la tesis con el id proporcionado.');
       console.error('Error:', error);
       return callback(error, null);
     }
 
-    const idParticipantes = results[0].id_participantes;
+    const idParticipantes = results.rows[0].id_participantes;
 
-    // Luego eliminamos los metadatos asociados
-    const queryDeleteMetadatos = 'DELETE FROM metadata WHERE id_participantes = ?';
+    const queryDeleteMetadatos = 'DELETE FROM metadata WHERE id_participantes = $1';
 
-    executeQuery(queryDeleteMetadatos, [idParticipantes], (err, results) => {
+    executeQuery(queryDeleteMetadatos, [idParticipantes], (err) => {
       if (err) {
         console.error('Error al eliminar metadatos:', err);
         return callback(err, null);
       }
 
-      // Luego eliminamos la participación
-      const queryDeleteParticipacion = 'DELETE FROM tesis_participacion WHERE id_participantes = ?';
+      const queryDeleteParticipacion = 'DELETE FROM tesis_participacion WHERE id_participantes = $1';
 
-      executeQuery(queryDeleteParticipacion, [idParticipantes], (err, results) => {
+      executeQuery(queryDeleteParticipacion, [idParticipantes], (err) => {
         if (err) {
           console.error('Error al eliminar participación de tesis:', err);
           return callback(err, null);
         }
 
-        // Luego actualizamos la tabla de documentos
-        const queryUpdateDocumentos = 'UPDATE documentos SET tesis_id = NULL WHERE tesis_id = ?';
+        const queryUpdateDocumentos = 'UPDATE documentos SET tesis_id = NULL WHERE tesis_id = $1';
 
-        executeQuery(queryUpdateDocumentos, [id], (err, results) => {
+        executeQuery(queryUpdateDocumentos, [id], (err) => {
           if (err) {
             console.error('Error al actualizar documentos:', err);
             return callback(err, null);
           }
 
-          // Finalmente, eliminamos la tesis
-          const queryDeleteTesis = 'DELETE FROM tesis WHERE id_tesis = ?';
+          const queryDeleteTesis = 'DELETE FROM tesis WHERE id_tesis = $1';
 
           executeQuery(queryDeleteTesis, [id], (err, results) => {
             if (err) {
@@ -123,7 +120,7 @@ export const deleteTesisById = (id, callback) => {
               return callback(err, null);
             }
 
-            callback(null, results.affectedRows);
+            callback(null, results.rowCount);
           });
         });
       });
@@ -172,26 +169,26 @@ export const getTesisById = (id, callback) => {
     LEFT JOIN 
       personas p4 ON tp.id_asesor2 = p4.idpersonas
     WHERE 
-      t.id_tesis = ?
+      t.id_tesis = $1
   `;
   executeQuery(query, [id], (err, results) => {
     if (err) {
       console.error('Error al obtener tesis por ID:', err);
       callback(err, null);
     } else {
-      callback(null, results[0]);
+      callback(null, results.rows[0]);
     }
   });
 };
 
 export const getTesisByStudentId = (studentId, callback) => {
-  const query = 'SELECT * FROM tesis WHERE estudiante_id = ?';
+  const query = 'SELECT * FROM tesis WHERE estudiante_id = $1';
   executeQuery(query, [studentId], (err, results) => {
     if (err) {
       console.error('Error al obtener tesis por ID de estudiante:', err);
       callback(err, null);
     } else {
-      callback(null, results);
+      callback(null, results.rows);
     }
   });
 };
@@ -200,14 +197,14 @@ export const updateDocumentosEstado = (estudianteId) => {
   const query = `
     UPDATE documentos
     SET estado_id = 1
-    WHERE estudiante_id = ? AND estado_id != 1
+    WHERE estudiante_id = $1 AND estado_id != 1
   `;
   return new Promise((resolve, reject) => {
     executeQuery(query, [estudianteId], (err, results) => {
       if (err) {
         reject(err);
       } else {
-        resolve(results);
+        resolve(results.rowCount);
       }
     });
   });
@@ -216,15 +213,15 @@ export const updateDocumentosEstado = (estudianteId) => {
 export const updateDocumentos = (documentId, tesisId, callback) => {
   const query = `
     UPDATE documentos
-    SET tesis_id = ?
-    WHERE id = ?
+    SET tesis_id = $1
+    WHERE id = $2
   `;
   executeQuery(query, [tesisId, documentId], (err, results) => {
     if (err) {
       console.error('Error al actualizar documentos:', err);
       callback(err, null);
     } else {
-      callback(null, results);
+      callback(null, results.rowCount);
     }
   });
 };

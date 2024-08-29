@@ -27,12 +27,13 @@ const MyRequests = () => {
 
   const filteredItems = solicitudes.filter(
     item =>
-      item.tesis_titulo.toLowerCase().includes(filteringText.toLowerCase()) ||
-      item.programa_nombre.toLowerCase().includes(filteringText.toLowerCase()) ||
-      item.id.toString().includes(filteringText) ||
-      item.fecha_alum.toLowerCase().includes(filteringText.toLowerCase()) ||
-      item.id_estado.toString().includes(filteringText)
+      (item.tesis_titulo ? item.tesis_titulo.toLowerCase() : '').includes(filteringText.toLowerCase()) ||
+      (item.programa_nombre ? item.programa_nombre.toLowerCase() : '').includes(filteringText.toLowerCase()) ||
+      (item.id ? item.id.toString() : '').includes(filteringText) ||
+      (item.fecha_alum ? new Date(item.fecha_alum).toLocaleString().toLowerCase() : '').includes(filteringText.toLowerCase()) ||
+      (item.id_estado ? item.id_estado.toString() : '').includes(filteringText)
   );
+  
 
   const paginatedItems = filteredItems.slice(
     (currentPageIndex - 1) * itemsPerPage,

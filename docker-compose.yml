@@ -27,13 +27,14 @@ services:
       - MINIO_PORT=9000
       - MINIO_ACCESS_KEY=minioadmin
       - MINIO_SECRET_KEY=minioadmin
-      - BUCKET_DOCUMENTOS=documentos
+      - BUCKET_POSTERGACION=postergacion
       - BUCKET_TESIS=tesis
       - BUCKET_ACTAS=actas
       - BUCKET_CERTIFICADOS=certificados
       - BUCKET_AUTOCYBER=autocyber
       - BUCKET_METADATOS=metadatos
       - BUCKET_TURNITIN=turnitin
+      - BUCKET_CONSENTIMIENTO=consentimiento
       - DEBUG=express:*
     command: npm run dev  # Usa Nodemon para iniciar la aplicación
     depends_on:

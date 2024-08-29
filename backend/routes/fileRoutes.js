@@ -13,8 +13,11 @@ import { insertMetadata,
   getDisciplinasOCDE
 } from '../queries/metadataQueries.js';
 import { insertCertificadoSimilitud, deleteCertificadoSimilitudById, getCertificadoSimilitudById } from '../queries/certificadosQueries.js';
-import { insertAutoCyber, deleteAutoCyberById, getAutoCyberById } from '../queries/autocyberQueries.js';
+import { insertAutoCyber, deleteAutoCyberById, getAutoCyberById } from '../queries/autoCyberQueries.js';
 import { insertReporteTurnitin, deleteReporteTurnitinById, getReporteTurnitinById } from '../queries/turnitinQueries.js';
+import { insertPostergacionPublicacion, getPostergacionPublicacionById, deletePostergacionPublicacionById } from '../queries/postergacionQueries.js';
+import { insertConsentimientoInformado, getConsentimientoInformadoById, deleteConsentimientoInformadoById } from '../queries/consentimientoQueries.js';
+
 
 const router = express.Router();
 const storage = multer.memoryStorage();
@@ -26,7 +29,9 @@ const BUCKETS = {
   CERTIFICADOS: process.env.BUCKET_CERTIFICADOS,
   CYBER: process.env.BUCKET_AUTOCYBER,
   METADATOS: process.env.BUCKET_METADATOS,
-  TURNITIN: process.env.BUCKET_TURNITIN
+  TURNITIN: process.env.BUCKET_TURNITIN,
+  CONSENTIMIENTO: process.env.BUCKET_CONSENTIMIENTO,
+  POSTERGACION: process.env.BUCKET_POSTERGACION
 };
 
 const getBucketName = (type) => BUCKETS[type];
@@ -562,6 +567,141 @@ router.delete('/reporte-turnitin/delete/:id', async (req, res) => {
     res.status(500).send('Error al eliminar reporte de Turnitin: ' + error.message);
   }
 });
+
+
+// ------------------ Postergación Publicación Routes ------------------
+
+router.post('/postergacion/insert', async (req, res) => {
+  const postergacionDetails = req.body;
+  console.log('postergacionDetails', postergacionDetails);
+  try {
+    insertPostergacionPublicacion(postergacionDetails, (err, postergacionId) => {
+      if (err) {
+        res.status(500).send('Error al insertar postergación de publicación: ' + err.message);
+      } else {
+        res.json({ message: 'Postergación de publicación insertada correctamente', postergacionId });
+      }
+    });
+  } catch (error) {
+    res.status(500).send('Error al insertar postergación de publicación: ' + error.message);
+  }
+});
+
+router.get('/postergacion/:id', async (req, res) => {
+  const { id } = req.params;
+  getPostergacionPublicacionById(id, async (err, postergacion) => {
+    if (err) {
+      res.status(500).send('Error al obtener detalles de la postergación de publicación: ' + err.message);
+    } else if (!postergacion) {
+      res.status(404).send('Postergación de publicación no encontrada.');
+    } else {
+      try {
+        const fileUrl = await getDownloadUrlFromMinIO(BUCKETS.POSTERGACION, postergacion.file_url);
+        postergacion.file_url = fileUrl;
+        res.json(postergacion);
+      } catch (fileError) {
+        res.status(500).send('Error al obtener la URL del archivo: ' + fileError.message);
+      }
+    }
+  });
+});
+
+router.delete('/postergacion/delete/:id', async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const postergacion = await new Promise((resolve, reject) => {
+      getPostergacionPublicacionById(id, (err, result) => {
+        if (err) reject(err);
+        else resolve(result);
+      });
+    });
+
+    if (!postergacion) {
+      return res.status(404).send('Postergación de publicación no encontrada.');
+    }
+
+    await deleteFileFromMinIO(BUCKETS.POSTERGACION, postergacion.file_url);
+    await new Promise((resolve, reject) => {
+      deletePostergacionPublicacionById(id, (err, results) => {
+        if (err) reject(err);
+        else resolve(results);
+      });
+    });
+
+    res.json({ message: 'Postergación de publicación eliminada correctamente' });
+  } catch (error) {
+    res.status(500).send('Error al eliminar postergación de publicación: ' + error.message);
+  }
+});
+
+
+// ------------------ Consentimiento Informado Routes ------------------
+
+router.post('/consentimiento/insert', async (req, res) => {
+  const consentimientoDetails = req.body;
+  console.log('consentimientoDetails', consentimientoDetails);
+  try {
+    insertConsentimientoInformado(consentimientoDetails, (err, consentimientoId) => {
+      if (err) {
+        res.status(500).send('Error al insertar consentimiento informado: ' + err.message);
+      } else {
+        res.json({ message: 'Consentimiento informado insertado correctamente', consentimientoId });
+      }
+    });
+  } catch (error) {
+    res.status(500).send('Error al insertar consentimiento informado: ' + error.message);
+  }
+});
+
+router.get('/consentimiento/:id', async (req, res) => {
+  const { id } = req.params;
+  getConsentimientoInformadoById(id, async (err, consentimiento) => {
+    if (err) {
+      res.status(500).send('Error al obtener detalles de consentimiento informado: ' + err.message);
+    } else if (!consentimiento) {
+      res.status(404).send('Consentimiento informado no encontrado.');
+    } else {
+      try {
+        const fileUrl = await getDownloadUrlFromMinIO(BUCKETS.CONSENTIMIENTO, consentimiento.file_url);
+        consentimiento.file_url = fileUrl;
+        res.json(consentimiento);
+      } catch (fileError) {
+        res.status(500).send('Error al obtener la URL del archivo: ' + fileError.message);
+      }
+    }
+  });
+});
+
+router.delete('/consentimiento/delete/:id', async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const consentimiento = await new Promise((resolve, reject) => {
+      getConsentimientoInformadoById(id, (err, result) => {
+        if (err) reject(err);
+        else resolve(result);
+      });
+    });
+
+    if (!consentimiento) {
+      return res.status(404).send('Consentimiento informado no encontrado.');
+    }
+
+    await deleteFileFromMinIO(BUCKETS.CONSENTIMIENTO, consentimiento.file_url);
+    await new Promise((resolve, reject) => {
+      deleteConsentimientoInformadoById(id, (err, results) => {
+        if (err) reject(err);
+        else resolve(results);
+      });
+    });
+
+    res.json({ message: 'Consentimiento informado eliminado correctamente' });
+  } catch (error) {
+    res.status(500).send('Error al eliminar consentimiento informado: ' + error.message);
+  }
+});
+
 
 
 // ------------------ Document Handling Routes ------------------

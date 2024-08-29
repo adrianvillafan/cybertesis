@@ -5,7 +5,7 @@ export function fetchStudentData(userId, callback) {
     SELECT 
         estudiante.id AS estudiante_id, 
         estudiante.codigo_estudiante, 
-        persona.identificacion_id,  -- O "identificacion_id" si este es el campo equivalente a dni
+        persona.identificacion_id, 
         persona.nombre,
         persona.apellidos_pat,
         persona.apellidos_mat,
@@ -32,17 +32,17 @@ export function fetchStudentData(userId, callback) {
     INNER JOIN users ON estudiante.user_id = users.id
     INNER JOIN roles ON users.current_team_id = roles.id
     INNER JOIN facultad_programa ON estudiante.programa_id = facultad_programa.id
-    INNER JOIN personas persona ON estudiante.persona_id = persona.idpersonas  -- JOIN con la tabla personas
-    WHERE estudiante.user_id = ?;
+    INNER JOIN personas persona ON estudiante.persona_id = persona.idpersonas
+    WHERE estudiante.user_id = $1;
   `;
 
   executeQuery(sql, [userId], (studentErr, studentResults) => {
-    if (studentErr || studentResults.length === 0) {
+    if (studentErr || studentResults.rows.length === 0) {
       console.error('Error al buscar datos del estudiante:', studentErr);
       callback({ message: 'Error al buscar datos del estudiante' }, null);
     } else {
-      console.log('Datos del estudiante encontrados:', studentResults[0]);
-      callback(null, studentResults[0]);
+      console.log('Datos del estudiante encontrados:', studentResults.rows[0]);
+      callback(null, studentResults.rows[0]);
     }
   });
 }
@@ -65,8 +65,8 @@ export function fetchExpedientes(estudianteId, gradoId, callback) {
     WHERE 
       d.estado_id = 1
       AND d.solicitud_id IS NULL
-      AND d.grado_id = ?
-      AND d.estudiante_id = ?;
+      AND d.grado_id = $1
+      AND d.estudiante_id = $2;
   `;
 
   executeQuery(sql, [gradoId, estudianteId], (err, results) => {
@@ -74,12 +74,11 @@ export function fetchExpedientes(estudianteId, gradoId, callback) {
       console.error('Error al buscar expedientes:', err);
       callback({ message: 'Error al buscar expedientes' }, null);
     } else {
-      console.log('Expedientes encontrados:', results);
-      callback(null, results);
+      console.log('Expedientes encontrados:', results.rows);
+      callback(null, results.rows);
     }
   });
 }
-
 
 // Función para crear una solicitud y actualizar la tabla documentos
 export function createSolicitud(idFacultad, idDocumento, callback) {
@@ -93,7 +92,7 @@ export function createSolicitud(idFacultad, idDocumento, callback) {
         fecha_alum
     )
     SELECT 
-        ?, 
+        $1, 
         d.grado_id, 
         d.id, 
         d.estudiante_id, 
@@ -102,7 +101,8 @@ export function createSolicitud(idFacultad, idDocumento, callback) {
     FROM 
         documentos d
     WHERE 
-        d.id = ?;
+        d.id = $2
+    RETURNING id;
   `;
 
   executeQuery(insertSql, [idFacultad, idDocumento], (insertErr, insertResults) => {
@@ -110,12 +110,12 @@ export function createSolicitud(idFacultad, idDocumento, callback) {
       console.error('Error al crear solicitud:', insertErr);
       callback({ message: 'Error al crear solicitud' }, null);
     } else {
-      const solicitudId = insertResults.insertId;
+      const solicitudId = insertResults.rows[0].id;
 
       const updateSql = `
         UPDATE documentos 
-        SET solicitud_id = ?
-        WHERE id = ?;
+        SET solicitud_id = $1
+        WHERE id = $2;
       `;
 
       executeQuery(updateSql, [solicitudId, idDocumento], (updateErr, updateResults) => {
@@ -123,8 +123,8 @@ export function createSolicitud(idFacultad, idDocumento, callback) {
           console.error('Error al actualizar el documento:', updateErr);
           callback({ message: 'Error al actualizar el documento' }, null);
         } else {
-          console.log('Solicitud creada y documento actualizado:', updateResults);
-          callback(null, { solicitudId, updateResults });
+          console.log('Solicitud creada y documento actualizado:', updateResults.rowCount);
+          callback(null, { solicitudId, updateResults: updateResults.rowCount });
         }
       });
     }
@@ -155,7 +155,7 @@ export function fetchSolicitudesByAlumno(idAlumno, callback) {
     LEFT JOIN 
         facultad_programa fp ON e.programa_id = fp.id
     WHERE 
-        s.id_alumno = ?;
+        s.id_alumno = $1;
   `;
 
   executeQuery(sql, [idAlumno], (err, results) => {
@@ -163,9 +163,8 @@ export function fetchSolicitudesByAlumno(idAlumno, callback) {
       console.error('Error al buscar solicitudes:', err);
       callback({ message: 'Error al buscar solicitudes' }, null);
     } else {
-      console.log('Solicitudes encontradas:', results);
-      callback(null, results);
+      console.log('Solicitudes encontradas:', results.rows);
+      callback(null, results.rows);
     }
   });
 }
-

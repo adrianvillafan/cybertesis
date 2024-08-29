@@ -14,15 +14,15 @@ export function fetchDatosByDni(tipoIdentificacionId, identificacionId, callback
             orcid,
             grado_academico_id
         FROM personas
-        WHERE tipo_identificacion_id = ? AND identificacion_id = ?;
+        WHERE tipo_identificacion_id = $1 AND identificacion_id = $2;
     `;
     executeQuery(sql, [tipoIdentificacionId, identificacionId], (err, results) => {
-        if (err || results.length === 0) {
+        if (err || results.rows.length === 0) {
             console.error('Error al buscar datos de identificación:', err);
             callback({ message: 'Error al buscar datos de identificación' }, null);
         } else {
-            const result = results[0];
-            result.apellido = `${result.apellidos_pat} ${result.apellidos_mat}`; // Combine apellidos
+            const result = results.rows[0];  // PostgreSQL utiliza 'rows' para devolver los resultados
+            result.apellido = `${result.apellidos_pat} ${result.apellidos_mat}`; // Combina apellidos
             delete result.apellidos_pat;
             delete result.apellidos_mat;
             console.log('Datos encontrados:', result);

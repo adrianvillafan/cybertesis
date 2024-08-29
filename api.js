@@ -8,4 +8,6 @@ export * from './src/apis/escuela_upg/modals/ApiCertificadoSimilitud.js';
 export * from './src/apis/escuela_upg/modals/ApiAutoCyber.js';
 export * from './src/apis/escuela_upg/modals/ApiRepTurnitin.js';
 export * from './src/apis/escuela_upg/steps/ApiDeclaracionJurada.js';
+export * from './src/apis/escuela_upg/modals/ApiPostergacion.js';
+export * from './src/apis/escuela_upg/modals/ApiConsentimiento.js';
 export * from './src/components/dashboard/views/escuela_upg/SolicitudesAPI.js';

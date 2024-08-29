@@ -12,7 +12,7 @@ export function getSolicitudesByEstudianteId(estudianteId, callback) {
     FROM solicitud
     LEFT JOIN tiposolicitud ON solicitud.tipoSolicitud_id = tiposolicitud.id
     LEFT JOIN estado ON solicitud.estado_id = estado.id
-    WHERE solicitud.estudiante_id = ?;
+    WHERE solicitud.estudiante_id = $1;
   `;
 
   executeQuery(sql, [estudianteId], (error, results) => {
@@ -20,20 +20,20 @@ export function getSolicitudesByEstudianteId(estudianteId, callback) {
       console.error('Error al obtener las solicitudes:', error);
       callback(error, null);
     } else {
-      console.log('Solicitudes obtenidas:', results);
-      callback(null, results);
+      console.log('Solicitudes obtenidas:', results.rows);
+      callback(null, results.rows);
     }
   });
 }
 
 export const updateEstadoIdByDocumentId = (documentId, estadoId, callback) => {
-  const sql = `UPDATE documentos SET estado_id = ? WHERE id = ?`;
+  const sql = `UPDATE documentos SET estado_id = $1 WHERE id = $2`;
   const values = [estadoId, documentId];
   executeQuery(sql, values, (err, results) => {
     if (err) {
       callback(err, null);
     } else {
-      callback(null, results);
+      callback(null, results.rowCount);
     }
   });
 };

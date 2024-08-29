@@ -8,7 +8,8 @@ export const insertReporteTurnitin = (reporteDetails, callback) => {
       updated_by,
       created_at,
       updated_at
-    ) VALUES (?, ?, ?, ?, ?)
+    ) VALUES ($1, $2, $3, $4, $5)
+    RETURNING id
   `;
   const reporteValues = [
     reporteDetails.file_url,
@@ -23,12 +24,12 @@ export const insertReporteTurnitin = (reporteDetails, callback) => {
       console.error('Error al insertar reporte de Turnitin:', err);
       callback(err, null);
     } else {
-      const reporteId = results.insertId;
+      const reporteId = results.rows[0].id;
 
       const queryUpdateDocumentos = `
-        UPDATE documentos SET repturnitin_id = ? WHERE id = ?
+        UPDATE documentos SET repturnitin_id = $1 WHERE id = $2
       `;
-      executeQuery(queryUpdateDocumentos, [reporteId, reporteDetails.documentos_id], (err, results) => {
+      executeQuery(queryUpdateDocumentos, [reporteId, reporteDetails.documentos_id], (err) => {
         if (err) {
           console.error('Error al actualizar documentos:', err);
           callback(err, null);
@@ -52,28 +53,28 @@ export const getReporteTurnitinById = (id, callback) => {
     FROM
       reporte_turnitin
     WHERE
-      id = ?
+      id = $1
   `;
   executeQuery(query, [id], (err, results) => {
     if (err) {
       console.error('Error al obtener reporte de Turnitin por ID:', err);
       callback(err, null);
     } else {
-      callback(null, results[0]);
+      callback(null, results.rows[0]);
     }
   });
 };
 
 export const deleteReporteTurnitinById = (id, callback) => {
-  const queryUpdateDocumentos = 'UPDATE documentos SET repturnitin_id = NULL WHERE repturnitin_id = ?';
+  const queryUpdateDocumentos = 'UPDATE documentos SET repturnitin_id = NULL WHERE repturnitin_id = $1';
 
-  executeQuery(queryUpdateDocumentos, [id], (err, results) => {
+  executeQuery(queryUpdateDocumentos, [id], (err) => {
     if (err) {
       console.error('Error al actualizar documentos:', err);
       return callback(err, null);
     }
 
-    const queryDeleteReporte = 'DELETE FROM reporte_turnitin WHERE id = ?';
+    const queryDeleteReporte = 'DELETE FROM reporte_turnitin WHERE id = $1';
 
     executeQuery(queryDeleteReporte, [id], (err, results) => {
       if (err) {
@@ -81,7 +82,7 @@ export const deleteReporteTurnitinById = (id, callback) => {
         return callback(err, null);
       }
 
-      callback(null, results.affectedRows);
+      callback(null, results.rowCount);
     });
   });
 };

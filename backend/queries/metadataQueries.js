@@ -23,7 +23,8 @@ export const insertMetadata = (metadataDetails, callback) => {
       updated_by,
       created_at,
       updated_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20)
+    RETURNING id
   `;
   const metadataValues = [
     metadataDetails.id_participantes,
@@ -53,10 +54,10 @@ export const insertMetadata = (metadataDetails, callback) => {
       console.error('Error al insertar metadata:', err);
       callback(err, null);
     } else {
-      const metadataId = results.insertId;
+      const metadataId = results.rows[0].id;
 
       const queryUpdateDocumentos = `
-        UPDATE documentos SET metadatos_id = ? WHERE id = ?
+        UPDATE documentos SET metadatos_id = $1 WHERE id = $2
       `;
       executeQuery(queryUpdateDocumentos, [metadataId, metadataDetails.documentos_id], (err, results) => {
         if (err) {
@@ -106,24 +107,22 @@ export const getMetadataById = (id, callback) => {
     LEFT JOIN ocde do2 ON m.id_disciplina_2 = do2.id
     LEFT JOIN ocde do3 ON m.id_disciplina_3 = do3.id
     WHERE
-      m.id = ?
+      m.id = $1
   `;
   executeQuery(query, [id], (err, results) => {
     if (err) {
       console.error('Error al obtener metadata por ID:', err);
       callback(err, null);
     } else {
-      callback(null, results[0]);
+      callback(null, results.rows[0]);
     }
   });
 };
 
-
-
 // Eliminar un registro de metadata por ID
 export const deleteMetadataById = (id, callback) => {
   // Actualizamos la tabla de documentos
-  const queryUpdateDocumentos = 'UPDATE documentos SET metadatos_id = NULL WHERE metadatos_id = ?';
+  const queryUpdateDocumentos = 'UPDATE documentos SET metadatos_id = NULL WHERE metadatos_id = $1';
 
   executeQuery(queryUpdateDocumentos, [id], (err, results) => {
     if (err) {
@@ -132,7 +131,7 @@ export const deleteMetadataById = (id, callback) => {
     }
 
     // Finalmente, eliminamos el metadata
-    const queryDeleteMetadata = 'DELETE FROM metadata WHERE id = ?';
+    const queryDeleteMetadata = 'DELETE FROM metadata WHERE id = $1';
 
     executeQuery(queryDeleteMetadata, [id], (err, results) => {
       if (err) {
@@ -140,7 +139,7 @@ export const deleteMetadataById = (id, callback) => {
         return callback(err, null);
       }
 
-      callback(null, results.affectedRows);
+      callback(null, results.rowCount);
     });
   });
 };
@@ -153,7 +152,7 @@ export const getLineasInvestigacion = (facultadId, callback) => {
     FROM 
       lineas 
     WHERE 
-      (level = 2 AND facultad_id = ?) 
+      (level = 2 AND facultad_id = $1) 
       OR 
       (level = 2 AND facultad_id IS NULL)
   `;
@@ -163,45 +162,43 @@ export const getLineasInvestigacion = (facultadId, callback) => {
       console.error('Error al obtener líneas de investigación:', err);
       callback(err, null);
     } else {
-      callback(null, results);
+      callback(null, results.rows);
     }
   });
 };
 
+export const getGruposInvestigacion = (facultadId, callback) => {
+  const query = 'SELECT id, grupo_nombre, grupo_nombre_corto FROM grupos_investigacion WHERE facultad_id = $1';
   
-  export const getGruposInvestigacion = (facultadId, callback) => {
-    const query = 'SELECT id, grupo_nombre, grupo_nombre_corto FROM grupos_investigacion WHERE facultad_id = ?';
-  
-    executeQuery(query, [facultadId], (err, results) => {
-      if (err) {
-        console.error('Error al obtener grupos de investigación:', err);
-        callback(err, null);
-      } else {
-        callback(null, results);
-      }
-    });
-  };
+  executeQuery(query, [facultadId], (err, results) => {
+    if (err) {
+      console.error('Error al obtener grupos de investigación:', err);
+      callback(err, null);
+    } else {
+      callback(null, results.rows);
+    }
+  });
+};
 
-  export const getDisciplinasOCDE = (callback) => {
-    const query = `
-      SELECT id, prefLabel_es, uri 
-      FROM ocde 
-      WHERE indicador IS NULL
-    `;
+export const getDisciplinasOCDE = (callback) => {
+  const query = `
+    SELECT id, prefLabel_es, uri 
+    FROM ocde 
+    WHERE indicador IS NULL
+  `;
   
-    executeQuery(query, [], (err, results) => {
-      if (err) {
-        console.error('Error al obtener disciplinas OCDE:', err);
-        callback(err, null);
-      } else {
-        // Formatear los resultados para el frontend
-        const formattedResults = results.map(disciplina => ({
-          label: disciplina.prefLabel_es,
-          value: String(disciplina.id),
-          description: disciplina.uri
-        }));
-        callback(null, formattedResults);
-      }
-    });
-  };
-  
+  executeQuery(query, [], (err, results) => {
+    if (err) {
+      console.error('Error al obtener disciplinas OCDE:', err);
+      callback(err, null);
+    } else {
+      // Formatear los resultados para el frontend
+      const formattedResults = results.rows.map(disciplina => ({
+        label: disciplina.prefLabel_es,
+        value: String(disciplina.id),
+        description: disciplina.uri
+      }));
+      callback(null, formattedResults);
+    }
+  });
+};

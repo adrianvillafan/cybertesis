@@ -7,7 +7,7 @@ import { Icon } from '@cloudscape-design/components';
 
 // Importar los componentes de las vistas específicas
 import ManageUsers from './views/admin/ManageUsers';
-import CreateRequest from './views/student/CreateRequest';
+//import CreateRequest from './views/student/CreateRequest';
 import MyRequests from './views/student/MyRequests';
 import Reports from './views/escuela_upg/Reports';
 import Requests from './views/recepDocs/Requests';
@@ -67,7 +67,7 @@ const Profile = ({ isLoggedIn, setIsLoggedIn }) => {
         ];
       case 2: // Estudiante
         return [
-          { type: "link", text: <a onClick={() => setActiveView('create-request')}> <Icon name="edit"/> Realizar Solicitud</a>, href: '#create-request' },
+          //{ type: "link", text: <a onClick={() => setActiveView('create-request')}> <Icon name="edit"/> Realizar Solicitud</a>, href: '#create-request' },
           { type: "link", text: <a onClick={() => setActiveView('my-requests')}><Icon name="file"/> Mis Solicitudes</a>, href: '#my-requests' }
         ];
       case 3: // Escuela UPG
@@ -104,11 +104,11 @@ const Profile = ({ isLoggedIn, setIsLoggedIn }) => {
           return <ManageUsers />;
         }
         break;
-      case 'create-request':
-        if (user.current_team_id === 2) {
-          return <CreateRequest />;
-        }
-        break;
+      //case 'create-request':
+        //if (user.current_team_id === 2) {
+          //return <CreateRequest />;
+        //}
+        //break;
       case 'my-requests':
         if (user.current_team_id === 2) {
           return <MyRequests />;

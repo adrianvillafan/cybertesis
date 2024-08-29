@@ -14,12 +14,12 @@ export function fetchEscuelaUpgData(userId, callback) {
           roles.guard_name,
           CASE
               WHEN unidades.grado_id = 1 THEN (
-                  SELECT JSON_OBJECT('id_escuela', e.id, 'nombre_escuela', e.nombre, 'tipo_escuela', e.tipo)
+                  SELECT json_build_object('id_escuela', e.id, 'nombre_escuela', e.nombre, 'tipo_escuela', e.tipo)
                   FROM escuela e
                   WHERE e.id = unidades.escuela_id
               )
               ELSE (
-                  SELECT JSON_ARRAYAGG(JSON_OBJECT('id_escuela', e.id, 'nombre_escuela', e.nombre, 'tipo_escuela', e.tipo))
+                  SELECT json_agg(json_build_object('id_escuela', e.id, 'nombre_escuela', e.nombre, 'tipo_escuela', e.tipo))
                   FROM escuela e
                   WHERE e.facultad_id = facultad.id
               )
@@ -30,18 +30,17 @@ export function fetchEscuelaUpgData(userId, callback) {
       INNER JOIN grado ON unidades.grado_id = grado.id
       INNER JOIN users ON unidades.user_id = users.id
       INNER JOIN roles ON users.current_team_id = roles.id
-      WHERE unidades.user_id = ? AND users.current_team_id = 3
+      WHERE unidades.user_id = $1 AND users.current_team_id = 3
       GROUP BY unidades.user_id, facultad.id, facultad.nombre, grado.id, grado.grado, users.name, users.current_team_id, users.email, roles.guard_name, unidades.grado_id, escuela.id, escuela.nombre, escuela.tipo;
-
-`;
+    `;
 
     executeQuery(sql, [userId], (err, results) => {
-        if (err || results.length === 0) {
+        if (err || results.rows.length === 0) {
             console.error('Error al buscar datos de escuela UPG:', err);
             callback({ message: 'Error al buscar datos de escuela UPG' }, null);
         } else {
-            console.log('Datos de escuela UPG encontrados:', results[0]);
-            callback(null, results[0]);
+            console.log('Datos de escuela UPG encontrados:', results.rows[0]);
+            callback(null, results.rows[0]);
         }
     });
 }
@@ -57,7 +56,7 @@ export function fetchListaAlumnos({ escuelaId, gradoId }, callback) {
         CONCAT(personas.apellidos_pat, ' ', personas.apellidos_mat) AS apellidos
     FROM estudiante
     INNER JOIN personas ON estudiante.persona_id = personas.idpersonas
-    WHERE estudiante.escuela_id = ? AND estudiante.grado_id = ?;
+    WHERE estudiante.escuela_id = $1 AND estudiante.grado_id = $2;
   `;
 
   executeQuery(sql, [escuelaId, gradoId], (err, results) => {
@@ -65,8 +64,8 @@ export function fetchListaAlumnos({ escuelaId, gradoId }, callback) {
       console.error('Error al buscar datos de alumnos:', err);
       callback({ message: 'Error al buscar datos de alumnos' }, null);
     } else {
-      console.log('Datos de alumnos encontrados:', results);
-      callback(null, results);
+      console.log('Datos de alumnos encontrados:', results.rows);
+      callback(null, results.rows);
     }
   });
 }
@@ -87,7 +86,7 @@ export function fetchAlumnoData(studentId, callback) {
     INNER JOIN facultad ON estudiante.facultad_id = facultad.id
     INNER JOIN escuela ON estudiante.escuela_id = escuela.id
     LEFT JOIN facultad_programa ON estudiante.programa_id = facultad_programa.id
-    WHERE estudiante.codigo_estudiante = ?;
+    WHERE estudiante.codigo_estudiante = $1;
   `;
 
   executeQuery(sql, [studentId], (err, results) => {
@@ -95,8 +94,8 @@ export function fetchAlumnoData(studentId, callback) {
       console.error('Error al obtener datos del alumno:', err);
       callback({ message: 'Error al obtener datos del alumno' }, null);
     } else {
-      console.log('Datos del alumno encontrados:', results);
-      callback(null, results[0]);  // Suponiendo que el código del estudiante es único, se espera un solo resultado
+      console.log('Datos del alumno encontrados:', results.rows);
+      callback(null, results.rows[0]);  // Suponiendo que el código del estudiante es único, se espera un solo resultado
     }
   });
 }
@@ -112,7 +111,7 @@ export function fetchProgramasByFacultadId(facultadId, callback) {
     FROM 
         facultad_programa
     WHERE 
-        facultad_id = ? AND level = 2 AND tipo != 'pregrado' ;
+        facultad_id = $1 AND level = 2 AND tipo != 'pregrado' ;
   `;
 
   executeQuery(sql, [facultadId], (err, results) => {
@@ -120,8 +119,8 @@ export function fetchProgramasByFacultadId(facultadId, callback) {
       console.error('Error al obtener la lista de programas de la facultad:', err);
       callback({ message: 'Error al obtener la lista de programas de la facultad' }, null);
     } else {
-      console.log('Programas de la facultad encontrados:', results);
-      callback(null, results);
+      console.log('Programas de la facultad encontrados:', results.rows);
+      callback(null, results.rows);
     }
   });
 }
@@ -137,7 +136,7 @@ export function fetchListaAlumnosByProgramaId(programaId, callback) {
         CONCAT(personas.apellidos_pat, ' ', personas.apellidos_mat) AS apellidos
     FROM estudiante
     INNER JOIN personas ON estudiante.persona_id = personas.idpersonas
-    WHERE estudiante.programa_id = ?;
+    WHERE estudiante.programa_id = $1;
   `;
 
   executeQuery(sql, [programaId], (err, results) => {
@@ -145,8 +144,8 @@ export function fetchListaAlumnosByProgramaId(programaId, callback) {
       console.error('Error al buscar datos de alumnos del programa:', err);
       callback({ message: 'Error al buscar datos de alumnos del programa' }, null);
     } else {
-      console.log('Datos de alumnos del programa encontrados:', results);
-      callback(null, results);
+      console.log('Datos de alumnos del programa encontrados:', results.rows);
+      callback(null, results.rows);
     }
   });
 }
@@ -169,6 +168,7 @@ export function fetchDocumentosPorEstudiante({ facultadId, gradoId, escuelaIds }
         d.autocyber_id,
         d.metadatos_id,
         d.repturnitin_id,
+        d.consentimiento_id,
         d.postergacion_id,
         d.usuarioCarga_id,
         d.Ultima_Modificacion,
@@ -180,18 +180,18 @@ export function fetchDocumentosPorEstudiante({ facultadId, gradoId, escuelaIds }
     JOIN
         documentos d ON e.id = d.estudiante_id
     WHERE
-        e.facultad_id = ?
-        AND e.grado_id = ?
-        AND e.escuela_id IN (?)
+        e.facultad_id = $1
+        AND e.grado_id = $2
+        AND e.escuela_id = ANY ($3::int[])
   `;
 
-  executeQuery(sql, [facultadId, gradoId, escuelaIds.join(',')], (err, results) => {
+  executeQuery(sql, [facultadId, gradoId, escuelaIds], (err, results) => {
     if (err) {
       console.error('Error al buscar datos de documentos por estudiante:', err);
       callback({ message: 'Error al buscar datos de documentos por estudiante' }, null);
     } else {
-      console.log('Datos de documentos por estudiante encontrados:', results);
-      callback(null, results);
+      console.log('Datos de documentos por estudiante encontrados:', results.rows);
+      callback(null, results.rows);
     }
   });
 }

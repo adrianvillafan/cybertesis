@@ -8,7 +8,8 @@ export const insertAutoCyber = (autoCyberDetails, callback) => {
       updated_by,
       created_at,
       updated_at
-    ) VALUES (?, ?, ?, ?, ?)
+    ) VALUES ($1, $2, $3, $4, $5)
+    RETURNING id
   `;
   const autoCyberValues = [
     autoCyberDetails.file_url,
@@ -23,10 +24,10 @@ export const insertAutoCyber = (autoCyberDetails, callback) => {
       console.error('Error al insertar auto_cyber:', err);
       callback(err, null);
     } else {
-      const autoCyberId = results.insertId;
+      const autoCyberId = results.rows[0].id;  // PostgreSQL utiliza 'rows' para devolver los resultados
 
       const queryUpdateDocumentos = `
-        UPDATE documentos SET autocyber_id = ? WHERE id = ?
+        UPDATE documentos SET autocyber_id = $1 WHERE id = $2
       `;
       executeQuery(queryUpdateDocumentos, [autoCyberId, autoCyberDetails.documentos_id], (err, results) => {
         if (err) {
@@ -53,14 +54,14 @@ export const getAutoCyberById = (id, callback) => {
     FROM
       auto_cyber
     WHERE
-      id = ?
+      id = $1
   `;
   executeQuery(query, [id], (err, results) => {
     if (err) {
       console.error('Error al obtener auto_cyber por ID:', err);
       callback(err, null);
     } else {
-      callback(null, results[0]);
+      callback(null, results.rows[0]);  // PostgreSQL utiliza 'rows' para devolver los resultados
     }
   });
 };
@@ -68,7 +69,7 @@ export const getAutoCyberById = (id, callback) => {
 // Eliminar un registro de auto_cyber por ID
 export const deleteAutoCyberById = (id, callback) => {
   // Actualizamos la tabla de documentos
-  const queryUpdateDocumentos = 'UPDATE documentos SET autocyber_id = NULL WHERE autocyber_id = ?';
+  const queryUpdateDocumentos = 'UPDATE documentos SET autocyber_id = NULL WHERE autocyber_id = $1';
 
   executeQuery(queryUpdateDocumentos, [id], (err, results) => {
     if (err) {
@@ -77,7 +78,7 @@ export const deleteAutoCyberById = (id, callback) => {
     }
 
     // Finalmente, eliminamos el auto_cyber
-    const queryDeleteAutoCyber = 'DELETE FROM auto_cyber WHERE id = ?';
+    const queryDeleteAutoCyber = 'DELETE FROM auto_cyber WHERE id = $1';
 
     executeQuery(queryDeleteAutoCyber, [id], (err, results) => {
       if (err) {
@@ -85,7 +86,7 @@ export const deleteAutoCyberById = (id, callback) => {
         return callback(err, null);
       }
 
-      callback(null, results.affectedRows);
+      callback(null, results.rowCount);  // PostgreSQL utiliza 'rowCount' para contar las filas afectadas
     });
   });
 };
