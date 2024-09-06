@@ -19,22 +19,24 @@ export const insertActaSustentacion = (actaDetails, callback) => {
     new Date()
   ];
 
+  // Ejecutar la consulta para insertar el acta de sustentación
   executeQuery(queryActa, actaValues, (err, results) => {
     if (err) {
       console.error('Error al insertar acta de sustentación:', err);
       callback(err, null);
     } else {
-      const actaId = results.rows[0].id;  // PostgreSQL utiliza 'rows' para devolver los resultados
+      const actaId = results[0].id;  // Ya no es necesario acceder a `results.rows`
 
       const queryUpdateDocumentos = `
         UPDATE documentos SET actasust_id = $1 WHERE id = $2
       `;
-      executeQuery(queryUpdateDocumentos, [actaId, actaDetails.documentos_id], (err, results) => {
+      // Actualizar la tabla documentos con el ID del acta insertada
+      executeQuery(queryUpdateDocumentos, [actaId, actaDetails.documentos_id], (err, updateResults) => {
         if (err) {
           console.error('Error al actualizar documentos:', err);
           callback(err, null);
         } else {
-          callback(null, actaId);
+          callback(null, actaId);  // Devolvemos el ID del acta insertada
         }
       });
     }
@@ -82,36 +84,38 @@ export const getActaSustentacionById = (id, callback) => {
     WHERE
       a.id = $1
   `;
+
+  // Ejecutar la consulta para obtener el acta de sustentación por ID
   executeQuery(query, [id], (err, results) => {
     if (err) {
       console.error('Error al obtener acta de sustentación por ID:', err);
       callback(err, null);
     } else {
-      callback(null, results.rows[0]);  // PostgreSQL utiliza 'rows' para devolver los resultados
+      callback(null, results[0]);  // Devolvemos la primera fila, ya que se espera solo un resultado
     }
   });
 };
 
 export const deleteActaSustentacionById = (id, callback) => {
-  // Actualizamos la tabla de documentos
+  // Actualizar la tabla de documentos para desvincular el acta de sustentación
   const queryUpdateDocumentos = 'UPDATE documentos SET actasust_id = NULL WHERE actasust_id = $1';
 
-  executeQuery(queryUpdateDocumentos, [id], (err, results) => {
+  executeQuery(queryUpdateDocumentos, [id], (err, updateResults) => {
     if (err) {
       console.error('Error al actualizar documentos:', err);
       return callback(err, null);
     }
 
-    // Finalmente, eliminamos el acta
+    // Eliminar el acta de sustentación
     const queryDeleteActa = 'DELETE FROM acta_sustentacion WHERE id = $1';
 
-    executeQuery(queryDeleteActa, [id], (err, results) => {
+    executeQuery(queryDeleteActa, [id], (err, deleteResults) => {
       if (err) {
         console.error('Error al eliminar acta:', err);
         return callback(err, null);
       }
 
-      callback(null, results.rowCount);  // PostgreSQL utiliza 'rowCount' para contar las filas afectadas
+      callback(null, deleteResults.rowCount);  // Devolvemos el número de filas afectadas
     });
   });
 };

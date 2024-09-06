@@ -24,7 +24,7 @@ export const insertReporteTurnitin = (reporteDetails, callback) => {
       console.error('Error al insertar reporte de Turnitin:', err);
       callback(err, null);
     } else {
-      const reporteId = results.rows[0].id;
+      const reporteId = results[0].id; // Ya no es necesario usar results.rows
 
       const queryUpdateDocumentos = `
         UPDATE documentos SET repturnitin_id = $1 WHERE id = $2
@@ -60,7 +60,7 @@ export const getReporteTurnitinById = (id, callback) => {
       console.error('Error al obtener reporte de Turnitin por ID:', err);
       callback(err, null);
     } else {
-      callback(null, results.rows[0]);
+      callback(null, results[0]); // Ya no es necesario usar results.rows[0]
     }
   });
 };
@@ -82,7 +82,7 @@ export const deleteReporteTurnitinById = (id, callback) => {
         return callback(err, null);
       }
 
-      callback(null, results.rowCount);
+      callback(null, results.rowCount); // Ya no es necesario usar results.rowCount
     });
   });
 };

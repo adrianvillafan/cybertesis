@@ -11,3 +11,4 @@ export * from './src/apis/escuela_upg/steps/ApiDeclaracionJurada.js';
 export * from './src/apis/escuela_upg/modals/ApiPostergacion.js';
 export * from './src/apis/escuela_upg/modals/ApiConsentimiento.js';
 export * from './src/components/dashboard/views/escuela_upg/SolicitudesAPI.js';
+export * from './src/apis/mailerApi.js';

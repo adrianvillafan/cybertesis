@@ -24,12 +24,12 @@ export const insertPostergacionPublicacion = (postergacionDetails, callback) => 
       console.error('Error al insertar Postergación de Publicación:', err);
       callback(err, null);
     } else {
-      const postergacionId = results.rows[0].id;
+      const postergacionId = results[0].id; // Ya no es necesario usar results.rows
 
       const queryUpdateDocumentos = `
         UPDATE documentos SET postergacion_id = $1 WHERE id = $2
       `;
-      executeQuery(queryUpdateDocumentos, [postergacionId, postergacionDetails.documentos_id], (err, results) => {
+      executeQuery(queryUpdateDocumentos, [postergacionId, postergacionDetails.documentos_id], (err, updateResults) => {
         if (err) {
           console.error('Error al actualizar documentos:', err);
           callback(err, null);
@@ -60,29 +60,31 @@ export const getPostergacionPublicacionById = (id, callback) => {
       console.error('Error al obtener Postergación de Publicación por ID:', err);
       callback(err, null);
     } else {
-      callback(null, results.rows[0]);
+      callback(null, results[0]); // Ya no es necesario usar results.rows[0]
     }
   });
 };
 
 export const deletePostergacionPublicacionById = (id, callback) => {
+  // Actualizamos la tabla de documentos para desvincular la postergación
   const queryUpdateDocumentos = 'UPDATE documentos SET postergacion_id = NULL WHERE postergacion_id = $1';
 
-  executeQuery(queryUpdateDocumentos, [id], (err, results) => {
+  executeQuery(queryUpdateDocumentos, [id], (err, updateResults) => {
     if (err) {
       console.error('Error al actualizar documentos:', err);
       return callback(err, null);
     }
 
+    // Finalmente, eliminamos la postergación
     const queryDeletePostergacion = 'DELETE FROM postergacion WHERE id = $1';
 
-    executeQuery(queryDeletePostergacion, [id], (err, results) => {
+    executeQuery(queryDeletePostergacion, [id], (err, deleteResults) => {
       if (err) {
         console.error('Error al eliminar Postergación de Publicación:', err);
         return callback(err, null);
       }
 
-      callback(null, results.rowCount);
+      callback(null, deleteResults.rowCount); // Ya no es necesario usar results.rowCount
     });
   });
 };

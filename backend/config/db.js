@@ -45,13 +45,16 @@ export function executeQuery(sql, params, callback) {
   pool.query(sql, params)
     .then(results => {
       console.log('Consulta ejecutada con éxito');
-      callback(null, results);
+      console.log('Resultados:', results.rows);
+      // Asegurarte de que estás pasando las filas de resultados, no el objeto completo
+      callback(null, results.rows);
     })
     .catch(err => {
       console.error('Error al ejecutar la consulta:', err.stack);
       callback(err, null);
     });
 }
+
 
 export default pool;
 

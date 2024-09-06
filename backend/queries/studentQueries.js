@@ -37,12 +37,12 @@ export function fetchStudentData(userId, callback) {
   `;
 
   executeQuery(sql, [userId], (studentErr, studentResults) => {
-    if (studentErr || studentResults.rows.length === 0) {
+    if (studentErr || studentResults.length === 0) {
       console.error('Error al buscar datos del estudiante:', studentErr);
       callback({ message: 'Error al buscar datos del estudiante' }, null);
     } else {
-      console.log('Datos del estudiante encontrados:', studentResults.rows[0]);
-      callback(null, studentResults.rows[0]);
+      console.log('Datos del estudiante encontrados:', studentResults[0]);
+      callback(null, studentResults[0]);
     }
   });
 }
@@ -74,13 +74,12 @@ export function fetchExpedientes(estudianteId, gradoId, callback) {
       console.error('Error al buscar expedientes:', err);
       callback({ message: 'Error al buscar expedientes' }, null);
     } else {
-      console.log('Expedientes encontrados:', results.rows);
-      callback(null, results.rows);
+      console.log('Expedientes encontrados:', results);
+      callback(null, results);
     }
   });
 }
 
-// Función para crear una solicitud y actualizar la tabla documentos
 export function createSolicitud(idFacultad, idDocumento, callback) {
   const insertSql = `
     INSERT INTO solicitudes (
@@ -110,7 +109,7 @@ export function createSolicitud(idFacultad, idDocumento, callback) {
       console.error('Error al crear solicitud:', insertErr);
       callback({ message: 'Error al crear solicitud' }, null);
     } else {
-      const solicitudId = insertResults.rows[0].id;
+      const solicitudId = insertResults[0].id;
 
       const updateSql = `
         UPDATE documentos 
@@ -131,7 +130,6 @@ export function createSolicitud(idFacultad, idDocumento, callback) {
   });
 }
 
-// Nueva función para obtener solicitudes de un alumno
 export function fetchSolicitudesByAlumno(idAlumno, callback) {
   const sql = `
     SELECT 
@@ -163,8 +161,9 @@ export function fetchSolicitudesByAlumno(idAlumno, callback) {
       console.error('Error al buscar solicitudes:', err);
       callback({ message: 'Error al buscar solicitudes' }, null);
     } else {
-      console.log('Solicitudes encontradas:', results.rows);
-      callback(null, results.rows);
+      console.log('Solicitudes encontradas:', results);
+      callback(null, results);
     }
   });
 }
+

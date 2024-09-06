@@ -19,22 +19,25 @@ export const insertCertificadoSimilitud = (certificadoDetails, callback) => {
     new Date()
   ];
 
+  // Ejecutar la consulta de inserción
   executeQuery(queryCertificado, certificadoValues, (err, results) => {
     if (err) {
       console.error('Error al insertar certificado de similitud:', err);
       callback(err, null);
     } else {
-      const certificadoId = results.rows[0].id;  // PostgreSQL utiliza 'rows' para devolver los resultados
+      const certificadoId = results[0].id;  // Ya no necesitas acceder a `results.rows`
 
       const queryUpdateDocumentos = `
         UPDATE documentos SET certsimil_id = $1 WHERE id = $2
       `;
-      executeQuery(queryUpdateDocumentos, [certificadoId, certificadoDetails.documentos_id], (err, results) => {
+
+      // Actualizar la tabla documentos con el ID del certificado insertado
+      executeQuery(queryUpdateDocumentos, [certificadoId, certificadoDetails.documentos_id], (err, updateResults) => {
         if (err) {
           console.error('Error al actualizar documentos:', err);
           callback(err, null);
         } else {
-          callback(null, certificadoId);
+          callback(null, certificadoId);  // Devolvemos el ID del certificado insertado
         }
       });
     }
@@ -56,37 +59,39 @@ export const getCertificadoSimilitudById = (id, callback) => {
     WHERE
       id = $1
   `;
+
+  // Ejecutar la consulta para obtener el certificado de similitud por ID
   executeQuery(query, [id], (err, results) => {
     if (err) {
       console.error('Error al obtener certificado de similitud por ID:', err);
       callback(err, null);
     } else {
-      callback(null, results.rows[0]);  // PostgreSQL utiliza 'rows' para devolver los resultados
+      callback(null, results[0]);  // Ya no es necesario acceder a `results.rows[0]`
     }
   });
 };
 
 // Eliminar un registro de certificado de similitud por ID
 export const deleteCertificadoSimilitudById = (id, callback) => {
-  // Actualizamos la tabla de documentos
+  // Actualizamos la tabla de documentos para desvincular el certificado
   const queryUpdateDocumentos = 'UPDATE documentos SET certsimil_id = NULL WHERE certsimil_id = $1';
 
-  executeQuery(queryUpdateDocumentos, [id], (err, results) => {
+  executeQuery(queryUpdateDocumentos, [id], (err, updateResults) => {
     if (err) {
       console.error('Error al actualizar documentos:', err);
       return callback(err, null);
     }
 
-    // Finalmente, eliminamos el certificado de similitud
+    // Finalmente, eliminamos el registro de certificado de similitud
     const queryDeleteCertificado = 'DELETE FROM certificado_similitud WHERE id = $1';
 
-    executeQuery(queryDeleteCertificado, [id], (err, results) => {
+    executeQuery(queryDeleteCertificado, [id], (err, deleteResults) => {
       if (err) {
         console.error('Error al eliminar certificado de similitud:', err);
         return callback(err, null);
       }
 
-      callback(null, results.rowCount);  // PostgreSQL utiliza 'rowCount' para contar las filas afectadas
+      callback(null, deleteResults.rowCount);  // Devolvemos el número de filas afectadas
     });
   });
 };

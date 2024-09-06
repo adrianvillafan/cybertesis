@@ -19,28 +19,33 @@ export const insertConsentimientoInformado = (consentimientoDetails, callback) =
     new Date()
   ];
 
+  // Ejecutar la consulta de inserción
   executeQuery(queryConsentimiento, consentimientoValues, (err, results) => {
     if (err) {
       console.error('Error al insertar Consentimiento Informado:', err);
       callback(err, null);
     } else {
-      const consentimientoId = results.rows[0].id;  // PostgreSQL utiliza 'rows' para devolver los resultados
+      const consentimientoId = results[0].id;  // Ya no necesitas acceder a `results.rows`
 
       const queryUpdateDocumentos = `
         UPDATE documentos SET consentimiento_id = $1 WHERE id = $2
       `;
-      executeQuery(queryUpdateDocumentos, [consentimientoId, consentimientoDetails.documentos_id], (err, results) => {
+
+      // Actualizar la tabla documentos con el ID del consentimiento insertado
+      executeQuery(queryUpdateDocumentos, [consentimientoId, consentimientoDetails.documentos_id], (err, updateResults) => {
         if (err) {
           console.error('Error al actualizar documentos:', err);
           callback(err, null);
         } else {
-          callback(null, consentimientoId);
+          callback(null, consentimientoId);  // Devolvemos el ID del consentimiento insertado
         }
       });
     }
   });
 };
 
+
+// Obtener un registro de Consentimiento Informado por ID
 export const getConsentimientoInformadoById = (id, callback) => {
   const query = `
     SELECT 
@@ -55,34 +60,41 @@ export const getConsentimientoInformadoById = (id, callback) => {
     WHERE
       id = $1
   `;
+
+  // Ejecutar la consulta para obtener el Consentimiento Informado por ID
   executeQuery(query, [id], (err, results) => {
     if (err) {
       console.error('Error al obtener Consentimiento Informado por ID:', err);
       callback(err, null);
     } else {
-      callback(null, results.rows[0]);  // PostgreSQL utiliza 'rows' para devolver los resultados
+      callback(null, results[0]);  // Ya no es necesario acceder a `results.rows[0]`
     }
   });
 };
 
+
+// Eliminar un registro de Consentimiento Informado por ID
 export const deleteConsentimientoInformadoById = (id, callback) => {
+  // Actualizamos la tabla de documentos para desvincular el consentimiento
   const queryUpdateDocumentos = 'UPDATE documentos SET consentimiento_id = NULL WHERE consentimiento_id = $1';
 
-  executeQuery(queryUpdateDocumentos, [id], (err, results) => {
+  executeQuery(queryUpdateDocumentos, [id], (err, updateResults) => {
     if (err) {
       console.error('Error al actualizar documentos:', err);
       return callback(err, null);
     }
 
+    // Finalmente, eliminamos el Consentimiento Informado
     const queryDeleteConsentimiento = 'DELETE FROM consentimiento WHERE id = $1';
 
-    executeQuery(queryDeleteConsentimiento, [id], (err, results) => {
+    executeQuery(queryDeleteConsentimiento, [id], (err, deleteResults) => {
       if (err) {
         console.error('Error al eliminar Consentimiento Informado:', err);
         return callback(err, null);
       }
 
-      callback(null, results.rowCount);  // PostgreSQL utiliza 'rowCount' para contar las filas afectadas
+      callback(null, deleteResults.rowCount);  // Devolvemos el número de filas afectadas
     });
   });
 };
+

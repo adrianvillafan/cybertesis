@@ -23,10 +23,12 @@ export const loginUser = (req, res) => {
         if (err) {
             return res.status(500).json({ error: err.message });
         }
-        if (results.length === 0) {
+        if (!results || results.length === 0) {
             return res.status(401).json({ message: 'Credenciales incorrectas' });
         }
-        const user = results[0];
+        const user = results.rows[0];
+        console.log('results',results);
+        console.log('results.rows[0]: ',results.rows[0]);
         if (!bcrypt.compareSync(password, user.password)) {
             return res.status(401).json({ message: 'Contraseña incorrecta' });
         }

@@ -42,7 +42,7 @@ export const insertMetadata = (metadataDetails, callback) => {
     metadataDetails.id_disciplina_1,
     metadataDetails.id_disciplina_2,
     metadataDetails.id_disciplina_3,
-    metadataDetails.file_url,  // Añadido el campo file_url
+    metadataDetails.file_url,
     metadataDetails.created_by,
     metadataDetails.updated_by,
     new Date(),
@@ -54,12 +54,12 @@ export const insertMetadata = (metadataDetails, callback) => {
       console.error('Error al insertar metadata:', err);
       callback(err, null);
     } else {
-      const metadataId = results.rows[0].id;
+      const metadataId = results[0].id; // Ya no es necesario usar results.rows
 
       const queryUpdateDocumentos = `
         UPDATE documentos SET metadatos_id = $1 WHERE id = $2
       `;
-      executeQuery(queryUpdateDocumentos, [metadataId, metadataDetails.documentos_id], (err, results) => {
+      executeQuery(queryUpdateDocumentos, [metadataId, metadataDetails.documentos_id], (err, updateResults) => {
         if (err) {
           console.error('Error al actualizar documentos:', err);
           callback(err, null);
@@ -71,7 +71,6 @@ export const insertMetadata = (metadataDetails, callback) => {
   });
 };
 
-// Obtener un registro de metadata por ID
 export const getMetadataById = (id, callback) => {
   const query = `
     SELECT 
@@ -114,12 +113,12 @@ export const getMetadataById = (id, callback) => {
       console.error('Error al obtener metadata por ID:', err);
       callback(err, null);
     } else {
-      callback(null, results.rows[0]);
+      callback(null, results[0]);  // Ya no es necesario usar results.rows[0]
     }
   });
 };
 
-// Eliminar un registro de metadata por ID
+
 export const deleteMetadataById = (id, callback) => {
   // Actualizamos la tabla de documentos
   const queryUpdateDocumentos = 'UPDATE documentos SET metadatos_id = NULL WHERE metadatos_id = $1';
@@ -139,7 +138,7 @@ export const deleteMetadataById = (id, callback) => {
         return callback(err, null);
       }
 
-      callback(null, results.rowCount);
+      callback(null, results.rowCount);  // Ya no es necesario usar results.rowCount para obtener el número de filas afectadas
     });
   });
 };
@@ -162,7 +161,7 @@ export const getLineasInvestigacion = (facultadId, callback) => {
       console.error('Error al obtener líneas de investigación:', err);
       callback(err, null);
     } else {
-      callback(null, results.rows);
+      callback(null, results);  // Ya no es necesario usar results.rows
     }
   });
 };
@@ -175,10 +174,11 @@ export const getGruposInvestigacion = (facultadId, callback) => {
       console.error('Error al obtener grupos de investigación:', err);
       callback(err, null);
     } else {
-      callback(null, results.rows);
+      callback(null, results);  // Ya no es necesario usar results.rows
     }
   });
 };
+
 
 export const getDisciplinasOCDE = (callback) => {
   const query = `
@@ -193,12 +193,12 @@ export const getDisciplinasOCDE = (callback) => {
       callback(err, null);
     } else {
       // Formatear los resultados para el frontend
-      const formattedResults = results.rows.map(disciplina => ({
+      const formattedResults = results.map(disciplina => ({
         label: disciplina.prefLabel_es,
         value: String(disciplina.id),
         description: disciplina.uri
       }));
-      callback(null, formattedResults);
+      callback(null, formattedResults);  // Ya no es necesario usar results.rows
     }
   });
 };
