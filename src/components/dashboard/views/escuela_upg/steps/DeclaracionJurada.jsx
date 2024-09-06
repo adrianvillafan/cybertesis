@@ -4,21 +4,23 @@ import { updateEstadoId } from '../../../../../../api'; // Importa la función p
 
 const DeclaracionJurada = ({ setStep, documentos }) => {
   console.log(documentos);
-
   const handleEnviarSolicitud = async () => {
     try {
       // Suponiendo que documentos tiene el id del documento actual
       const documentId = documentos.id;
       const nombre = 'Adrian Marcel Villafan Virhuez'; // Nombre del alumno
+      const email = 'adrian.villafan@unmsm.edu.pe';
       await updateEstadoId(documentId, 1); // Llama a la función para actualizar el estado_id a 1
       
       // URL de tu Google Apps Script para enviar el correo de "Expediente Cargado Exitosamente"
-      const emailUrl = `https://script.google.com/macros/s/AKfycbwB7mnqFkYTanszqDLGj33CpqRd0K-p6KGoBuuWx_bTG7k9x_KcJ3X_xKbEQ1JEojKnEA/exec?email=adrian.villafan@unmsm.edu.pe&contentId=1&customerName=${nombre}&solicitudId=${documentId}`;
+      /* const emailUrl = `https://script.google.com/macros/s/AKfycbwB7mnqFkYTanszqDLGj33CpqRd0K-p6KGoBuuWx_bTG7k9x_KcJ3X_xKbEQ1JEojKnEA/exec?email=adrian.villafan@unmsm.edu.pe&contentId=1&customerName=${nombre}&solicitudId=${documentId}`;
 
       // Realiza la solicitud fetch para enviar el correo
       await fetch(emailUrl, {
         method: 'GET'
       });
+ */
+      await sendMail(email, 'Registro Exitoso - Código de Verificación', nombre, documentId);
 
     } catch (error) {
       console.error('Error al enviar la solicitud:', error);

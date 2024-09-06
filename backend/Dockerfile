@@ -26,6 +26,9 @@ ENV DB_USER=avnadmin
 ENV DB_PASSWORD=AVNS_12534vn8JCCz0xKpNOo
 ENV DB_DATABASE=defaultdb
 
+ENV USER  = cristinamartinez0440@gmail.com
+ENV APP_PASSWORD = hknx kyjx dmqj zqub
+
 # Copiar todos los archivos del proyecto al directorio de trabajo del contenedor
 COPY . .
 
