@@ -29,8 +29,19 @@ const Inicio = () => {
               <img
                 src={
                   imageError
-                    ? "https://luiscavibotsample.s3-sa-east-1.amazonaws.com/assets/estudiarensm/facultades/sistemas.webp"
-                    : user.foto || `https://sisbib.unmsm.edu.pe/fotos/3/${user.identificacion_id}.jpg`
+                    ? "https://upload.wikimedia.org/wikipedia/commons/thumb/1/12/User_icon_2.svg/640px-User_icon_2.svg.png"
+                    : (() => {
+                      switch (user.current_team_id) {
+                        case 2:
+                          return `https://sisbib.unmsm.edu.pe/fotos/3/${user.identificacion_id}.jpg`;
+                        case 3:
+                          return "https://luiscavibotsample.s3-sa-east-1.amazonaws.com/assets/estudiarensm/facultades/sistemas.webp";
+                        case 4:
+                          return "http://websecgen.unmsm.edu.pe/carne/imagenes-UNMSM/2/401/0010021027266.jpg";
+                        default:
+                          return "https://upload.wikimedia.org/wikipedia/commons/thumb/1/12/User_icon_2.svg/640px-User_icon_2.svg.png";
+                      }
+                    })()
                 }
                 alt="User Photo"
                 style={{
@@ -44,6 +55,7 @@ const Inicio = () => {
                 }}
                 onError={handleImageError}
               />
+
 
               <Box>
 

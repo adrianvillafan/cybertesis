@@ -50,6 +50,7 @@ export function executeQuery(sql, params, callback) {
       callback(null, results.rows);
     })
     .catch(err => {
+      console.log('Error en consulta:', sql, 'con parámetros:', params);
       console.error('Error al ejecutar la consulta:', err.stack);
       callback(err, null);
     });
