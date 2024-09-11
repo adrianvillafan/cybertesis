@@ -13,7 +13,7 @@ export const sendVerificationEmail = async (to, name, requestCode) => {
         throw new Error('Error enviando el correo de verificación');
       }
   
-      return await response.json();
+      return response;
     } catch (error) {
       console.error('Error en sendVerificationEmail:', error);
       throw error;
@@ -34,8 +34,7 @@ export const sendVerificationEmail = async (to, name, requestCode) => {
       if (!response.ok) {
         throw new Error('Error enviando la notificación');
       }
-  
-      return await response.json();
+      return response;
     } catch (error) {
       console.error('Error en sendNotificationEmail:', error);
       throw error;
@@ -57,7 +56,7 @@ export const sendVerificationEmail = async (to, name, requestCode) => {
         throw new Error('Error enviando el correo de restablecimiento de contraseña');
       }
   
-      return await response.json();
+      return response;
     } catch (error) {
       console.error('Error en sendPasswordResetEmail:', error);
       throw error;

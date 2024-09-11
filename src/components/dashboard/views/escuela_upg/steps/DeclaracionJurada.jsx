@@ -11,18 +11,23 @@ const DeclaracionJurada = ({ setStep, documentos }) => {
       const documentId = documentos.id;
       const nombre = 'Adrian Marcel Villafan Virhuez'; // Nombre del alumno
       const email = 'adrian.villafan@unmsm.edu.pe';  // Correo del alumno
-
-      // Actualizar el estado_id del documento a 1 (por ejemplo, "Confirmado")
-      await updateEstadoId(documentId, 1);
-      // Llamar a sendNotificationEmail para enviar el correo de notificación
+  
+      console.log('Actualizando el estado del documento...');
+      //await updateEstadoId(documentId, 1);
+      console.log('Estado del documento actualizado');
+  
+      console.log('Enviando correo de notificación...');
       await sendNotificationEmail(email, nombre, `Su documento ha sido registrado con éxito. ID del documento: ${documentId}`);
-      // Cambiar el paso del formulario después de la operación exitosa
-      setStep(5); 
+      console.log('Correo de notificación enviado');
+  
+      console.log('Cambiando paso a 5...');
+      //setStep(5); // Este debería cambiar el paso si todo ha sido exitoso
     } catch (error) {
       console.error('Error al enviar la solicitud:', error);
       // Manejar los errores de forma adecuada
     }
   };
+  
 
   return (
     <Box>

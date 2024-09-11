@@ -5,10 +5,19 @@ const logoUrl = "https://vrip.unmsm.edu.pe/wp-content/uploads/2019/09/logo_vrip_
 const backgroundImageUrl = "https://es.catalat.org/wp-content/uploads/2019/10/fondo-editorial-unmsm.png";
 
 const TemplateMail = ({ name, message, requestCode }) => {
+  const styles = getStyles();
+
   return React.createElement(
     Html,
     null,
-    React.createElement(Head, null),
+    React.createElement(
+      Head,
+      null,
+      React.createElement('link', {
+        href: "https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap",
+        rel: "stylesheet"
+      })
+    ),
     React.createElement(
       Body,
       { style: styles.main },
@@ -19,14 +28,14 @@ const TemplateMail = ({ name, message, requestCode }) => {
           Section,
           { style: styles.headerSection },
           React.createElement(
-            "div",
+            'div',
             { style: styles.headerContent },
             React.createElement(Img, {
               src: logoUrl,
               width: "50",
               height: "50",
               alt: "Logo",
-              style: styles.logo
+              style: styles.logoLeft
             }),
             React.createElement(
               Text,
@@ -35,10 +44,10 @@ const TemplateMail = ({ name, message, requestCode }) => {
             ),
             React.createElement(Img, {
               src: backgroundImageUrl,
-              width: "70",
-              height: "40",
-              alt: "Background",
-              style: styles.background
+              width: "50",
+              height: "50",
+              alt: "Logo",
+              style: styles.logoRight
             })
           )
         ),
@@ -56,20 +65,20 @@ const TemplateMail = ({ name, message, requestCode }) => {
             message
           ),
           requestCode &&
+          React.createElement(
+            React.Fragment,
+            null,
             React.createElement(
-              React.Fragment,
-              null,
-              React.createElement(
-                Text,
-                { style: styles.requestCodeText },
-                "Código de Solicitud"
-              ),
-              React.createElement(
-                Heading,
-                { style: styles.code },
-                requestCode
-              )
+              Text,
+              { style: styles.requestCodeText },
+              "Código de Solicitud"
             ),
+            React.createElement(
+              Heading,
+              { style: styles.code },
+              requestCode
+            )
+          ),
           React.createElement(
             Button,
             { style: styles.cloudscapeButton, href: "#" },
@@ -82,30 +91,92 @@ const TemplateMail = ({ name, message, requestCode }) => {
 };
 
 // Define styles
-const styles = {
-  main: { backgroundColor: "#fff", color: "#333", fontFamily: "Arial, sans-serif" },
-  container: { width: "100%", maxWidth: "600px", margin: "0 auto", backgroundColor: "#fff", borderRadius: "10px", overflow: "hidden" },
-  headerSection: { backgroundColor: "#0F1B2A", color: "#fff", padding: "20px 20px 10px 20px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" },
-  headerContent: { display: "flex", alignItems: "center", justifyContent: "center", width: "100%" },
-  logo: { marginRight: "10px", marginBottom: "10px" },
-  headerText: { textAlign: "center", fontSize: "18px", fontWeight: "bold", color: "#fff", margin: 0, paddingTop: "10px" },
-  background: { marginLeft: "10px", marginBottom: "10px" },
-  contentSection: { padding: "30px 40px", textAlign: "center" },
-  greeting: { color: "#333", fontSize: "24px", fontWeight: "bold", marginBottom: "15px" },
-  mainText: { fontSize: "16px", color: "#555", lineHeight: "1.5", marginBottom: "20px" },
-  requestCodeText: { fontSize: "18px", color: "#333", marginBottom: "5px", fontWeight: "bold" },
-  code: { fontSize: "32px", color: "#333", marginBottom: "30px", fontWeight: "bold" },
-  cloudscapeButton: { 
-    backgroundColor: "#0073e6", 
-    color: "#fff", 
-    textDecoration: "none", 
-    borderRadius: "5px", 
-    padding: "12px 20px", 
-    border: "1px solid #005bb5", 
-    display: "inline-block", 
+const getStyles = () => ({
+  main: {
+    backgroundColor: "#fff",
+    color: "#333",
+    fontFamily: "'Open Sans', Arial, sans-serif",
+  },
+  container: {
+    width: "100%",
+    maxWidth: "600px",
+    margin: "0 auto",
+    backgroundColor: "#fff",
+    borderRadius: "10px",
+    overflow: "hidden",
+  },
+  headerSection: {
+    backgroundColor: "#0F1B2A",
+    color: "#fff",
+    padding: "20px",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  headerContent: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    width: "100%"
+  },
+  logoLeft: {
+    flexShrink: 0,
+    marginRight: "10px",
+    marginLeft: "0", 
+  },
+  headerText: {
+    textAlign: "center",
+    fontSize: "18px",
+    fontWeight: "bold",
+    color: "#fff",
+    flexGrow: 1,
+    margin: 0,
+  },
+  logoRight: {
+    flexShrink: 0,
+    marginLeft: "10px",
+    marginRight: "0",
+  },
+  contentSection: {
+    padding: "30px 40px",
+    textAlign: "center",
+  },
+  greeting: {
+    color: "#333",
+    fontSize: "24px",
+    fontWeight: "bold",
+    marginBottom: "15px",
+  },
+  mainText: {
+    fontSize: "16px",
+    color: "#555",
+    lineHeight: "1.5",
+    marginBottom: "20px",
+  },
+  requestCodeText: {
+    fontSize: "18px",
+    color: "#333",
+    marginBottom: "5px",
+    fontWeight: "bold",
+  },
+  code: {
+    fontSize: "32px",
+    color: "#333",
+    marginBottom: "30px",
+    fontWeight: "bold",
+  },
+  cloudscapeButton: {
+    backgroundColor: "#0073e6",
+    color: "#fff",
+    textDecoration: "none",
+    borderRadius: "25px", // More rounded
+    padding: "12px 20px",
+    border: "1px solid #005bb5",
+    display: "inline-block",
     fontSize: "16px",
     cursor: "pointer",
-  }, 
-};
+    fontFamily: "'Open Sans', Arial, sans-serif", // Apply Open Sans font
+  }
+});
 
 export default TemplateMail;

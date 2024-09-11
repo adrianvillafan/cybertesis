@@ -182,7 +182,7 @@ export const getGruposInvestigacion = (facultadId, callback) => {
 
 export const getDisciplinasOCDE = (callback) => {
   const query = `
-    SELECT id, prefLabel_es, uri 
+    SELECT id, preflabel_es, uri 
     FROM ocde 
     WHERE indicador IS NULL
   `;
@@ -194,7 +194,7 @@ export const getDisciplinasOCDE = (callback) => {
     } else {
       // Formatear los resultados para el frontend
       const formattedResults = results.map(disciplina => ({
-        label: disciplina.prefLabel_es,
+        label: disciplina.preflabel_es,
         value: String(disciplina.id),
         description: disciplina.uri
       }));
