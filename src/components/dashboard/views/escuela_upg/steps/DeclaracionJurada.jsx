@@ -2,18 +2,18 @@ import React from 'react';
 import { Box, Header, Button, SpaceBetween } from '@cloudscape-design/components';
 import { updateEstadoId, sendNotificationEmail } from '../../../../../../api'; // Importa sendNotificationEmail
 
-const DeclaracionJurada = ({ setStep, documentos }) => {
-  console.log(documentos);
+const DeclaracionJurada = ({ setStep, documentos, alumnoData }) => {
+  console.log(alumnoData);
 
   const handleEnviarSolicitud = async () => {
     try {
       // Obtener el ID del documento y los datos del alumno
       const documentId = documentos.id;
-      const nombre = 'Adrian Marcel Villafan Virhuez'; // Nombre del alumno
-      const email = 'adrian.villafan@unmsm.edu.pe';  // Correo del alumno
+      const nombre = alumnoData.nombre +  ' ' + alumnoData.apellidos_pat + ' ' + alumnoData.apellidos_mat ; // Nombre del alumno
+      const email = alumnoData.correo_institucional;  // Correo del alumno
   
       console.log('Actualizando el estado del documento...');
-      //await updateEstadoId(documentId, 1);
+      await updateEstadoId(documentId, 1);
       console.log('Estado del documento actualizado');
   
       console.log('Enviando correo de notificación...');
@@ -21,7 +21,7 @@ const DeclaracionJurada = ({ setStep, documentos }) => {
       console.log('Correo de notificación enviado');
   
       console.log('Cambiando paso a 5...');
-      //setStep(5); // Este debería cambiar el paso si todo ha sido exitoso
+      setStep(5); // Este debería cambiar el paso si todo ha sido exitoso
     } catch (error) {
       console.error('Error al enviar la solicitud:', error);
       // Manejar los errores de forma adecuada

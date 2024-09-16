@@ -46,7 +46,7 @@ const IngresarDoc = () => {
           setDocumentos={setDocumentos}
         />
       )}
-      {step === 4 && <DeclaracionJurada setStep={setStep} documentos={documentos} />}
+      {step === 4 && <DeclaracionJurada setStep={setStep} documentos={documentos} alumnoData={alumnoData} />}
       {step === 5 && <SolicitudEnviada setStep={setStep} documentoId={documentos.id} />}
     </Container>
   );
