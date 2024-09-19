@@ -112,14 +112,14 @@ const DocumentosRequeridos = ({
   };
 
   const documentosRequeridos = [
-    { id: 1, nombre: 'Tesis' },
-    { id: 2, nombre: 'Acta de Sustentación' },
-    { id: 3, nombre: 'Certificado de Similitud' },
-    { id: 4, nombre: 'Autorización para el depósito de obra en Cybertesis' },
-    { id: 5, nombre: 'Hoja de Metadatos' },
-    { id: 6, nombre: 'Reporte de Turnitin' },
-    { id: 7, nombre: 'Consentimiento Informado' },  // Nuevo documento
-    { id: 8, nombre: 'Postergación de Publicación' }  // Nuevo documento con especificación de opcional
+    { id: 1, nombre: 'Tesis' , display: 'Registro de Tesis' },
+    { id: 2, nombre: 'Acta de Sustentación' , display: 'Registro de Acta de Sustentación' },
+    { id: 3, nombre: 'Certificado de Similitud' , display: 'Registro de Certificado de Similitud' },
+    { id: 4, nombre: 'Autorización para el depósito de obra en Cybertesis' , display: 'Autorización para el depósito de obra en Cybertesis' },
+    { id: 5, nombre: 'Hoja de Metadatos' , display: 'Registro de Metadatos Complementarios' },
+    { id: 6, nombre: 'Reporte de Turnitin' , display: 'Registro de Reporte de Turnitin'},
+    { id: 7, nombre: 'Consentimiento Informado' , display: 'Registro de Consentimiento Informado' },  // Nuevo documento
+    { id: 8, nombre: 'Postergación de Publicación' , display: 'Solicitud de Postergación en Cybertesis' }  // Nuevo documento con especificación de opcional
   ];
 
   const isTesisComplete = !!savedDocuments['Tesis'];
@@ -133,7 +133,7 @@ const DocumentosRequeridos = ({
           items={documentosRequeridos}
           columnDefinitions={[
             { id: 'id', header: 'ID', cell: (item) => item.id },
-            { id: 'tipoDocumento', header: 'Tipo de Documento', cell: (item) => item.nombre },
+            { id: 'tipoDocumento', header: 'Tipo de Documento', cell: (item) => item.display },
             { id: 'verModelo', header: 'Modelo', cell: (item) => <Link href={`/path/to/model/${item.nombre}.pdf`} external={true}>Ver modelo</Link> },
             {
               id: 'cargarEditar',

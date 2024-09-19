@@ -219,20 +219,7 @@ const ActaSustentacionModal = ({ onClose, documentos, onSave }) => {
           <Container header={<Header variant="h3">Formulario de Acta de Sustentación</Header>}>
             <SpaceBetween direction="vertical" size="s">
               <Header variant="h5">Presidente</Header>
-              <ColumnLayout columns={2}>
-                <FormField label="Nombres">
-                  <Input
-                    value={loadingDni.presidente ? 'Cargando...' : formData.presidente.nombre}
-                    readOnly
-                  />
-                </FormField>
-                <FormField label="Apellidos">
-                  <Input
-                    value={loadingDni.presidente ? 'Cargando...' : formData.presidente.apellido}
-                    readOnly
-                  />
-                </FormField>
-              </ColumnLayout>
+             
               <ColumnLayout columns={3}>
                 <FormField label="Tipo de Documento">
                   <Select
@@ -257,6 +244,20 @@ const ActaSustentacionModal = ({ onClose, documentos, onSave }) => {
                   />
                 </FormField>
               </ColumnLayout>
+              <ColumnLayout columns={2}>
+                <FormField label="Nombres">
+                  <Input
+                    value={loadingDni.presidente ? 'Cargando...' : formData.presidente.nombre}
+                    readOnly
+                  />
+                </FormField>
+                <FormField label="Apellidos">
+                  <Input
+                    value={loadingDni.presidente ? 'Cargando...' : formData.presidente.apellido}
+                    readOnly
+                  />
+                </FormField>
+              </ColumnLayout>
             </SpaceBetween>
           </Container>
 
@@ -274,20 +275,7 @@ const ActaSustentacionModal = ({ onClose, documentos, onSave }) => {
                 </Header>
               }
             >
-              <ColumnLayout columns={2}>
-                <FormField label="Nombres">
-                  <Input
-                    value={loadingDni.miembros[index] ? 'Cargando...' : miembro.nombre}
-                    readOnly
-                  />
-                </FormField>
-                <FormField label="Apellidos">
-                  <Input
-                    value={loadingDni.miembros[index] ? 'Cargando...' : miembro.apellido}
-                    readOnly
-                  />
-                </FormField>
-              </ColumnLayout>
+              
               <ColumnLayout columns={3}>
                 <FormField label="Tipo de Documento">
                   <Select
@@ -312,6 +300,20 @@ const ActaSustentacionModal = ({ onClose, documentos, onSave }) => {
                   />
                 </FormField>
               </ColumnLayout>
+              <ColumnLayout columns={2}>
+                <FormField label="Nombres">
+                  <Input
+                    value={loadingDni.miembros[index] ? 'Cargando...' : miembro.nombre}
+                    readOnly
+                  />
+                </FormField>
+                <FormField label="Apellidos">
+                  <Input
+                    value={loadingDni.miembros[index] ? 'Cargando...' : miembro.apellido}
+                    readOnly
+                  />
+                </FormField>
+              </ColumnLayout>
             </Container>
           ))}
 
@@ -320,20 +322,14 @@ const ActaSustentacionModal = ({ onClose, documentos, onSave }) => {
               key={index}
               header={<Header variant="h5">{formData.asesores.length === 1 ? "Datos del Asesor" : `Datos del Asesor ${index + 1}`}</Header>}
             >
-              <ColumnLayout columns={2}>
-                <FormField label="Nombres">
-                  <Input value={loadingDni.asesores[index] ? 'Cargando...' : asesor.nombre} readOnly />
-                </FormField>
-                <FormField label="Apellidos">
-                  <Input value={loadingDni.asesores[index] ? 'Cargando...' : asesor.apellido} readOnly />
-                </FormField>
-              </ColumnLayout>
+              
               <ColumnLayout columns={3}>
                 <FormField label="Tipo de Documento">
                   <Select
                     selectedOption={{ label: asesor.tipoDocumento, value: asesor.tipoDocumento }}
                     options={tiposDocumento}
                     onChange={({ detail }) => handleChange('tipoDocumento', detail.selectedOption.value, index, 'asesores')}
+                    readOnly
                   />
                 </FormField>
                 <FormField label="Número de Documento">
@@ -344,6 +340,14 @@ const ActaSustentacionModal = ({ onClose, documentos, onSave }) => {
                     value={loadingDni.asesores[index] ? 'Cargando...' : asesor.grado}
                     readOnly
                   />
+                </FormField>
+              </ColumnLayout>
+              <ColumnLayout columns={2}>
+                <FormField label="Nombres">
+                  <Input value={loadingDni.asesores[index] ? 'Cargando...' : asesor.nombre} readOnly />
+                </FormField>
+                <FormField label="Apellidos">
+                  <Input value={loadingDni.asesores[index] ? 'Cargando...' : asesor.apellido} readOnly />
                 </FormField>
               </ColumnLayout>
             </Container>

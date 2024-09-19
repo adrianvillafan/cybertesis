@@ -72,8 +72,8 @@ const Profile = ({ isLoggedIn, setIsLoggedIn }) => {
         ];
       case 3 : // Escuela UPG
         return [
-          { type: "link", text: <a onClick={() => setActiveView('solicitudes')}> <Icon name="send" /> Expedientes</a>, href: '#solicitudes' },
           { type: "link", text: <a onClick={() => setActiveView('ingreso-docs')}>  <Icon name="folder-open" /> Ingresar Documentos</a>, href: '#docs' },
+          { type: "link", text: <a onClick={() => setActiveView('solicitudes')}> <Icon name="send" /> Expedientes</a>, href: '#solicitudes' },
           { type: "link", text: <a onClick={() => setActiveView('reports')}> <Icon name="file-open" /> Reportes</a>, href: '#reports' }
         ];
       case 4: // RecepDocs

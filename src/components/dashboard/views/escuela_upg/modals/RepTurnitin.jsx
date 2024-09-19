@@ -6,6 +6,7 @@ import UserContext from '../../../contexts/UserContext';
 
 const RepTurnitinModal = ({ onClose, onSave, readOnly, fileUrl: initialFileUrl, documentos }) => {
   const { user } = useContext(UserContext);
+  console.log('user:', user);
   const [file, setFile] = useState(null);
   const [fileUrl, setFileUrl] = useState(readOnly ? initialFileUrl : '');
   const [errorMessage, setErrorMessage] = useState('');

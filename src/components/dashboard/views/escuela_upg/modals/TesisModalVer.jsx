@@ -19,7 +19,7 @@ const TesisModalVer = ({ onClose, documentos }) => {
   const [loadingState, setLoadingState] = useState({ autores: [true, true], asesores: [true, true] });
 
   const gradoOptions = [
-    { label: 'Bachiller', value: '1' },
+    { label: 'Tituto', value: '1' },
     { label: 'Magister', value: '2' },
     { label: 'Doctor', value: '3' }
   ];
@@ -249,6 +249,26 @@ const TesisModalVer = ({ onClose, documentos }) => {
               key={index}
               header={<Header variant="h5">{formData.asesores.length > 1 ? `Datos del Asesor ${index + 1}` : 'Datos del Asesor'}</Header>}
             >
+
+              <ColumnLayout columns={2}>
+                <FormField label="Tipo de Documento">
+                  <Select
+                    selectedOption={{ label: asesor.tipoDocumento, value: asesor.tipoDocumento }}
+                    options={[
+                      { label: 'DNI', value: 'DNI' },
+                      { label: 'Pasaporte', value: 'Pasaporte' }
+                    ]}
+                    readOnly
+                  />
+                </FormField>
+                <FormField label="Número de Documento">
+                  <Input
+                    value={asesor.dni}
+                    readOnly
+                  />
+                </FormField>
+
+              </ColumnLayout>
               <ColumnLayout columns={2}>
                 <FormField label="Nombres">
                   <Input
@@ -263,13 +283,8 @@ const TesisModalVer = ({ onClose, documentos }) => {
                   />
                 </FormField>
               </ColumnLayout>
+
               <ColumnLayout columns={2}>
-                <FormField label="Número de Documento">
-                  <Input
-                    value={asesor.dni}
-                    readOnly
-                  />
-                </FormField>
                 <FormField label="Grado">
                   <Select
                     selectedOption={{ label: asesor.grado, value: asesor.grado }}
@@ -277,18 +292,7 @@ const TesisModalVer = ({ onClose, documentos }) => {
                     readOnly
                   />
                 </FormField>
-              </ColumnLayout>
-              <ColumnLayout>
-                <FormField label="Tipo de Documento">
-                  <Select
-                    selectedOption={{ label: asesor.tipoDocumento, value: asesor.tipoDocumento }}
-                    options={[
-                      { label: 'DNI', value: 'DNI' },
-                      { label: 'Pasaporte', value: 'Pasaporte' }
-                    ]}
-                    readOnly
-                  />
-                </FormField>
+
                 <FormField label="URL de ORCID">
                   <Input
                     value={loadingState.asesores[index] ? 'Cargando...' : asesor.orcid}

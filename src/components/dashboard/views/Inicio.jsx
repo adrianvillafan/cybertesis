@@ -59,7 +59,7 @@ const Inicio = () => {
 
               <Box>
 
-                <p><strong>Facultad:</strong> {user.nombre_facultad}</p>
+                
                 <p><strong>Categoria:</strong> {user.nombre_grado}</p>
                 <p><strong>Correo electrónico:</strong> {user.email}</p>
                 {
@@ -67,7 +67,10 @@ const Inicio = () => {
                     <>
                       <p><strong>Código Estudiante:</strong> {user.codigo_estudiante}</p>
                       {user.grado_academico_id === 1 ? (
+                        <div>
                         <p><strong>Escuela:</strong> {user.nombre_escuela}</p>
+                        <p><strong>Facultad:</strong> {user.nombre_facultad}</p>
+                        </div>
                       ) : (
                         <p><strong>Programa:</strong> {user.nombre_programa}</p>
                       )}
@@ -113,12 +116,7 @@ const Inicio = () => {
 
         <SpaceBetween direction="vertical" size="s">
 
-          {/* Sección de Fecha y Hora */}
-          <Container header={<Box variant="h2">Fecha y Hora</Box>}>
-            <p><strong>Fecha Actual:</strong> {currentTime.toLocaleDateString()}</p>
-            <p><strong>Hora Actual:</strong> {currentTime.toLocaleTimeString()}</p>
-            <p>Es importante estar al tanto de las fechas y horas para cumplir con todos los plazos establecidos en tu proceso académico.</p>
-          </Container>
+          
 
           {/* Sección de Preguntas Frecuentes */}
           <Container header={<Box variant="h2">Preguntas Frecuentes</Box>}>
@@ -155,6 +153,13 @@ const Inicio = () => {
                 <Box variant="p">Puedes ver las las directivas del VRIP relacionadas a Turnitin en el sigueinte enlace: <br /> <a style={{ color: 'blue' }} target='_blank' href='https://chatgpt.com/g/g-xFXk0r2Cq-turnitin-vrip-unmsm'>Turnitin VRIP UNMSM</a>.</Box>
               </>
             )}
+          </Container>
+
+          {/* Sección de Fecha y Hora */}
+          <Container>
+            <p><strong>Fecha Actual:</strong> {currentTime.toLocaleDateString()}</p>
+            <p><strong>Hora Actual:</strong> {currentTime.toLocaleTimeString()}</p>
+            <p>Es importante estar al tanto de las fechas y horas para cumplir con todos los plazos establecidos en tu proceso académico.</p>
           </Container>
         </SpaceBetween>
       </ColumnLayout>

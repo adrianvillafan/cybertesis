@@ -5,7 +5,10 @@ import Button from "@cloudscape-design/components/button";
 import Container from "@cloudscape-design/components/container";
 import Header from "@cloudscape-design/components/header";
 import Input from "@cloudscape-design/components/input";
+import FormField from "@cloudscape-design/components/form-field";
+import Box from '@cloudscape-design/components/box';
 import Checkbox from "@cloudscape-design/components/checkbox";
+import { ColumnLayout } from '@cloudscape-design/components';
 import { handleSubmit } from '../../../api';
 import { useUser } from '../../hooks/useUser';
 import Alert from "@cloudscape-design/components/alert"; // Importa el componente Alert para mostrar mensajes de advertencia
@@ -35,6 +38,7 @@ const StudentForm = ({ handleBack }) => {
     e.preventDefault();
     setIsLoading(true); // Indica que la carga está en curso
     try {
+      form.email = form.email + '@unmsm.edu.pe'; // Agrega el dominio al correo
       await handleSubmit(form, handleLoginSuccess);
     } catch (error) {
       setError('Error al iniciar sesión: credenciales incorrectas.'); // Establece el mensaje de error
@@ -67,14 +71,23 @@ const StudentForm = ({ handleBack }) => {
             >
               <SpaceBetween direction="vertical" size="l">
               {error && <Alert type="error" onDismiss={() => setError(null)}>{error}</Alert>}
+
+              <SpaceBetween direction="horizontal" size="xs" alignItems="center">
+              <FormField>
                 <Input
                   controlId='email'
-                  type="email"
+                  type="text"
                   onChange={({ detail }) => setForm((prev) => ({ ...prev, email: detail.value }))}
                   value={form.email}
                   placeholder="Correo electrónico"
                   required
                 />
+                 </FormField>
+                 <FormField>
+                <Box color="text-body-secondary" display='inline'>@unmsm.edu.pe</Box>
+                </FormField>
+              </SpaceBetween>
+
                 <Input
                   controlId='password'
                   type="password"

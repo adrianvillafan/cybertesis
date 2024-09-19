@@ -46,7 +46,7 @@ const TesisModal = ({ onClose, alumnoData, onSave, readOnly, fileUrl, formData: 
   const years = Array.from({ length: 6 }, (_, i) => currentYear - i);
 
   const gradoOptions = [
-    { label: 'Bachiller', value: '1' },
+    { label: 'Titulo', value: '1' },
     { label: 'Magister', value: '2' },
     { label: 'Doctorado', value: '3' }
   ];
@@ -482,20 +482,6 @@ const TesisModal = ({ onClose, alumnoData, onSave, readOnly, fileUrl, formData: 
               }
             >
               <ColumnLayout columns={2}>
-                <FormField label="Nombres">
-                  <Input
-                    value={loadingDni.asesores[index] ? 'Cargando...' : asesor.nombre}
-                    readOnly
-                  />
-                </FormField>
-                <FormField label="Apellidos">
-                  <Input
-                    value={loadingDni.asesores[index] ? 'Cargando...' : asesor.apellido}
-                    readOnly
-                  />
-                </FormField>
-              </ColumnLayout>
-              <ColumnLayout columns={2}>
                 <FormField label="Tipo de Documento">
                   <Select
                     selectedOption={{ label: asesor.tipoDocumento, value: asesor.tipoDocumento }}
@@ -518,14 +504,32 @@ const TesisModal = ({ onClose, alumnoData, onSave, readOnly, fileUrl, formData: 
                     pattern="\d{1,8}"
                   />
                 </FormField>
+              </ColumnLayout>
+              <ColumnLayout columns={2}>
+                <FormField label="Nombres">
+                  <Input
+                    value={loadingDni.asesores[index] ? 'Cargando...' : asesor.nombre}
+                    readOnly
+                  />
+                </FormField>
+                <FormField label="Apellidos">
+                  <Input
+                    value={loadingDni.asesores[index] ? 'Cargando...' : asesor.apellido}
+                    readOnly
+                  />
+                </FormField>
+              </ColumnLayout>
+
+
+
+              <ColumnLayout columns={2}>
+
                 <FormField label="Grado">
                   <Input
                     value={loadingDni.asesores[index] ? 'Cargando...' : asesor.grado}
                     readOnly
                   />
                 </FormField>
-              </ColumnLayout>
-              <ColumnLayout>
                 <FormField label="URL de ORCID">
                   <Input
                     value={loadingDni.asesores[index] ? 'Cargando...' : asesor.orcid}

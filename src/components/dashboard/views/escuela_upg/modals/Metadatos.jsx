@@ -307,7 +307,7 @@ const MetadatosModal = ({ onClose, onSave, documentos }) => {
       footerButtons={
         <>
           <Button onClick={onClose} variant="secondary">Cancelar</Button>
-          <Button  variant="primary" onClick={handleSave} disabled={!isFormComplete()}>Guardar</Button>
+          <Button variant="primary" onClick={handleSave} disabled={!isFormComplete()}>Guardar</Button>
         </>
       }
       file={file}
@@ -360,6 +360,9 @@ const MetadatosModal = ({ onClose, onSave, documentos }) => {
                   <FormField label="Número de Documento">
                     <Input value={asesor.identificacion_id} readOnly />
                   </FormField>
+                  <FormField label="ORCID">
+                    <Input value={asesor.orcid} readOnly />
+                  </FormField>
                 </ColumnLayout>
               </Container>
             ))
@@ -404,86 +407,75 @@ const MetadatosModal = ({ onClose, onSave, documentos }) => {
           )}
 
           <Container header={<Header variant="h3">Información Adicional</Header>}>
-            <FormField label="Línea de Investigación">
-              <Select
-                selectedOption={{ label: lineasInvestigacion.find(l => l.value === formData.lineaInvestigacion)?.label, value: formData.lineaInvestigacion }}
-                options={lineasInvestigacion}
-                filteringType="auto"
-                onChange={({ detail }) => handleSelectChange('lineaInvestigacion', detail.selectedOption.value)}
-              />
-            </FormField>
-            <FormField label="Grupo de Investigación">
-              <Select
-                selectedOption={{ label: gruposInvestigacion.find(g => g.value === formData.grupoInvestigacion)?.label, value: formData.grupoInvestigacion }}
-                options={gruposInvestigacion}
-                filteringType="auto"
-                onChange={({ detail }) => handleSelectChange('grupoInvestigacion', detail.selectedOption.value)}
-              />
-            </FormField>
-            <FormField label="Agencia de Financiamiento">
-              <Select
-                selectedOption={{ label: formData.agenciaFinanciamiento, value: formData.agenciaFinanciamiento }}
-                options={[
-                  { label: 'Financiado', value: 'Financiado' },
-                  { label: 'Sin financiamiento', value: 'Sin financiamiento' }
-                ]}
-                onChange={({ detail }) => handleSelectChange('agenciaFinanciamiento', detail.selectedOption.value)}
-              />
-            </FormField>
-            <Header variant="h4">Ubicación Geográfica de la Investigación</Header>
-            <ColumnLayout columns={2}>
-              <FormField label="País">
-                <Input value={formData.pais} readOnly />
-              </FormField>
-              <FormField label="Departamento">
-                <Input value={formData.departamento} readOnly />
-              </FormField>
-              <FormField label="Provincia">
-                <Input value={formData.provincia} readOnly />
-              </FormField>
-              <FormField label="Distrito">
-                <Input value={formData.distrito} readOnly />
-              </FormField>
-              <FormField label="Latitud">
-                <Input
-                  value={formData.latitud}
-                  onChange={({ detail }) => handleLatLongChange(detail.value, formData.longitud)}
-                />
-              </FormField>
-              <FormField label="Longitud">
-                <Input
-                  value={formData.longitud}
-                  onChange={({ detail }) => handleLatLongChange(formData.latitud, detail.value)}
-                />
-              </FormField>
-            </ColumnLayout>
-            <FormField label="Año o rango de años en que se realizó la investigación">
-              <Select
-                selectedOption={{ label: formData.anoInvestigacionType, value: formData.anoInvestigacionType }}
-                options={[
-                  { label: 'Un año', value: 'Un año' },
-                  { label: 'Intervalo de año', value: 'Intervalo de año' },
-                  { label: 'Un año con mes', value: 'Un año con mes' },
-                  { label: 'Intervalo de año con meses', value: 'Intervalo de año con meses' },
-                ]}
-                onChange={({ detail }) => handleAnoInvestigacionChange(detail.selectedOption.value)}
-              />
-            </FormField>
-            {formData.anoInvestigacionType === 'Un año' && (
-              <FormField label="Año">
+            <SpaceBetween direction="vertical" size="m">
+              <FormField label="Línea de Investigación">
                 <Select
-                  selectedOption={{ label: formData.anoInicio, value: formData.anoInicio }}
-                  options={Array.from({ length: 6 }, (_, i) => {
-                    const year = new Date().getFullYear() - i;
-                    return { label: String(year), value: String(year) };
-                  })}
-                  onChange={({ detail }) => handleSelectChange('anoInicio', detail.selectedOption.value)}
+                  selectedOption={{ label: lineasInvestigacion.find(l => l.value === formData.lineaInvestigacion)?.label, value: formData.lineaInvestigacion }}
+                  options={lineasInvestigacion}
+                  filteringType="auto"
+                  onChange={({ detail }) => handleSelectChange('lineaInvestigacion', detail.selectedOption.value)}
                 />
               </FormField>
-            )}
-            {formData.anoInvestigacionType === 'Intervalo de año' && (
+              <FormField label="Grupo de Investigación">
+                <Select
+                  selectedOption={{ label: gruposInvestigacion.find(g => g.value === formData.grupoInvestigacion)?.label, value: formData.grupoInvestigacion }}
+                  options={gruposInvestigacion}
+                  filteringType="auto"
+                  onChange={({ detail }) => handleSelectChange('grupoInvestigacion', detail.selectedOption.value)}
+                />
+              </FormField>
+              <FormField label="Agencia de Financiamiento">
+                <Select
+                  selectedOption={{ label: formData.agenciaFinanciamiento, value: formData.agenciaFinanciamiento }}
+                  options={[
+                    { label: 'Financiado', value: 'Financiado' },
+                    { label: 'Sin financiamiento', value: 'Sin financiamiento' }
+                  ]}
+                  onChange={({ detail }) => handleSelectChange('agenciaFinanciamiento', detail.selectedOption.value)}
+                />
+              </FormField>
+              <Header variant="h4">Ubicación Geográfica de la Investigación</Header>
               <ColumnLayout columns={2}>
-                <FormField label="Desde">
+                <FormField label="Latitud">
+                  <Input
+                    value={formData.latitud}
+                    onChange={({ detail }) => handleLatLongChange(detail.value, formData.longitud)}
+                  />
+                </FormField>
+                <FormField label="Longitud">
+                  <Input
+                    value={formData.longitud}
+                    onChange={({ detail }) => handleLatLongChange(formData.latitud, detail.value)}
+                  />
+                </FormField>
+                <FormField label="País">
+                  <Input value={formData.pais} readOnly />
+                </FormField>
+                <FormField label="Departamento">
+                  <Input value={formData.departamento} readOnly />
+                </FormField>
+                <FormField label="Provincia">
+                  <Input value={formData.provincia} readOnly />
+                </FormField>
+                <FormField label="Distrito">
+                  <Input value={formData.distrito} readOnly />
+                </FormField>
+
+              </ColumnLayout>
+              <FormField label="Año o rango de años en que se realizó la investigación">
+                <Select
+                  selectedOption={{ label: formData.anoInvestigacionType, value: formData.anoInvestigacionType }}
+                  options={[
+                    { label: 'Un año', value: 'Un año' },
+                    { label: 'Intervalo de año', value: 'Intervalo de año' },
+                    { label: 'Un año con mes', value: 'Un año con mes' },
+                    { label: 'Intervalo de año con meses', value: 'Intervalo de año con meses' },
+                  ]}
+                  onChange={({ detail }) => handleAnoInvestigacionChange(detail.selectedOption.value)}
+                />
+              </FormField>
+              {formData.anoInvestigacionType === 'Un año' && (
+                <FormField label="Año">
                   <Select
                     selectedOption={{ label: formData.anoInicio, value: formData.anoInicio }}
                     options={Array.from({ length: 6 }, (_, i) => {
@@ -493,55 +485,69 @@ const MetadatosModal = ({ onClose, onSave, documentos }) => {
                     onChange={({ detail }) => handleSelectChange('anoInicio', detail.selectedOption.value)}
                   />
                 </FormField>
-                <FormField label="Hasta">
-                  <Select
-                    selectedOption={{ label: formData.anoFin, value: formData.anoFin }}
-                    options={Array.from({ length: 6 }, (_, i) => {
-                      const year = new Date().getFullYear() - i;
-                      return { label: String(year), value: String(year) };
-                    })}
-                    onChange={({ detail }) => handleSelectChange('anoFin', detail.selectedOption.value)}
-                  />
-                </FormField>
-              </ColumnLayout>
-            )}
-            {formData.anoInvestigacionType === 'Un año con mes' && (
-              <FormField label="Fecha">
-                <DatePicker
-                  value={formData.anoInicio}
-                  onChange={({ detail }) => handleSelectChange('anoInicio', detail.value)}
-                  granularity="month"
-                />
-              </FormField>
-            )}
-            {formData.anoInvestigacionType === 'Intervalo de año con meses' && (
-              <ColumnLayout columns={2}>
-                <FormField label="Desde">
+              )}
+              {formData.anoInvestigacionType === 'Intervalo de año' && (
+                <ColumnLayout columns={2}>
+                  <FormField label="Desde">
+                    <Select
+                      selectedOption={{ label: formData.anoInicio, value: formData.anoInicio }}
+                      options={Array.from({ length: 6 }, (_, i) => {
+                        const year = new Date().getFullYear() - i;
+                        return { label: String(year), value: String(year) };
+                      })}
+                      onChange={({ detail }) => handleSelectChange('anoInicio', detail.selectedOption.value)}
+                    />
+                  </FormField>
+                  <FormField label="Hasta">
+                    <Select
+                      selectedOption={{ label: formData.anoFin, value: formData.anoFin }}
+                      options={Array.from({ length: 6 }, (_, i) => {
+                        const year = new Date().getFullYear() - i;
+                        return { label: String(year), value: String(year) };
+                      })}
+                      onChange={({ detail }) => handleSelectChange('anoFin', detail.selectedOption.value)}
+                    />
+                  </FormField>
+                </ColumnLayout>
+              )}
+              {formData.anoInvestigacionType === 'Un año con mes' && (
+                <FormField label="Fecha">
                   <DatePicker
                     value={formData.anoInicio}
                     onChange={({ detail }) => handleSelectChange('anoInicio', detail.value)}
                     granularity="month"
                   />
                 </FormField>
-                <FormField label="Hasta">
-                  <DatePicker
-                    value={formData.anoFin}
-                    onChange={({ detail }) => handleSelectChange('anoFin', detail.value)}
-                    granularity="month"
-                  />
-                </FormField>
-              </ColumnLayout>
-            )}
+              )}
+              {formData.anoInvestigacionType === 'Intervalo de año con meses' && (
+                <ColumnLayout columns={2}>
+                  <FormField label="Desde">
+                    <DatePicker
+                      value={formData.anoInicio}
+                      onChange={({ detail }) => handleSelectChange('anoInicio', detail.value)}
+                      granularity="month"
+                    />
+                  </FormField>
+                  <FormField label="Hasta">
+                    <DatePicker
+                      value={formData.anoFin}
+                      onChange={({ detail }) => handleSelectChange('anoFin', detail.value)}
+                      granularity="month"
+                    />
+                  </FormField>
+                </ColumnLayout>
+              )}
 
-            <FormField label="URL de Disciplinas OCDE">
-              <Multiselect
-                selectedOptions={formData.urlDisciplinasOCDE}
-                onChange={({ detail }) => handleMultiselectChange('urlDisciplinasOCDE', detail.selectedOptions)}
-                options={disciplinasOCDE}
-                filteringType="auto"
-                placeholder="Seleccione hasta 3 disciplinas"
-              />
-            </FormField>
+              <FormField label="URL de Disciplinas OCDE">
+                <Multiselect
+                  selectedOptions={formData.urlDisciplinasOCDE}
+                  onChange={({ detail }) => handleMultiselectChange('urlDisciplinasOCDE', detail.selectedOptions)}
+                  options={disciplinasOCDE}
+                  filteringType="auto"
+                  placeholder="Seleccione hasta 3 disciplinas"
+                />
+              </FormField>
+            </SpaceBetween>
           </Container>
         </SpaceBetween>
       }

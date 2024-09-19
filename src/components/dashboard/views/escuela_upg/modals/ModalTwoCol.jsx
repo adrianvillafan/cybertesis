@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Modal, FileUpload, Button, Box, SpaceBetween, Container, Header, ColumnLayout, Popover, Icon, Spinner } from '@cloudscape-design/components';
+import { Modal, FileUpload, Box, SpaceBetween, ColumnLayout, Icon, Spinner } from '@cloudscape-design/components';
 import { Document, Page, pdfjs } from 'react-pdf';
 import 'pdfjs-dist/web/pdf_viewer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
@@ -11,8 +11,11 @@ const ModalTwoCol = ({ onClose, headerText, footerButtons, file, setFile, fileUr
     const [numPages, setNumPages] = useState(null);
     const [isLoading, setIsLoading] = useState(true); // Inicia en true para mostrar el spinner
     const [isDataLoading, setIsDataLoading] = useState(mode === 'view'); // Estado para manejar la carga de datos en modo view
+    const [isPopoverVisible, setIsPopoverVisible] = useState(true); // Popover visible por defecto
     const fileInputRef = useRef(null);
     const containerRef = useRef(null);
+    const popoverRef = useRef(null); // Ref para el popover
+    const iconRef = useRef(null); // Ref para el ícono
     const [width, setWidth] = useState(0);
 
     useEffect(() => {
@@ -23,7 +26,6 @@ const ModalTwoCol = ({ onClose, headerText, footerButtons, file, setFile, fileUr
         };
 
         window.addEventListener('resize', handleResize);
-
         handleResize();
 
         return () => {
@@ -48,6 +50,25 @@ const ModalTwoCol = ({ onClose, headerText, footerButtons, file, setFile, fileUr
             }, 2000); // Puedes ajustar este tiempo según sea necesario
         }
     }, [mode, isDataLoading]);
+
+    // Cierra el popover si se hace clic fuera de él
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (
+                popoverRef.current && 
+                !popoverRef.current.contains(event.target) &&
+                iconRef.current && 
+                !iconRef.current.contains(event.target)
+            ) {
+                setIsPopoverVisible(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [popoverRef, iconRef]);
 
     const handleFileChange = ({ detail }) => {
         const selectedFile = detail.value[0];
@@ -111,6 +132,11 @@ const ModalTwoCol = ({ onClose, headerText, footerButtons, file, setFile, fileUr
         console.log('Error al cargar el archivo');
     };
 
+    // Alterna la visibilidad del popover al hacer clic en el ícono
+    const togglePopover = () => {
+        setIsPopoverVisible(!isPopoverVisible);
+    };
+
     return (
         <Modal
             onDismiss={onClose}
@@ -168,15 +194,17 @@ const ModalTwoCol = ({ onClose, headerText, footerButtons, file, setFile, fileUr
                                 </Document>
                             )}
                             <div style={{ position: 'absolute', top: '10px', right: '10px' }}>
-                                <Popover
-                                    dismissButton={false}
-                                    position="top"
-                                    size="small"
-                                    triggerType="click"
-                                    content={<div>Se están mostrando {Math.min(numPages, 15)} páginas de un total de {numPages}.</div>}
-                                >
+                                {isPopoverVisible && (
+                                    <div ref={popoverRef} style={popoverStyle}>
+                                        <div style={popoverArrowStyle}></div>
+                                        <div>
+                                            Se están mostrando {Math.min(numPages, 15)} páginas de un total de {numPages}.
+                                        </div>
+                                    </div>
+                                )}
+                                <div ref={iconRef} onClick={togglePopover} style={{ cursor: 'pointer' }}>
                                     <Icon name="status-info" size="medium" variant="link" />
-                                </Popover>
+                                </div>
                             </div>
                         </div>
                         <div style={{ height: 'calc(75vh)', overflowY: 'auto', padding: '5px 15px 5px 5px', borderRadius: '10px' }}>
@@ -192,3 +220,33 @@ const ModalTwoCol = ({ onClose, headerText, footerButtons, file, setFile, fileUr
 };
 
 export default ModalTwoCol;
+
+// Estilos para el popover simulado
+const popoverStyle = {
+    position: 'absolute',
+    backgroundColor: '#ffffff',
+    border: '1px solid #d1d5db',
+    padding: '10px',
+    borderRadius: '6px',
+    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+    width:'180px',
+    maxWidth: '550px',
+    fontSize: '14px',
+    lineHeight: '1.5',
+    color: '#374151',
+    zIndex: 10,
+    top: '30px',
+    right: '0',
+};
+
+const popoverArrowStyle = {
+    position: 'absolute',
+    top: '-6px',
+    right: '20px',
+    width: '0',
+    height: '0',
+    borderLeft: '6px solid transparent',
+    borderRight: '6px solid transparent',
+    borderBottom: '6px solid #d1d5db',
+    content: '""',
+};

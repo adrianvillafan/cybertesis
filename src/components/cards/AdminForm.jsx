@@ -7,6 +7,9 @@ import Header from "@cloudscape-design/components/header";
 import Input from "@cloudscape-design/components/input";
 import Checkbox from "@cloudscape-design/components/checkbox";
 import Select from "@cloudscape-design/components/select";
+import FormField from "@cloudscape-design/components/form-field";
+import Box from '@cloudscape-design/components/box';
+
 import { handleSubmit } from '../../../api';
 import { useUser } from '../../hooks/useUser';
 import Alert from "@cloudscape-design/components/alert"; // Importa el componente Alert para mostrar mensajes de advertencia
@@ -30,6 +33,8 @@ const AdminForm = ({ handleBack }) => {
     e.preventDefault();
     setIsLoading(true); // Indica que la carga está en curso
     try {
+      console.log("handleFormSubmit called", form); // Confirma que se llama a esta función
+      form.email = form.email + '@unmsm.edu.pe'; // Agrega el dominio al correo
       await handleSubmit(form, handleLoginSuccess);
     } catch (error) {
       setError('Error: Credenciales incorrectas.'); // Establece el mensaje de error
@@ -55,7 +60,7 @@ const AdminForm = ({ handleBack }) => {
         </div>
 
         <Container header={<Header variant="h2">Ingrese sus credenciales</Header>}>
-          
+
           <form onSubmit={(e) => e.preventDefault()}>
             <Form
               variant="embedded"
@@ -70,7 +75,7 @@ const AdminForm = ({ handleBack }) => {
               }
             >
               <SpaceBetween direction="vertical" size="l">
-                {error && <Alert type="error" onDismiss={() => setError(null)}>{error}</Alert>} 
+                {error && <Alert type="error" onDismiss={() => setError(null)}>{error}</Alert>}
                 <Select
                   placeholder="Personal administrativo"
                   selectedOption={form.role}
@@ -82,14 +87,21 @@ const AdminForm = ({ handleBack }) => {
                     { label: "Administrador", value: 1 }
                   ]}
                 />
-                <Input
-                  controlId='email'
-                  type="email"
-                  placeholder="Correo electrónico"
-                  value={form.email}
-                  onChange={({ detail }) => handleChange('email', detail.value)}
-                  required
-                />
+                <SpaceBetween direction="horizontal" size="xs" alignItems="center">
+                  <FormField>
+                    <Input
+                      controlId='email'
+                      type="email"
+                      onChange={({ detail }) => setForm((prev) => ({ ...prev, email: detail.value }))}
+                      value={form.email}
+                      placeholder="Correo electrónico"
+                      required
+                    />
+                  </FormField>
+                  <FormField>
+                    <Box color="text-body-secondary" display='inline'>@unmsm.edu.pe</Box>
+                  </FormField>
+                </SpaceBetween>
                 <Input
                   controlId='password'
                   type="password"
