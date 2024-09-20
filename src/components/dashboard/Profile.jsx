@@ -10,7 +10,6 @@ import ManageUsers from './views/admin/ManageUsers';
 //import CreateRequest from './views/student/CreateRequest';
 import MyRequests from './views/student/MyRequests';
 import Reports from './views/escuela_upg/Reports';
-import Requests from './views/recepDocs/Requests';
 import ExpedientReports from './views/recepDocs/ExpedientReports';
 import RegisterCyberthesis from './views/uoari/RegisterCyberthesis';
 import MyReports from './views/uoari/MyReports';
@@ -18,6 +17,7 @@ import Inicio from './views/Inicio';
 import Notif from './views/Notif';
 import Solicitudes from './views/escuela_upg/Solicitudes';
 import IngresarDoc from './views/escuela_upg/IngresarDoc';
+import Expedientes from './views/recepDocs/Expedientes';
 
 const Profile = ({ isLoggedIn, setIsLoggedIn }) => {
   const navigate = useNavigate();
@@ -36,7 +36,7 @@ const Profile = ({ isLoggedIn, setIsLoggedIn }) => {
       case 'my-reports': return 'Mis Reportes';
       case 'notifications': return 'Notificaciones';
       case 'ingreso-docs': return 'Ingresar Documentos';
-      case 'solicitudes': return 'Expedientes';
+      case 'expedientes': return 'Expedientes';
       default: return 'Inicio';
     }
   };
@@ -78,7 +78,7 @@ const Profile = ({ isLoggedIn, setIsLoggedIn }) => {
         ];
       case 4: // RecepDocs
         return [
-          { type: "link", text: <a onClick={() => setActiveView('requests')}>Solicitudes</a>, href: '#requests' },
+          { type: "link", text: <a onClick={() => setActiveView('expedientes')}>Expedientes</a>, href: '#expedientes' },
           { type: "link", text: <a onClick={() => setActiveView('expedient-reports')}>Reporte de Expedientes</a>, href: '#expedient-reports' }
         ];
       case 5: // UOARI
@@ -129,9 +129,9 @@ const Profile = ({ isLoggedIn, setIsLoggedIn }) => {
           return <IngresarDoc />;
         }
         break;
-      case 'requests':
+      case 'expedientes':
         if (user.current_team_id === 4) {
-          return <Requests />;
+          return <Expedientes />;
         }
         break;
       case 'expedient-reports':

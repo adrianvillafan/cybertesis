@@ -52,7 +52,7 @@ const ActaSustentacionModalDelete = ({ visible, onClose, onConfirm, documentos }
         </SpaceBetween>
       }
     >
-      <p>¿Está seguro de que desea eliminar esta acta de sustentación? Esta acción no se puede deshacer.</p>
+      <p>¿Está seguro de que desea eliminar esta acta de sustentación? Esta acción <b>tambien eliminara Metadatos Complementarios</b> y no se puede deshacer.</p>
       {actaData && (
         <div>
           <p><strong>Presidente:</strong> {presidente ? `${presidente.nombre} ${presidente.apellido}` : 'Cargando...'}</p>

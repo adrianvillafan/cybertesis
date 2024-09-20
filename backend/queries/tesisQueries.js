@@ -105,29 +105,48 @@ export const deleteTesisById = (id, callback) => {
           return callback(err, null);
         }
 
-        const queryUpdateDocumentos = 'UPDATE documentos SET tesis_id = NULL WHERE tesis_id = $1';
+        const queryUpdateDocumentosTesis = 'UPDATE documentos SET tesis_id = NULL WHERE tesis_id = $1';
 
-        executeQuery(queryUpdateDocumentos, [id], (err) => {
+        executeQuery(queryUpdateDocumentosTesis, [id], (err) => {
           if (err) {
-            console.error('Error al actualizar documentos:', err);
+            console.error('Error al actualizar documentos (tesis_id):', err);
             return callback(err, null);
           }
 
-          const queryDeleteTesis = 'DELETE FROM tesis WHERE id_tesis = $1';
+          const queryDeleteActaSustentacion = 'DELETE FROM acta_sustentacion WHERE id_participantes = $1';
 
-          executeQuery(queryDeleteTesis, [id], (err, results) => {
+          executeQuery(queryDeleteActaSustentacion, [idParticipantes], (err) => {
             if (err) {
-              console.error('Error al eliminar tesis:', err);
+              console.error('Error al eliminar acta de sustentación:', err);
               return callback(err, null);
             }
 
-            callback(null, results.rowCount);
+            const queryUpdateDocumentos = 'UPDATE documentos SET actasust_id = NULL, metadatos_id = NULL WHERE actasust_id = $1 OR metadatos_id = $1';
+
+            executeQuery(queryUpdateDocumentos, [idParticipantes], (err) => {
+              if (err) {
+                console.error('Error al actualizar documentos (actasust_id, metadatos_id):', err);
+                return callback(err, null);
+              }
+
+              const queryDeleteTesis = 'DELETE FROM tesis WHERE id_tesis = $1';
+
+              executeQuery(queryDeleteTesis, [id], (err, results) => {
+                if (err) {
+                  console.error('Error al eliminar tesis:', err);
+                  return callback(err, null);
+                }
+
+                callback(null, results.rowCount);
+              });
+            });
           });
         });
       });
     });
   });
 };
+
 
 
 export const getTesisById = (id, callback) => {

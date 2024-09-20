@@ -97,25 +97,36 @@ export const getActaSustentacionById = (id, callback) => {
 };
 
 export const deleteActaSustentacionById = (id, callback) => {
-  // Actualizar la tabla de documentos para desvincular el acta de sustentación
-  const queryUpdateDocumentos = 'UPDATE documentos SET actasust_id = NULL WHERE actasust_id = $1';
+  // Actualizar la tabla de documentos para desvincular el acta de sustentación y metadatos
+  const queryUpdateDocumentos = 'UPDATE documentos SET actasust_id = NULL, metadatos_id = NULL WHERE actasust_id = $1 OR metadatos_id = $1';
 
   executeQuery(queryUpdateDocumentos, [id], (err, updateResults) => {
     if (err) {
-      console.error('Error al actualizar documentos:', err);
+      console.error('Error al actualizar documentos (actasust_id, metadatos_id):', err);
       return callback(err, null);
     }
 
-    // Eliminar el acta de sustentación
-    const queryDeleteActa = 'DELETE FROM acta_sustentacion WHERE id = $1';
+    // Eliminar los metadatos asociados al acta de sustentación
+    const queryDeleteMetadata = 'DELETE FROM metadata WHERE id_participantes = $1';
 
-    executeQuery(queryDeleteActa, [id], (err, deleteResults) => {
+    executeQuery(queryDeleteMetadata, [id], (err, deleteMetadataResults) => {
       if (err) {
-        console.error('Error al eliminar acta:', err);
+        console.error('Error al eliminar metadata:', err);
         return callback(err, null);
       }
 
-      callback(null, deleteResults.rowCount);  // Devolvemos el número de filas afectadas
+      // Eliminar el acta de sustentación
+      const queryDeleteActa = 'DELETE FROM acta_sustentacion WHERE id = $1';
+
+      executeQuery(queryDeleteActa, [id], (err, deleteResults) => {
+        if (err) {
+          console.error('Error al eliminar acta de sustentación:', err);
+          return callback(err, null);
+        }
+
+        callback(null, deleteResults.rowCount);  // Devolvemos el número de filas afectadas
+      });
     });
   });
 };
+
