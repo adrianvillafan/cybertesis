@@ -14,6 +14,7 @@ export const fetchAutoCyberById = async (id) => {
   }
 };
 
+// Función para crear un AutoCyber y registrar el evento
 export const createAutoCyber = async (autoCyberData) => {
   try {
     const response = await fetch('http://localhost:3000/api/files/autocyber/insert', {
@@ -36,11 +37,16 @@ export const createAutoCyber = async (autoCyberData) => {
   }
 };
 
-// Función para cargar el archivo PDF a MinIO
-export const uploadAutoCyberFile = async (file) => {
+// Función para cargar el archivo PDF de AutoCyber a MinIO y registrar el evento
+export const uploadAutoCyberFile = async (file, eventoDetails) => {
   const formData = new FormData();
   formData.append('file', file);
   formData.append('type', 'CYBER'); // Asegúrate de usar mayúsculas
+
+  // Añadir los detalles del evento al FormData
+  for (let key in eventoDetails) {
+    formData.append(key, eventoDetails[key]);
+  }
 
   try {
     const response = await fetch('http://localhost:3000/api/files/upload', {
@@ -60,13 +66,15 @@ export const uploadAutoCyberFile = async (file) => {
   }
 };
 
-export const deleteAutoCyber = async (id) => {
+export const deleteAutoCyber = async (id, eventoDetails) => {
   try {
     const response = await fetch(`http://localhost:3000/api/files/autocyber/delete/${id}`, {
       method: 'DELETE',
       headers: {
-        'Authorization': `Bearer ${getToken()}`
-      }
+        'Authorization': `Bearer ${getToken()}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(eventoDetails) // Enviamos los detalles del evento en el cuerpo
     });
     return await response.json();
   } catch (error) {
@@ -74,3 +82,4 @@ export const deleteAutoCyber = async (id) => {
     throw error;
   }
 };
+

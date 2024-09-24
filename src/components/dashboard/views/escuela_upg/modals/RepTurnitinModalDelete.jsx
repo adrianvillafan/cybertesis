@@ -6,14 +6,29 @@ const RepTurnitinModalDelete = ({ visible, onClose, onConfirm, documentos }) => 
 
   const handleDelete = async () => {
     try {
-      await deleteReporteTurnitin(documentos.repturnitin_id); // Llama a la API para eliminar el documento
-      onConfirm(); // Llama a la función de confirmación (puede actualizar el estado en el componente padre)
-      onClose(); // Cierra el modal después de eliminar
+      // Detalles del evento para registrar la eliminación del reporte
+      const eventoDetails = {
+        actor_user_id: user.user_id,
+        actor_tipo_user_id: user.current_team_id, // Ajustar según el rol del usuario
+        target_user_id: documentos.estudiante_id, // ID del estudiante o el usuario afectado
+        target_tipo_user_id: 2, // Tipo de usuario target
+        document_id: documentos.id, // ID del documento
+        tipo_documento_id: 6, // Tipo de documento (Reporte de Turnitin)
+        action_type: 'Eliminación de reporte de Turnitin',
+        event_description: `El usuario eliminó un archivo de reporte de Turnitin.`,
+        is_notificacion: 1
+      };
+  
+      // Llama a la API para eliminar el documento y registrar el evento
+      await deleteReporteTurnitin(documentos.repturnitin_id, eventoDetails);
+  
+      onConfirm(); // Llama a la función de confirmación
+      onClose();   // Cierra el modal después de eliminar
     } catch (error) {
       console.error('Error al eliminar el reporte de Turnitin:', error);
-      // Aquí puedes manejar errores, como mostrar una notificación al usuario
     }
   };
+  
 
   return (
     <Modal

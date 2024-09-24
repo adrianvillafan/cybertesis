@@ -3,7 +3,7 @@ import { Modal, Button, SpaceBetween } from '@cloudscape-design/components';
 import { fetchActaById, deleteActa } from '../../../../../../src/apis/escuela_upg/modals/ApiActaSustentacionModal';
 import { fetchDatosByDni } from '../../../../../../api';
 
-const ActaSustentacionModalDelete = ({ visible, onClose, onConfirm, documentos }) => {
+const ActaSustentacionModalDelete = ({ visible, onClose, onConfirm, documentos, user }) => {
   const [actaData, setActaData] = useState(null);
   const [presidente, setPresidente] = useState(null);
   const [miembro1, setMiembro1] = useState(null);
@@ -31,13 +31,28 @@ const ActaSustentacionModalDelete = ({ visible, onClose, onConfirm, documentos }
 
   const handleDelete = async () => {
     try {
-      await deleteActa(documentos.actasust_id);
+      // Definir los detalles del evento de eliminación
+      const eventoDetails = {
+        actor_user_id: user.user_id,                   // ID del usuario que elimina
+        actor_tipo_user_id: user.current_team_id,      // Tipo de usuario
+        target_user_id: documentos.estudiante_id,      // ID del estudiante o el usuario afectado
+        target_tipo_user_id: 2,                        // Tipo de usuario afectado
+        document_id: documentos.id,                    // ID del documento
+        tipo_documento_id: 2,                          // Tipo de documento (acta de sustentación)
+        action_type: 'Eliminación de acta de sustentación',
+        event_description: `El acta de sustentación ha sido eliminada.`,
+        is_notificacion: 1
+      };
+  
+      // Llamar a la función para eliminar el acta
+      await deleteActa(documentos.actasust_id, eventoDetails);
       onConfirm();
       onClose();
     } catch (error) {
       console.error('Error al eliminar el acta:', error);
     }
   };
+  
 
   return (
     <Modal

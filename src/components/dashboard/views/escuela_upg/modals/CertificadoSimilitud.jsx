@@ -33,12 +33,24 @@ const CertificadoSimilitud = ({ onClose, onSave, documentos }) => {
   const handleSave = async () => {
     try {
       let uploadedFileUrl = fileUrl;
-
+  
       if (file) {
-        const uploadResponse = await uploadCertificadoFile(file);
+        const eventoDetailsUpload = {
+          actor_user_id: user.user_id,
+          actor_tipo_user_id: user.current_team_id,
+          target_user_id: documentos.estudiante_id, // ID del estudiante
+          target_tipo_user_id: 2, // Tipo de usuario target
+          document_id: documentos.id,
+          tipo_documento_id: 3, // Certificado de similitud
+          action_type: 'Subida de certificado de similitud',
+          event_description: `Se ha subido el certificado de similitud para el estudiante ${documentos.estudiante_id}.`,
+          is_notificacion: 0
+        };
+  
+        const uploadResponse = await uploadCertificadoFile(file, eventoDetailsUpload);
         uploadedFileUrl = uploadResponse.fileName;
       }
-
+  
       const certificadoData = {
         file_url: uploadedFileUrl,
         created_by: user.user_id,
@@ -46,8 +58,23 @@ const CertificadoSimilitud = ({ onClose, onSave, documentos }) => {
         documentos_id: documentos.id
       };
       console.log('certificadoData:', certificadoData);
-
-      await createCertificadoSimilitud(certificadoData);
+  
+      // Evento para la inserción del certificado
+      const eventoDetailsInsert = {
+        actor_user_id: user.user_id,
+        actor_tipo_user_id: user.current_team_id,
+        target_user_id: documentos.estudiante_id,
+        target_tipo_user_id: 2, // Tipo de usuario target
+        document_id: documentos.id,
+        tipo_documento_id: 3, // Certificado de similitud
+        action_type: 'Inserción de certificado de similitud',
+        event_description: `Se ha insertado el certificado de similitud para el estudiante ${documentos.estudiante_id}.`,
+        is_notificacion: 1
+      };
+  
+      // Insertar el certificado y registrar el evento
+      await createCertificadoSimilitud({ ...certificadoData, ...eventoDetailsInsert });
+  
       onSave();
       onClose();
     } catch (error) {
@@ -55,6 +82,7 @@ const CertificadoSimilitud = ({ onClose, onSave, documentos }) => {
       console.error('Error al guardar el certificado de similitud:', error);
     }
   };
+  
 
   return (
     <ModalOneCol

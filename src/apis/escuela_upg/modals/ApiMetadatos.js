@@ -14,7 +14,7 @@ export const fetchMetadataById = async (id) => {
   }
 };
 
-// Función para crear metadata
+// Función para crear metadata y registrar el evento
 export const createMetadata = async (metadataData) => {
   try {
     const response = await fetch('http://localhost:3000/api/files/metadata/insert', {
@@ -37,11 +37,17 @@ export const createMetadata = async (metadataData) => {
   }
 };
 
-// Función para cargar el archivo PDF a MinIO
-export const uploadMetadataFile = async (file) => {
+
+// Función para cargar el archivo PDF a MinIO y enviar los detalles del evento
+export const uploadMetadataFile = async (file, eventoDetails) => {
   const formData = new FormData();
   formData.append('file', file);
   formData.append('type', 'METADATOS'); // Asegúrate de usar mayúsculas
+
+  // Añadir los detalles del evento al FormData
+  for (let key in eventoDetails) {
+    formData.append(key, eventoDetails[key]);
+  }
 
   try {
     const response = await fetch('http://localhost:3000/api/files/upload', {
@@ -61,13 +67,17 @@ export const uploadMetadataFile = async (file) => {
   }
 };
 
-export const deleteMetadata = async (id) => {
+
+// Función para eliminar metadata y registrar el evento
+export const deleteMetadata = async (id, eventoDetails) => {
   try {
     const response = await fetch(`http://localhost:3000/api/files/metadata/delete/${id}`, {
       method: 'DELETE',
       headers: {
-        'Authorization': `Bearer ${getToken()}`
-      }
+        'Authorization': `Bearer ${getToken()}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(eventoDetails)
     });
     return await response.json();
   } catch (error) {
@@ -75,6 +85,7 @@ export const deleteMetadata = async (id) => {
     throw error;
   }
 };
+
 
 //----------------   Fetch Datos de Grupos , Lineas y Disciplinas   ----------------
 

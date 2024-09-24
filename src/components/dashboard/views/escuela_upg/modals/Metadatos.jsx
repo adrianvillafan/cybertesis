@@ -221,7 +221,7 @@ const MetadatosModal = ({ onClose, onSave, documentos }) => {
     const { anoInicio, anoFin, anoInvestigacionType } = formData;
     let ano_inicio = '';
     let ano_fin = '';
-
+  
     if (anoInvestigacionType === 'Un año') {
       ano_fin = anoInicio;
     } else if (anoInvestigacionType === 'Un año con mes') {
@@ -233,12 +233,12 @@ const MetadatosModal = ({ onClose, onSave, documentos }) => {
       ano_inicio = anoInicio;
       ano_fin = anoFin;
     }
-
+  
     if (ano_inicio && ano_fin && new Date(ano_inicio) > new Date(ano_fin)) {
       setErrorMessage('El año de inicio no puede ser mayor al año de fin.');
       return;
     }
-
+  
     const metadataData = {
       id_participantes: formData.id_participantes,
       linea_investigacion_id: formData.lineaInvestigacion,
@@ -260,14 +260,42 @@ const MetadatosModal = ({ onClose, onSave, documentos }) => {
       documentos_id: documentos.id,
       file_url: fileUrl
     };
-
+  
     try {
       if (file) {
-        const uploadResponse = await uploadMetadataFile(file);
+        // Detalles del evento para el upload
+        const eventoUploadDetails = {
+          actor_user_id: user.user_id,
+          actor_tipo_user_id: user.current_team_id,
+          target_user_id: documentos.estudiante_id,
+          target_tipo_user_id: 2, // Tipo de usuario afectado
+          document_id: documentos.id, 
+          tipo_documento_id: 5, // Tipo de documento para metadatos
+          action_type: 'Subida de archivo de metadatos',
+          event_description: `Archivo de metadatos subido.`,
+          is_notificacion: 1
+        };
+  
+        // Subir el archivo y enviar detalles del evento de subida
+        const uploadResponse = await uploadMetadataFile(file, eventoUploadDetails);
         metadataData.file_url = uploadResponse.fileName;
       }
-      console.log("metadataData: ", metadataData);
-      await createMetadata(metadataData);
+  
+      // Detalles del evento para el registro de metadatos
+      const eventoInsertDetails = {
+        actor_user_id: user.user_id,
+        actor_tipo_user_id: user.current_team_id,
+        target_user_id: documentos.estudiante_id,
+        target_tipo_user_id: 2,
+        document_id: documentos.id,
+        tipo_documento_id: 5, // Tipo de documento (metadatos)
+        action_type: 'Registro de metadatos',
+        event_description: `Metadatos registrados.`,
+        is_notificacion: 1
+      };
+  
+      // Guardar metadatos y registrar el evento de inserción
+      await createMetadata({ ...metadataData, ...eventoInsertDetails });
       onSave();
       onClose();
     } catch (error) {
@@ -275,6 +303,7 @@ const MetadatosModal = ({ onClose, onSave, documentos }) => {
       console.error('Error al guardar metadata:', error);
     }
   };
+  
 
 
   const isFormComplete = () => {

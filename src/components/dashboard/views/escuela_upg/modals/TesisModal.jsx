@@ -273,16 +273,8 @@ const TesisModal = ({ onClose, alumnoData, onSave, readOnly, fileUrl, formData: 
   };
 
   const handleSave = async () => {
-    console.log("formData:", formData);
-    console.log("file:", file);
-
     if (isFormComplete()) {
       try {
-
-        // Create a new file object with the new name
-        const newFile = new File([file], file, { type: file.type });
-        console.log("newFile:", newFile);
-
         // Definir los detalles del evento
         const eventoDetails = {
           actor_user_id: user.user_id,
@@ -297,7 +289,7 @@ const TesisModal = ({ onClose, alumnoData, onSave, readOnly, fileUrl, formData: 
         };
 
         // Subir el archivo y enviar los detalles del evento
-        const uploadResponse = await uploadTesisFile(newFile, eventoDetails);
+        const uploadResponse = await uploadTesisFile(file, eventoDetails);
 
         const { fileName } = uploadResponse;
         console.log("uploadResponse:", uploadResponse);

@@ -40,29 +40,59 @@ const AutoCyber = ({ onClose, onSave, readOnly, fileUrl: initialFileUrl, documen
   
 
   const handleSave = async () => {
-  try {
-    let uploadedFileUrl = fileUrl;
-
-    if (file) {
-      const uploadResponse = await uploadAutoCyberFile(file); // Aquí 'file' ya tendrá el nombre cambiado
-      uploadedFileUrl = uploadResponse.fileName;
+    try {
+      let uploadedFileUrl = fileUrl;
+  
+      if (file) {
+        // Detalles del evento para la subida de archivo
+        const eventoUploadDetails = {
+          actor_user_id: user.user_id,
+          actor_tipo_user_id: user.current_team_id, // Ajustar según el rol del usuario
+          target_user_id: documentos.estudiante_id, // ID del estudiante o usuario afectado
+          target_tipo_user_id: 2, // Tipo de usuario afectado
+          document_id: documentos.id, // ID del documento
+          tipo_documento_id: 4, // Tipo de documento (AutoCyber)
+          action_type: 'Subida de archivo AutoCyber',
+          event_description: `El archivo AutoCyber ha sido subido para el estudiante ${documentos.estudiante_id}.`,
+          is_notificacion: 0
+        };
+  
+        // Subir el archivo y registrar el evento de subida
+        const uploadResponse = await uploadAutoCyberFile(file, eventoUploadDetails);
+        uploadedFileUrl = uploadResponse.fileName;
+      }
+  
+      // Detalles del evento para el registro de AutoCyber
+      const eventoInsertDetails = {
+        actor_user_id: user.user_id,
+        actor_tipo_user_id: user.current_team_id, // Ajustar según el rol del usuario
+        target_user_id: documentos.estudiante_id, // ID del estudiante o usuario afectado
+        target_tipo_user_id: 2, // Tipo de usuario afectado
+        document_id: documentos.id, // ID del documento
+        tipo_documento_id: 4, // Tipo de documento (AutoCyber)
+        action_type: 'Registro de AutoCyber',
+        event_description: `Se ha registrado el AutoCyber para el estudiante ${documentos.estudiante_id}.`,
+        is_notificacion: 1
+      };
+  
+      // Crear el AutoCyber con los detalles del evento de inserción
+      const autoCyberData = {
+        file_url: uploadedFileUrl,
+        created_by: user.user_id,
+        updated_by: user.user_id,
+        documentos_id: documentos.id,
+        ...eventoInsertDetails
+      };
+  
+      await createAutoCyber(autoCyberData);
+      onSave();
+      onClose();
+    } catch (error) {
+      setErrorMessage('Error al guardar AutoCyber.');
+      console.error('Error al guardar AutoCyber:', error);
     }
-
-    const autoCyberData = {
-      file_url: uploadedFileUrl,
-      created_by: user.user_id,
-      updated_by: user.user_id,
-      documentos_id: documentos.id
-    };
-
-    await createAutoCyber(autoCyberData);
-    onSave();
-    onClose();
-  } catch (error) {
-    setErrorMessage('Error al guardar AutoCyber.');
-    console.error('Error al guardar AutoCyber:', error);
-  }
-};
+  };
+  
 
   return (
     <ModalOneCol

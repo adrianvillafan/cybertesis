@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Modal, Button, SpaceBetween } from '@cloudscape-design/components';
 import { deleteMetadata, fetchMetadataById } from '../../../../../../api';
 
-const MetadatosModalDelete = ({ visible, onClose, onConfirm, documentos }) => {
+const MetadatosModalDelete = ({ visible, onClose, onConfirm, documentos, user }) => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [metadataDetails, setMetadataDetails] = useState(null);
 
@@ -19,7 +19,21 @@ const MetadatosModalDelete = ({ visible, onClose, onConfirm, documentos }) => {
   const handleDelete = async () => {
     setIsDeleting(true);
     try {
-      await deleteMetadata(documentos.metadatos_id);
+      // Detalles del evento para la eliminación
+      const eventoDetails = {
+        actor_user_id: user.user_id,
+        actor_tipo_user_id: user.current_team_id, // Ajustar según el rol del usuario
+        target_user_id: documentos.estudiante_id, // ID del estudiante o el usuario afectado
+        target_tipo_user_id: 2, // Tipo de usuario afectado
+        document_id: documentos.id, // ID del documento
+        tipo_documento_id: 5, // Tipo de documento (metadatos)
+        action_type: 'Eliminación de hoja de metadatos',
+        event_description: `Se eliminó la hoja de metadatos del estudiante ${documentos.estudiante_id}.`,
+        is_notificacion: 1
+      };
+  
+      // Llamamos a la función para eliminar metadatos y registrar el evento
+      await deleteMetadata(documentos.metadatos_id, eventoDetails);
       onConfirm();
       onClose();
     } catch (error) {
@@ -28,6 +42,7 @@ const MetadatosModalDelete = ({ visible, onClose, onConfirm, documentos }) => {
       setIsDeleting(false);
     }
   };
+  
 
   return (
     <Modal

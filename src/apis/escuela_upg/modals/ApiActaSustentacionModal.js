@@ -37,12 +37,22 @@ export const createActaSustentacion = async (actaData) => {
   }
 };
 
-// Función para cargar el archivo PDF a MinIO
-export const uploadActaFile = async (file) => {
+// Función para cargar el archivo PDF a MinIO y registrar el evento de subida
+export const uploadActaFile = async (file, eventoDetails) => {
   const formData = new FormData();
   formData.append('file', file);
   formData.append('type', 'ACTAS'); // Asegúrate de usar mayúsculas
 
+  // Añadir los detalles del evento al FormData
+  for (let key in eventoDetails) {
+    formData.append(key, eventoDetails[key]);
+  }
+
+  // Log cada entrada de FormData para depuración
+  for (let pair of formData.entries()) {
+    console.log(pair[0] + ', ' + pair[1]);
+  }
+  
   try {
     const response = await fetch('http://localhost:3000/api/files/upload', {
       method: 'POST',
@@ -61,17 +71,27 @@ export const uploadActaFile = async (file) => {
   }
 };
 
-export const deleteActa = async (id) => {
+
+// Función para eliminar un acta de sustentación y registrar el evento de eliminación
+export const deleteActa = async (id, eventoDetails) => {
   try {
     const response = await fetch(`http://localhost:3000/api/files/acta/delete/${id}`, {
       method: 'DELETE',
       headers: {
-        'Authorization': `Bearer ${getToken()}`
-      }
+        'Authorization': `Bearer ${getToken()}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(eventoDetails) // Enviar los detalles del evento junto con la solicitud
     });
-    return await response.json();
+
+    if (response.ok) {
+      return await response.json();
+    } else {
+      throw new Error('No se pudo eliminar el acta de sustentación');
+    }
   } catch (error) {
     console.error('Error al eliminar Acta de Sustentación:', error);
     throw error;
   }
 };
+

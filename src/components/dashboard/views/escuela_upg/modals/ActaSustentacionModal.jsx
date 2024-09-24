@@ -187,9 +187,24 @@ const ActaSustentacionModal = ({ onClose, documentos, onSave }) => {
   const handleSave = async () => {
     if (isFormComplete()) {
       try {
-        const uploadResponse = await uploadActaFile(file);
+        // Detalles del evento para registrar la subida del archivo
+        const eventoDetailsForUpload = {
+          actor_user_id: user.user_id,
+          actor_tipo_user_id: user.current_team_id, // Ajustar según el rol del usuario
+          target_user_id: documentos.estudiante_id, // ID del estudiante o el usuario afectado
+          target_tipo_user_id: 2, // Tipo de usuario target
+          document_id: documentos.id, // ID del documento
+          tipo_documento_id: 2, // Tipo de documento (acta de sustentación)
+          action_type: 'Subida de acta de sustentación',
+          event_description: `Archivo de acta de sustentación subido.`,
+          is_notificacion: 1
+        };
+  
+        // Subir el archivo y enviar los detalles del evento
+        const uploadResponse = await uploadActaFile(file, eventoDetailsForUpload);
         const { fileName } = uploadResponse;
-
+  
+        // Detalles del acta a registrar
         const actaData = {
           id_participantes: formData.id_participantes,
           id_presidente: formData.presidente.id,
@@ -201,8 +216,23 @@ const ActaSustentacionModal = ({ onClose, documentos, onSave }) => {
           updated_by: user.user_id,
           documentos_id: documentos.id
         };
-
-        const savedActa = await createActaSustentacion(actaData);
+  
+        // Detalles del evento para registrar la inserción del acta
+        const eventoDetailsForInsert = {
+          actor_user_id: user.user_id,
+          actor_tipo_user_id: user.current_team_id,
+          target_user_id: documentos.estudiante_id,
+          target_tipo_user_id: 2,
+          document_id: documentos.id,
+          tipo_documento_id: 2,
+          action_type: 'Registro de acta de sustentación',
+          event_description: `Acta de sustentación registrada.`,
+          is_notificacion: 1
+        };
+  
+        // Enviar datos del acta y detalles del evento de registro
+        const savedActa = await createActaSustentacion({ ...actaData, ...eventoDetailsForInsert });
+  
         onSave(savedActa);
         onClose();
       } catch (error) {
@@ -213,6 +243,7 @@ const ActaSustentacionModal = ({ onClose, documentos, onSave }) => {
       alert("Todos los campos deben estar completos.");
     }
   };
+  
 
   return (
     <ModalTwoCol

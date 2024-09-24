@@ -40,20 +40,46 @@ const RepTurnitinModal = ({ onClose, onSave, readOnly, fileUrl: initialFileUrl, 
   const handleSave = async () => {
     try {
       let uploadedFileUrl = fileUrl;
-
+  
       if (file) {
-        const uploadResponse = await uploadReporteTurnitinFile(file);
+        // Detalles del evento para la subida del archivo
+        const uploadEventoDetails = {
+          actor_user_id: user.user_id,
+          actor_tipo_user_id: user.current_team_id, // Ajusta según el rol del usuario
+          target_user_id: documentos.estudiante_id, // ID del estudiante afectado
+          target_tipo_user_id: 2, // Tipo de usuario target
+          document_id: documentos.id, // ID del documento
+          tipo_documento_id: 6, // Tipo de documento (Reporte de Turnitin)
+          action_type: 'Subida de reporte de Turnitin',
+          event_description: `El usuario subió un archivo de reporte de Turnitin.`,
+          is_notificacion: 1
+        };
+  
+        const uploadResponse = await uploadReporteTurnitinFile(file, uploadEventoDetails);
         uploadedFileUrl = uploadResponse.fileName;
       }
-
+  
       const reporteData = {
         file_url: uploadedFileUrl,
         created_by: user.user_id,
         updated_by: user.user_id,
         documentos_id: documentos.id
       };
-
-      await createReporteTurnitin(reporteData);
+  
+      // Detalles del evento para la inserción del reporte
+      const insertEventoDetails = {
+        actor_user_id: user.user_id,
+        actor_tipo_user_id: user.current_team_id, // Ajusta según el rol del usuario
+        target_user_id: documentos.estudiante_id, // ID del estudiante afectado
+        target_tipo_user_id: 2, // Tipo de usuario target
+        document_id: documentos.id, // ID del documento
+        tipo_documento_id: 6, // Tipo de documento (Reporte de Turnitin)
+        action_type: 'Registro de reporte de Turnitin',
+        event_description: `Se registró el reporte de Turnitin.`,
+        is_notificacion: 1
+      };
+  
+      await createReporteTurnitin({ ...reporteData, ...insertEventoDetails });
       onSave();
       onClose();
     } catch (error) {
@@ -61,6 +87,7 @@ const RepTurnitinModal = ({ onClose, onSave, readOnly, fileUrl: initialFileUrl, 
       console.error('Error al guardar el reporte de Turnitin:', error);
     }
   };
+  
 
   return (
     <ModalOneCol

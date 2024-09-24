@@ -223,7 +223,7 @@ router.delete('/tesis/delete/:id', async (req, res) => {
       target_user_id,
       target_tipo_user_id,
       action_type,
-      document_id: document_id || id, // Usa el document_id del frontend o el id de la tesis
+      document_id: id, // Usa el document_id del frontend o el id de la tesis
       tipo_documento_id: tipo_documento_id || 1, // Tipo de documento (tesis)
       event_description,
       is_notificacion
@@ -296,12 +296,48 @@ router.get('/tesis/student/:studentId', async (req, res) => {
 
 router.post('/acta/insert', async (req, res) => {
   const actaDetails = req.body;
+
+  // Extraer los detalles del evento desde el frontend
+  const {
+    actor_user_id,
+    actor_tipo_user_id,
+    target_user_id,
+    target_tipo_user_id,
+    tipo_documento_id,  // El tipo de documento lo recibimos del frontend (opcional)
+    event_description,
+    is_notificacion
+  } = req.body;
+
   console.log('actaDetails', actaDetails);
+
   try {
+    // Insertar el acta en la base de datos
     insertActaSustentacion(actaDetails, (err, actaId) => {
       if (err) {
         res.status(500).send('Error al insertar acta de sustentación: ' + err.message);
       } else {
+        // Después de insertar el acta, usamos el actaId generado como el document_id
+        const eventoDetails = {
+          actor_user_id,
+          actor_tipo_user_id,
+          target_user_id,
+          target_tipo_user_id,
+          action_type: 'Registro de acta de sustentación',  // Acción específica
+          document_id: actaId,  // Usamos el actaId generado como el document_id
+          tipo_documento_id: tipo_documento_id || 2,  // Asumimos tipo acta (ID 2), si no se pasa otro
+          event_description: event_description || `Se registró el acta de sustentación con ID ${actaId}.`,
+          is_notificacion
+        };
+
+        // Registrar el evento después de la inserción exitosa del acta
+        insertEvento(eventoDetails, (err, eventId) => {
+          if (err) {
+            console.error('Error al registrar evento:', err);
+          } else {
+            console.log('Evento registrado con ID:', eventId);
+          }
+        });
+
         res.json({ message: 'Acta de sustentación insertada correctamente', actaId });
       }
     });
@@ -310,8 +346,20 @@ router.post('/acta/insert', async (req, res) => {
   }
 });
 
+
+
 router.delete('/acta/delete/:id', async (req, res) => {
-  const { id } = req.params;
+  const { id } = req.params;  // ID del acta que se eliminará
+  const {
+    actor_user_id,
+    actor_tipo_user_id,
+    target_user_id,
+    target_tipo_user_id,
+    tipo_documento_id,
+    action_type = 'Eliminación de acta de sustentación',  // Asignamos un valor por defecto
+    event_description = `Se eliminó el acta de sustentación con ID ${id}.`,
+    is_notificacion = 1
+  } = req.body;  // Detalles del evento
 
   try {
     const acta = await new Promise((resolve, reject) => {
@@ -325,7 +373,10 @@ router.delete('/acta/delete/:id', async (req, res) => {
       return res.status(404).send('Acta de sustentación no encontrada.');
     }
 
+    // Eliminar el archivo de MinIO
     await deleteFileFromMinIO(BUCKETS.ACTAS, acta.file_url);
+
+    // Eliminar el registro de la base de datos
     await new Promise((resolve, reject) => {
       deleteActaSustentacionById(id, (err, results) => {
         if (err) reject(err);
@@ -333,11 +384,34 @@ router.delete('/acta/delete/:id', async (req, res) => {
       });
     });
 
+    // Registrar el evento de eliminación del acta
+    const eventoDetails = {
+      actor_user_id,
+      actor_tipo_user_id,
+      target_user_id,
+      target_tipo_user_id,
+      action_type,
+      document_id: id,  // Usamos el ID del acta como document_id
+      tipo_documento_id,
+      event_description,
+      is_notificacion
+    };
+
+    insertEvento(eventoDetails, (err, eventId) => {
+      if (err) {
+        console.error('Error al registrar evento de eliminación:', err);
+      } else {
+        console.log('Evento de eliminación registrado con ID:', eventId);
+      }
+    });
+
     res.json({ message: 'Acta de sustentación eliminada correctamente' });
   } catch (error) {
     res.status(500).send('Error al eliminar acta de sustentación: ' + error.message);
   }
 });
+
+
 
 router.get('/acta/:id', async (req, res) => {
   const { id } = req.params;
@@ -368,11 +442,35 @@ router.get('/acta/:id', async (req, res) => {
 router.post('/metadata/insert', async (req, res) => {
   const metadataDetails = req.body;
   console.log('metadataDetails', metadataDetails);
+
   try {
+    // Insertar los metadatos en la base de datos
     insertMetadata(metadataDetails, (err, metadataId) => {
       if (err) {
         res.status(500).send('Error al insertar metadata: ' + err.message);
       } else {
+        // Detalles del evento para la inserción de metadatos
+        const eventoDetails = {
+          actor_user_id: metadataDetails.actor_user_id,
+          actor_tipo_user_id: metadataDetails.actor_tipo_user_id,
+          target_user_id: metadataDetails.target_user_id,
+          target_tipo_user_id: metadataDetails.target_tipo_user_id,
+          action_type: metadataDetails.action_type || 'Inserción de metadatos', // Valor predeterminado si no se proporciona
+          document_id: metadataId,  // Usar el ID del metadato insertado
+          tipo_documento_id: metadataDetails.tipo_documento_id || 3,  // Asignar un valor predeterminado si es necesario
+          event_description: metadataDetails.event_description || `Se insertaron metadatos con ID ${metadataId}`, // Descripción del evento
+          is_notificacion: metadataDetails.is_notificacion || 0  // Valor predeterminado si no se proporciona
+        };
+
+        // Registrar el evento en la base de datos
+        insertEvento(eventoDetails, (err, eventId) => {
+          if (err) {
+            console.error('Error al registrar evento:', err);
+          } else {
+            console.log('Evento registrado con ID:', eventId);
+          }
+        });
+
         res.json({ message: 'Metadata insertada correctamente', metadataId });
       }
     });
@@ -381,8 +479,11 @@ router.post('/metadata/insert', async (req, res) => {
   }
 });
 
+
+
 router.delete('/metadata/delete/:id', async (req, res) => {
   const { id } = req.params;
+  const { actor_user_id, actor_tipo_user_id, target_user_id, target_tipo_user_id, action_type, event_description, is_notificacion } = req.body; // Datos del evento
 
   try {
     const metadata = await new Promise((resolve, reject) => {
@@ -407,11 +508,33 @@ router.delete('/metadata/delete/:id', async (req, res) => {
       });
     });
 
+    // Registrar evento de eliminación de metadatos
+    const eventoDetails = {
+      actor_user_id,
+      actor_tipo_user_id,
+      target_user_id,
+      target_tipo_user_id,
+      action_type: action_type || 'Eliminación de metadatos', // Acción predeterminada si no se proporciona
+      document_id: id,  // Asignar el ID de los metadatos eliminados como document_id
+      tipo_documento_id: 3, // Tipo de documento para metadatos
+      event_description: event_description || `Se eliminaron los metadatos con ID ${id}`, // Descripción predeterminada
+      is_notificacion: is_notificacion || 0 // Valor predeterminado para la notificación
+    };
+
+    insertEvento(eventoDetails, (err, eventId) => {
+      if (err) {
+        console.error('Error al registrar evento de eliminación:', err);
+      } else {
+        console.log('Evento de eliminación registrado con ID:', eventId);
+      }
+    });
+
     res.json({ message: 'Metadata eliminada correctamente' });
   } catch (error) {
     res.status(500).send('Error al eliminar metadata: ' + error.message);
   }
 });
+
 
 router.get('/metadata/:id', async (req, res) => {
   const { id } = req.params;
@@ -474,11 +597,33 @@ router.get('/disciplinas-ocde', (req, res) => {
 router.post('/certificado/insert', async (req, res) => {
   const certificadoDetails = req.body;
   console.log('certificadoDetails', certificadoDetails);
+
   try {
     insertCertificadoSimilitud(certificadoDetails, (err, certificadoId) => {
       if (err) {
         res.status(500).send('Error al insertar certificado de similitud: ' + err.message);
       } else {
+        // Después de la inserción, registrar el evento
+        const eventoDetails = {
+          actor_user_id: certificadoDetails.actor_user_id,
+          actor_tipo_user_id: certificadoDetails.actor_tipo_user_id,
+          target_user_id: certificadoDetails.target_user_id,
+          target_tipo_user_id: certificadoDetails.target_tipo_user_id,
+          action_type: 'Registro de certificado de similitud',  // Acción especificada
+          document_id: certificadoId,  // Usar el ID generado del certificado
+          tipo_documento_id: certificadoDetails.tipo_documento_id || 4,  // Tipo de documento para certificados
+          event_description: `Se registró el certificado de similitud con ID ${certificadoId}.`,  // Descripción del evento
+          is_notificacion: certificadoDetails.is_notificacion || 0  // Valor de notificación predeterminado
+        };
+
+        insertEvento(eventoDetails, (err, eventId) => {
+          if (err) {
+            console.error('Error al registrar evento:', err);
+          } else {
+            console.log('Evento registrado con ID:', eventId);
+          }
+        });
+
         res.json({ message: 'Certificado de similitud insertado correctamente', certificadoId });
       }
     });
@@ -486,6 +631,8 @@ router.post('/certificado/insert', async (req, res) => {
     res.status(500).send('Error al insertar certificado de similitud: ' + error.message);
   }
 });
+
+
 
 
 router.get('/certificado/:id', async (req, res) => {
@@ -509,6 +656,7 @@ router.get('/certificado/:id', async (req, res) => {
 
 router.delete('/certificado/delete/:id', async (req, res) => {
   const { id } = req.params;
+  const { actor_user_id, actor_tipo_user_id, target_user_id, target_tipo_user_id, action_type, event_description, is_notificacion } = req.body;
 
   try {
     const certificado = await new Promise((resolve, reject) => {
@@ -530,22 +678,69 @@ router.delete('/certificado/delete/:id', async (req, res) => {
       });
     });
 
+    // Registrar el evento de eliminación usando el ID del certificado eliminado
+    const eventoDetails = {
+      actor_user_id,
+      actor_tipo_user_id,
+      target_user_id,
+      target_tipo_user_id,
+      action_type: action_type || 'Eliminación de certificado de similitud',
+      document_id: id, // Usar el ID del certificado que se está eliminando
+      tipo_documento_id: 4, // Suponiendo que 4 es el tipo de documento para certificados
+      event_description: event_description || `Se eliminó el certificado de similitud con ID ${id}.`,
+      is_notificacion: is_notificacion || 1
+    };
+
+    insertEvento(eventoDetails, (err, eventId) => {
+      if (err) {
+        console.error('Error al registrar evento de eliminación:', err);
+      } else {
+        console.log('Evento de eliminación registrado con ID:', eventId);
+      }
+    });
+
     res.json({ message: 'Certificado de similitud eliminado correctamente' });
   } catch (error) {
     res.status(500).send('Error al eliminar certificado de similitud: ' + error.message);
   }
 });
 
+
+
 // ------------------ AutoCyber Routes ------------------
 
 router.post('/autocyber/insert', async (req, res) => {
   const autoCyberDetails = req.body;
   console.log('autoCyberDetails', autoCyberDetails);
+  
   try {
     insertAutoCyber(autoCyberDetails, (err, autoCyberId) => {
       if (err) {
         res.status(500).send('Error al insertar AutoCyber: ' + err.message);
       } else {
+        // Registrar evento de inserción de AutoCyber
+        const { actor_user_id, actor_tipo_user_id, target_user_id, target_tipo_user_id, tipo_documento_id, action_type, event_description, is_notificacion } = autoCyberDetails;
+        
+        const eventoDetails = {
+          actor_user_id,
+          actor_tipo_user_id,
+          target_user_id,
+          target_tipo_user_id,
+          action_type: action_type || 'Inserción de AutoCyber', // Acción realizada
+          document_id: autoCyberId, // ID del documento recién insertado (autoCyberId)
+          tipo_documento_id: tipo_documento_id || 5, // Tipo de documento (asignar según tu lógica)
+          event_description: event_description || `Se insertó un AutoCyber con ID ${autoCyberId}.`,
+          is_notificacion: is_notificacion || 1
+        };
+
+        insertEvento(eventoDetails, (err, eventId) => {
+          if (err) {
+            console.error('Error al registrar evento de inserción:', err);
+          } else {
+            console.log('Evento de inserción registrado con ID:', eventId);
+          }
+        });
+
         res.json({ message: 'AutoCyber insertado correctamente', autoCyberId });
       }
     });
@@ -554,8 +749,11 @@ router.post('/autocyber/insert', async (req, res) => {
   }
 });
 
+
+
 router.delete('/autocyber/delete/:id', async (req, res) => {
   const { id } = req.params;
+  const { actor_user_id, actor_tipo_user_id, target_user_id, target_tipo_user_id, tipo_documento_id, action_type, event_description, is_notificacion } = req.body;
 
   try {
     const autoCyber = await new Promise((resolve, reject) => {
@@ -577,11 +775,34 @@ router.delete('/autocyber/delete/:id', async (req, res) => {
       });
     });
 
+    // Después de eliminar, registrar el evento
+    const eventoDetails = {
+      actor_user_id,
+      actor_tipo_user_id,
+      target_user_id,
+      target_tipo_user_id,
+      action_type: action_type || 'Eliminación de AutoCyber', // Acción predeterminada si no se especifica
+      document_id: id, // Usamos el ID del AutoCyber eliminado como document_id
+      tipo_documento_id: tipo_documento_id || 5, // Tipo de documento, ajustar según la lógica
+      event_description: event_description || `Se eliminó el AutoCyber con ID ${id}.`,
+      is_notificacion: is_notificacion || 1
+    };
+
+    insertEvento(eventoDetails, (err, eventId) => {
+      if (err) {
+        console.error('Error al registrar evento de eliminación:', err);
+      } else {
+        console.log('Evento de eliminación registrado con ID:', eventId);
+      }
+    });
+
     res.json({ message: 'AutoCyber eliminado correctamente' });
   } catch (error) {
     res.status(500).send('Error al eliminar AutoCyber: ' + error.message);
   }
 });
+
+
 
 router.get('/autocyber/:id', async (req, res) => {
   const { id } = req.params;
@@ -611,12 +832,44 @@ router.get('/autocyber/:id', async (req, res) => {
 
 router.post('/reporte-turnitin/insert', async (req, res) => {
   const reporteDetails = req.body;
+  const {
+    actor_user_id,
+    actor_tipo_user_id,
+    target_user_id,
+    target_tipo_user_id,
+    tipo_documento_id,
+    action_type,
+    event_description,
+    is_notificacion
+  } = req.body;
+
   console.log('reporteDetails', reporteDetails);
   try {
     insertReporteTurnitin(reporteDetails, (err, reporteId) => {
       if (err) {
         res.status(500).send('Error al insertar reporte de Turnitin: ' + err.message);
       } else {
+        // Registrar el evento de inserción del reporte
+        const eventoDetails = {
+          actor_user_id,
+          actor_tipo_user_id,
+          target_user_id,
+          target_tipo_user_id,
+          action_type: action_type || 'Registro de reporte Turnitin', // Acción predeterminada
+          document_id: reporteId, // Usar el ID recién generado
+          tipo_documento_id: tipo_documento_id || 6, // Tipo de documento
+          event_description: event_description || `Se registró el reporte Turnitin con ID ${reporteId}.`,
+          is_notificacion
+        };
+
+        insertEvento(eventoDetails, (err, eventId) => {
+          if (err) {
+            console.error('Error al registrar evento de inserción:', err);
+          } else {
+            console.log('Evento registrado con ID:', eventId);
+          }
+        });
+
         res.json({ message: 'Reporte de Turnitin insertado correctamente', reporteId });
       }
     });
@@ -625,27 +878,21 @@ router.post('/reporte-turnitin/insert', async (req, res) => {
   }
 });
 
-router.get('/reporte-turnitin/:id', async (req, res) => {
-  const { id } = req.params;
-  getReporteTurnitinById(id, async (err, reporte) => {
-    if (err) {
-      res.status (500).send('Error al obtener detalles de reporte de Turnitin: ' + err.message);
-    } else if (!reporte) {
-      res.status(404).send('Reporte de Turnitin no encontrado.');
-    } else {
-      try {
-        const fileUrl = await getDownloadUrlFromMinIO('turnitin', reporte.file_url);
-        reporte.file_url = fileUrl;
-        res.json(reporte);
-      } catch (fileError) {
-        res.status(500).send('Error al obtener la URL del archivo: ' + fileError.message);
-      }
-    }
-  });
-});
+
+
 
 router.delete('/reporte-turnitin/delete/:id', async (req, res) => {
   const { id } = req.params;
+  const {
+    actor_user_id,
+    actor_tipo_user_id,
+    target_user_id,
+    target_tipo_user_id,
+    tipo_documento_id,
+    action_type,
+    event_description,
+    is_notificacion
+  } = req.body;
 
   try {
     const reporte = await new Promise((resolve, reject) => {
@@ -667,6 +914,27 @@ router.delete('/reporte-turnitin/delete/:id', async (req, res) => {
       });
     });
 
+    // Registrar el evento de eliminación
+    const eventoDetails = {
+      actor_user_id,
+      actor_tipo_user_id,
+      target_user_id,
+      target_tipo_user_id,
+      action_type: action_type || 'Eliminación de reporte Turnitin', // Acción predeterminada
+      document_id: id, // Usar el ID del reporte que se está eliminando
+      tipo_documento_id: tipo_documento_id || 6, // Tipo de documento
+      event_description: event_description || `Se eliminó el reporte Turnitin con ID ${id}.`,
+      is_notificacion
+    };
+
+    insertEvento(eventoDetails, (err, eventId) => {
+      if (err) {
+        console.error('Error al registrar evento de eliminación:', err);
+      } else {
+        console.log('Evento registrado con ID:', eventId);
+      }
+    });
+
     res.json({ message: 'Reporte de Turnitin eliminado correctamente' });
   } catch (error) {
     res.status(500).send('Error al eliminar reporte de Turnitin: ' + error.message);
@@ -674,16 +942,72 @@ router.delete('/reporte-turnitin/delete/:id', async (req, res) => {
 });
 
 
+
+
+router.get('/reporte-turnitin/:id', async (req, res) => {
+  const { id } = req.params;
+  getReporteTurnitinById(id, async (err, reporte) => {
+    if (err) {
+      res.status (500).send('Error al obtener detalles de reporte de Turnitin: ' + err.message);
+    } else if (!reporte) {
+      res.status(404).send('Reporte de Turnitin no encontrado.');
+    } else {
+      try {
+        const fileUrl = await getDownloadUrlFromMinIO('turnitin', reporte.file_url);
+        reporte.file_url = fileUrl;
+        res.json(reporte);
+      } catch (fileError) {
+        res.status(500).send('Error al obtener la URL del archivo: ' + fileError.message);
+      }
+    }
+  });
+});
+
+
+
 // ------------------ Postergación Publicación Routes ------------------
 
+// Ruta para insertar Postergación de Publicación
 router.post('/postergacion/insert', async (req, res) => {
   const postergacionDetails = req.body;
+  const {
+    actor_user_id,
+    actor_tipo_user_id,
+    target_user_id,
+    target_tipo_user_id,
+    action_type,
+    tipo_documento_id,
+    event_description,
+    is_notificacion
+  } = postergacionDetails;
+
   console.log('postergacionDetails', postergacionDetails);
   try {
     insertPostergacionPublicacion(postergacionDetails, (err, postergacionId) => {
       if (err) {
         res.status(500).send('Error al insertar postergación de publicación: ' + err.message);
       } else {
+        // Registrar el evento de inserción
+        const eventoDetails = {
+          actor_user_id,
+          actor_tipo_user_id,
+          target_user_id,
+          target_tipo_user_id,
+          action_type: action_type || 'Registro de postergación de publicación', // Acción predeterminada
+          document_id: postergacionId, // Usar el ID generado de la postergación
+          tipo_documento_id: tipo_documento_id || 7, // Tipo de documento
+          event_description: event_description || `Se registró la postergación de publicación con ID ${postergacionId}.`,
+          is_notificacion
+        };
+
+        insertEvento(eventoDetails, (err, eventId) => {
+          if (err) {
+            console.error('Error al registrar evento:', err);
+          } else {
+            console.log('Evento registrado con ID:', eventId);
+          }
+        });
+
         res.json({ message: 'Postergación de publicación insertada correctamente', postergacionId });
       }
     });
@@ -692,27 +1016,20 @@ router.post('/postergacion/insert', async (req, res) => {
   }
 });
 
-router.get('/postergacion/:id', async (req, res) => {
-  const { id } = req.params;
-  getPostergacionPublicacionById(id, async (err, postergacion) => {
-    if (err) {
-      res.status(500).send('Error al obtener detalles de la postergación de publicación: ' + err.message);
-    } else if (!postergacion) {
-      res.status(404).send('Postergación de publicación no encontrada.');
-    } else {
-      try {
-        const fileUrl = await getDownloadUrlFromMinIO(BUCKETS.POSTERGACION, postergacion.file_url);
-        postergacion.file_url = fileUrl;
-        res.json(postergacion);
-      } catch (fileError) {
-        res.status(500).send('Error al obtener la URL del archivo: ' + fileError.message);
-      }
-    }
-  });
-});
 
+// Ruta para eliminar Postergación de Publicación
 router.delete('/postergacion/delete/:id', async (req, res) => {
   const { id } = req.params;
+  const {
+    actor_user_id,
+    actor_tipo_user_id,
+    target_user_id,
+    target_tipo_user_id,
+    action_type,
+    tipo_documento_id,
+    event_description,
+    is_notificacion
+  } = req.body;
 
   try {
     const postergacion = await new Promise((resolve, reject) => {
@@ -734,6 +1051,27 @@ router.delete('/postergacion/delete/:id', async (req, res) => {
       });
     });
 
+    // Registrar el evento de eliminación
+    const eventoDetails = {
+      actor_user_id,
+      actor_tipo_user_id,
+      target_user_id,
+      target_tipo_user_id,
+      action_type: action_type || 'Eliminación de postergación de publicación', // Acción predeterminada
+      document_id: id, // Usar el ID de la postergación que se está eliminando
+      tipo_documento_id: tipo_documento_id || 7, // Tipo de documento
+      event_description: event_description || `Se eliminó la postergación de publicación con ID ${id}.`,
+      is_notificacion
+    };
+
+    insertEvento(eventoDetails, (err, eventId) => {
+      if (err) {
+        console.error('Error al registrar evento de eliminación:', err);
+      } else {
+        console.log('Evento registrado con ID:', eventId);
+      }
+    });
+
     res.json({ message: 'Postergación de publicación eliminada correctamente' });
   } catch (error) {
     res.status(500).send('Error al eliminar postergación de publicación: ' + error.message);
@@ -741,16 +1079,70 @@ router.delete('/postergacion/delete/:id', async (req, res) => {
 });
 
 
+router.get('/postergacion/:id', async (req, res) => {
+  const { id } = req.params;
+  getPostergacionPublicacionById(id, async (err, postergacion) => {
+    if (err) {
+      res.status(500).send('Error al obtener detalles de la postergación de publicación: ' + err.message);
+    } else if (!postergacion) {
+      res.status(404).send('Postergación de publicación no encontrada.');
+    } else {
+      try {
+        const fileUrl = await getDownloadUrlFromMinIO(BUCKETS.POSTERGACION, postergacion.file_url);
+        postergacion.file_url = fileUrl;
+        res.json(postergacion);
+      } catch (fileError) {
+        res.status(500).send('Error al obtener la URL del archivo: ' + fileError.message);
+      }
+    }
+  });
+});
+
+
 // ------------------ Consentimiento Informado Routes ------------------
 
 router.post('/consentimiento/insert', async (req, res) => {
   const consentimientoDetails = req.body;
+  const {
+    actor_user_id,
+    actor_tipo_user_id,
+    target_user_id,
+    target_tipo_user_id,
+    action_type,
+    tipo_documento_id,
+    event_description,
+    is_notificacion
+  } = consentimientoDetails;
+
   console.log('consentimientoDetails', consentimientoDetails);
+  
   try {
+    // Insertar el consentimiento en la base de datos
     insertConsentimientoInformado(consentimientoDetails, (err, consentimientoId) => {
       if (err) {
         res.status(500).send('Error al insertar consentimiento informado: ' + err.message);
       } else {
+        // Registrar el evento de inserción
+        const eventoDetails = {
+          actor_user_id,
+          actor_tipo_user_id,
+          target_user_id,
+          target_tipo_user_id,
+          action_type: action_type || 'Registro de consentimiento informado', // Acción predeterminada
+          document_id: consentimientoId, // Usar el ID generado del consentimiento
+          tipo_documento_id: tipo_documento_id || 8, // Tipo de documento
+          event_description: event_description || `Se registró el consentimiento informado con ID ${consentimientoId}.`,
+          is_notificacion
+        };
+
+        insertEvento(eventoDetails, (err, eventId) => {
+          if (err) {
+            console.error('Error al registrar evento de inserción:', err);
+          } else {
+            console.log('Evento de inserción registrado con ID:', eventId);
+          }
+        });
+
         res.json({ message: 'Consentimiento informado insertado correctamente', consentimientoId });
       }
     });
@@ -758,6 +1150,73 @@ router.post('/consentimiento/insert', async (req, res) => {
     res.status(500).send('Error al insertar consentimiento informado: ' + error.message);
   }
 });
+
+
+
+
+router.delete('/consentimiento/delete/:id', async (req, res) => {
+  const { id } = req.params;
+  const {
+    actor_user_id,
+    actor_tipo_user_id,
+    target_user_id,
+    target_tipo_user_id,
+    action_type,
+    tipo_documento_id,
+    event_description,
+    is_notificacion
+  } = req.body;
+
+  try {
+    const consentimiento = await new Promise((resolve, reject) => {
+      getConsentimientoInformadoById(id, (err, result) => {
+        if (err) reject(err);
+        else resolve(result);
+      });
+    });
+
+    if (!consentimiento) {
+      return res.status(404).send('Consentimiento informado no encontrado.');
+    }
+
+    // Eliminar archivo de MinIO
+    await deleteFileFromMinIO(BUCKETS.CONSENTIMIENTO, consentimiento.file_url);
+
+    // Eliminar consentimiento de la base de datos
+    await new Promise((resolve, reject) => {
+      deleteConsentimientoInformadoById(id, (err, results) => {
+        if (err) reject(err);
+        else resolve(results);
+      });
+    });
+
+    // Registrar el evento de eliminación
+    const eventoDetails = {
+      actor_user_id,
+      actor_tipo_user_id,
+      target_user_id,
+      target_tipo_user_id,
+      action_type: action_type || 'Eliminación de consentimiento informado', // Acción predeterminada
+      document_id: id, // Usar el ID del consentimiento eliminado
+      tipo_documento_id: tipo_documento_id || 8, // Tipo de documento
+      event_description: event_description || `Se eliminó el consentimiento informado con ID ${id}.`,
+      is_notificacion
+    };
+
+    insertEvento(eventoDetails, (err, eventId) => {
+      if (err) {
+        console.error('Error al registrar evento de eliminación:', err);
+      } else {
+        console.log('Evento registrado con ID:', eventId);
+      }
+    });
+
+    res.json({ message: 'Consentimiento informado eliminado correctamente' });
+  } catch (error) {
+    res.status(500).send('Error al eliminar consentimiento informado: ' + error.message);
+  }
+});
+
 
 router.get('/consentimiento/:id', async (req, res) => {
   const { id } = req.params;
@@ -776,35 +1235,6 @@ router.get('/consentimiento/:id', async (req, res) => {
       }
     }
   });
-});
-
-router.delete('/consentimiento/delete/:id', async (req, res) => {
-  const { id } = req.params;
-
-  try {
-    const consentimiento = await new Promise((resolve, reject) => {
-      getConsentimientoInformadoById(id, (err, result) => {
-        if (err) reject(err);
-        else resolve(result);
-      });
-    });
-
-    if (!consentimiento) {
-      return res.status(404).send('Consentimiento informado no encontrado.');
-    }
-
-    await deleteFileFromMinIO(BUCKETS.CONSENTIMIENTO, consentimiento.file_url);
-    await new Promise((resolve, reject) => {
-      deleteConsentimientoInformadoById(id, (err, results) => {
-        if (err) reject(err);
-        else resolve(results);
-      });
-    });
-
-    res.json({ message: 'Consentimiento informado eliminado correctamente' });
-  } catch (error) {
-    res.status(500).send('Error al eliminar consentimiento informado: ' + error.message);
-  }
 });
 
 

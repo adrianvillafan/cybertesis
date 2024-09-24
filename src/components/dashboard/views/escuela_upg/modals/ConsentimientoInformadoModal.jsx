@@ -39,20 +39,47 @@ const ConsentimientoInformado = ({ onClose, onSave, readOnly, fileUrl: initialFi
   const handleSave = async () => {
     try {
       let uploadedFileUrl = fileUrl;
-
+  
       if (file) {
-        const uploadResponse = await uploadConsentimientoFile(file);
+        // Detalles del evento para el upload del archivo
+        const eventoUploadDetails = {
+          actor_user_id: user.user_id,
+          actor_tipo_user_id: user.current_team_id, // Ajustar según el rol del usuario
+          target_user_id: documentos.estudiante_id, // ID del estudiante afectado
+          target_tipo_user_id: 2, // Tipo de usuario target
+          document_id: documentos.id, // ID del documento
+          tipo_documento_id: 7, // Tipo Consentimiento Informado
+          action_type: 'Subida de consentimiento informado',
+          event_description: `Se subió el consentimiento informado para el estudiante ${documentos.estudiante_id}.`,
+          is_notificacion: 1
+        };
+  
+        const uploadResponse = await uploadConsentimientoFile(file, eventoUploadDetails); // Pasamos los detalles del evento al upload
         uploadedFileUrl = uploadResponse.fileName;
       }
-
+  
       const consentimientoData = {
         file_url: uploadedFileUrl,
         created_by: user.user_id,
         updated_by: user.user_id,
         documentos_id: documentos.id
       };
-
-      await createConsentimiento(consentimientoData);
+  
+      // Detalles del evento para registrar la inserción del consentimiento
+      const eventoInsertDetails = {
+        actor_user_id: user.user_id,
+        actor_tipo_user_id: user.current_team_id, // Ajustar según el rol del usuario
+        target_user_id: documentos.estudiante_id, // ID del estudiante afectado
+        target_tipo_user_id: 2, // Tipo de usuario target
+        document_id: documentos.id, // ID del documento
+        tipo_documento_id: 4, // Tipo Consentimiento Informado
+        action_type: 'Registro de consentimiento informado',
+        event_description: `Se registró el consentimiento informado para el estudiante ${documentos.estudiante_id}.`,
+        is_notificacion: 1
+      };
+  
+      // Enviar los detalles del consentimiento junto con el evento de registro
+      await createConsentimiento({ ...consentimientoData, ...eventoInsertDetails });
       onSave();
       onClose();
     } catch (error) {
@@ -60,6 +87,7 @@ const ConsentimientoInformado = ({ onClose, onSave, readOnly, fileUrl: initialFi
       console.error('Error al guardar Consentimiento Informado:', error);
     }
   };
+  
 
   return (
     <ModalOneCol
