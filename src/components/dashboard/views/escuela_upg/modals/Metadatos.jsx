@@ -300,6 +300,23 @@ const MetadatosModal = ({ onClose, onSave, documentos }) => {
     return requiredFields.every(field => field && field.trim().length > 0) && anoComplete;
   };
 
+  const handleFileChange = (file) => {
+    if (file) {
+  
+      // Crear el nuevo nombre del archivo
+      const newFileName = `Metadatos_${documentos.id}.pdf`;
+  
+      // Crear un nuevo archivo con el nuevo nombre, conservando el contenido del archivo original
+      const renamedFile = new File([file], newFileName, { type: file.type });
+  
+      // Guardar el nuevo archivo renombrado en el estado
+      setFile(renamedFile);
+  
+      // Mostrar el nuevo nombre del archivo en la consola
+      console.log("Nuevo nombre del archivo:", newFileName);
+    }
+  };
+
   return (
     <ModalTwoCol
       onClose={onClose}
@@ -311,7 +328,7 @@ const MetadatosModal = ({ onClose, onSave, documentos }) => {
         </>
       }
       file={file}
-      setFile={setFile}
+      setFile={handleFileChange}
       fileUrl={fileUrl}
       setFileUrl={setFileUrl}
       showForm={showForm}

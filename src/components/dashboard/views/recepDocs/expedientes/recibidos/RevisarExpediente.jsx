@@ -1,9 +1,13 @@
 import React, { useState } from 'react';
 import { Container, Header, Box, Button, SpaceBetween, ColumnLayout, Table, Badge } from '@cloudscape-design/components';
+import ModalOneDoc from './visores/ModalOneDoc';
+import ModalTwoDocs from './visores/ModalTwoDocs';
+import ModalThreeDocs from './visores/ModalThreeDocs';
 
 const RevisarExpediente = ({ expedienteId, onBack }) => {
     // Estado para seleccionar documentos
     const [selectedDocuments, setSelectedDocuments] = useState([]);
+    const [showModal, setShowModal] = useState(false);
 
     // Datos estáticos para simular la información del expediente
     const expediente = {
@@ -20,14 +24,14 @@ const RevisarExpediente = ({ expedienteId, onBack }) => {
 
     // Datos de los documentos con estados simulados
     const documentos = [
-        { id: 1, nombre: 'Tesis', display: 'Registro de Tesis', lastWritten: 'Tue Feb 27 15:45:49 GMT-800 2024', size: '116.9 kB', estado: 'Revisado' },
-        { id: 2, nombre: 'Acta de Sustentación', display: 'Registro de Acta de Sustentación', lastWritten: 'Tue Feb 27 14:00:24 GMT-800 2024', size: '2.2 MB', estado: 'Pendiente' },
-        { id: 3, nombre: 'Certificado de Similitud', display: 'Registro de Certificado de Similitud', lastWritten: 'Sun Feb 25 06:09:38 GMT-800 2024', size: '417.5 kB', estado: 'Observado' },
-        { id: 4, nombre: 'Autorización para el depósito de obra en Cybertesis', display: 'Autorización para el depósito de obra en Cybertesis', lastWritten: 'Sat Feb 24 06:08:39 GMT-800 2024', size: '863.9 kB', estado: 'Revisado' },
-        { id: 5, nombre: 'Hoja de Metadatos', display: 'Registro de Metadatos Complementarios', lastWritten: 'Thu Feb 01 15:55:20 GMT-800 2024', size: '80.7 kB', estado: 'Revisado' },
-        { id: 6, nombre: 'Reporte de Turnitin', display: 'Registro de Reporte de Turnitin', lastWritten: 'Mon Mar 1 10:30:20 GMT-800 2024', size: '512.0 kB', estado: 'Revisado' },
-        { id: 7, nombre: 'Consentimiento Informado', display: 'Registro de Consentimiento Informado', lastWritten: 'Tue Mar 2 12:45:35 GMT-800 2024', size: '1.1 MB', estado: 'Revisado' },
-        { id: 8, nombre: 'Postergación de Publicación', display: 'Solicitud de Postergación en Cybertesis', lastWritten: 'Wed Mar 3 14:15:49 GMT-800 2024', size: '204.9 kB', estado: 'Pendiente' }
+        { id: 1, nombre: 'Tesis', display: 'Registro de Tesis', lastWritten: 'Tue Feb 27 15:45:49 GMT-800 2024', size: '116.9 kB', estado: 'Revisado', fileUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
+        { id: 2, nombre: 'Acta de Sustentación', display: 'Registro de Acta de Sustentación', lastWritten: 'Tue Feb 27 14:00:24 GMT-800 2024', size: '2.2 MB', estado: 'Revisado', fileUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
+        { id: 3, nombre: 'Certificado de Similitud', display: 'Registro de Certificado de Similitud', lastWritten: 'Sun Feb 25 06:09:38 GMT-800 2024', size: '417.5 kB', estado: 'Revisado', fileUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
+        { id: 4, nombre: 'Autorización para el depósito de obra en Cybertesis', display: 'Autorización para el depósito de obra en Cybertesis', lastWritten: 'Sat Feb 24 06:08:39 GMT-800 2024', size: '863.9 kB', estado: 'Revisado' , fileUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf'},
+        { id: 5, nombre: 'Hoja de Metadatos', display: 'Registro de Metadatos Complementarios', lastWritten: 'Thu Feb 01 15:55:20 GMT-800 2024', size: '80.7 kB', estado: 'Revisado', fileUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
+        { id: 6, nombre: 'Reporte de Turnitin', display: 'Registro de Reporte de Turnitin', lastWritten: 'Mon Mar 1 10:30:20 GMT-800 2024', size: '512.0 kB', estado: 'Revisado', fileUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
+        { id: 7, nombre: 'Consentimiento Informado', display: 'Registro de Consentimiento Informado', lastWritten: 'Tue Mar 2 12:45:35 GMT-800 2024', size: '1.1 MB', estado: 'Revisado', fileUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
+        { id: 8, nombre: 'Postergación de Publicación', display: 'Solicitud de Postergación en Cybertesis', lastWritten: 'Wed Mar 3 14:15:49 GMT-800 2024', size: '204.9 kB', estado: 'Revisado', fileUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' }
     ];
 
     // Funciones para determinar el estado de los documentos
@@ -52,6 +56,13 @@ const RevisarExpediente = ({ expedienteId, onBack }) => {
             // Llamar a función específica para 3 documentos
             console.log("Visualizando 3 documentos");
         }
+
+        setShowModal(true);
+    };
+
+    // Función para cerrar el modal
+    const closeModal = () => {
+        setShowModal(false);
     };
 
     return (
@@ -158,6 +169,32 @@ const RevisarExpediente = ({ expedienteId, onBack }) => {
                     empty={<Box>No hay documentos relacionados</Box>}
                 />
             </Container>
+
+
+             {/* Modales para la visualización de documentos */}
+             {showModal && selectedDocuments.length === 1 && (
+                <ModalOneDoc
+                    onClose={closeModal}
+                    fileUrl={selectedDocuments[0].fileUrl}
+                    headerText="Visualización de Documento"
+                />
+            )}
+
+            {showModal && selectedDocuments.length === 2 && (
+                <ModalTwoDocs
+                    onClose={closeModal}
+                    fileUrls={[selectedDocuments[0].fileUrl, selectedDocuments[1].fileUrl]}
+                    headerText="Visualización de Dos Documentos"
+                />
+            )}
+
+            {showModal && selectedDocuments.length === 3 && (
+                <ModalThreeDocs
+                    onClose={closeModal}
+                    fileUrls={[selectedDocuments[0].fileUrl, selectedDocuments[1].fileUrl, selectedDocuments[2].fileUrl]}
+                    headerText="Visualización de Tres Documentos"
+                />
+            )}
 
         </SpaceBetween>
     );

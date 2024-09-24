@@ -82,7 +82,7 @@ const TemplateMail = ({ name, message, requestCode }) => {
           React.createElement(
             Button,
             { style: styles.cloudscapeButton, href: "#" },
-            "ENTRAR A MI CUENTA"
+            "Entrar a la plataforma"
           )
         )
       )

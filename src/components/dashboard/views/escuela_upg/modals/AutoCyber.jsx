@@ -10,6 +10,8 @@ const AutoCyber = ({ onClose, onSave, readOnly, fileUrl: initialFileUrl, documen
   const [fileUrl, setFileUrl] = useState(readOnly ? initialFileUrl : '');
   const [errorMessage, setErrorMessage] = useState('');
 
+  console.log(documentos)
+
   useEffect(() => {
     if (readOnly && initialFileUrl) {
       setFileUrl(initialFileUrl);
@@ -17,41 +19,50 @@ const AutoCyber = ({ onClose, onSave, readOnly, fileUrl: initialFileUrl, documen
   }, [readOnly, initialFileUrl]);
 
   const handleFileChange = (file) => {
-    setFile(file);
     if (file) {
+      // Cambiamos el nombre del archivo antes de procesarlo
+      const newFileName = `AutoCyber_${documentos.id}.pdf`;
+  
+      // Creamos un nuevo archivo con el nuevo nombre, conservando el contenido del archivo original
+      const renamedFile = new File([file], newFileName, { type: file.type });
+  
+      setFile(renamedFile);
+  
+      // Leer el contenido del archivo y actualizar el fileUrl para previsualización
       const reader = new FileReader();
       reader.onload = (event) => {
         const fileContent = event.target.result;
         setFileUrl(fileContent);
       };
-      reader.readAsDataURL(file);
+      reader.readAsDataURL(renamedFile);
     }
   };
+  
 
   const handleSave = async () => {
-    try {
-      let uploadedFileUrl = fileUrl;
+  try {
+    let uploadedFileUrl = fileUrl;
 
-      if (file) {
-        const uploadResponse = await uploadAutoCyberFile(file);
-        uploadedFileUrl = uploadResponse.fileName;
-      }
-
-      const autoCyberData = {
-        file_url: uploadedFileUrl,
-        created_by: user.user_id,
-        updated_by: user.user_id,
-        documentos_id: documentos.id
-      };
-
-      await createAutoCyber(autoCyberData);
-      onSave();
-      onClose();
-    } catch (error) {
-      setErrorMessage('Error al guardar AutoCyber.');
-      console.error('Error al guardar AutoCyber:', error);
+    if (file) {
+      const uploadResponse = await uploadAutoCyberFile(file); // Aquí 'file' ya tendrá el nombre cambiado
+      uploadedFileUrl = uploadResponse.fileName;
     }
-  };
+
+    const autoCyberData = {
+      file_url: uploadedFileUrl,
+      created_by: user.user_id,
+      updated_by: user.user_id,
+      documentos_id: documentos.id
+    };
+
+    await createAutoCyber(autoCyberData);
+    onSave();
+    onClose();
+  } catch (error) {
+    setErrorMessage('Error al guardar AutoCyber.');
+    console.error('Error al guardar AutoCyber:', error);
+  }
+};
 
   return (
     <ModalOneCol

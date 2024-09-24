@@ -18,14 +18,22 @@ const RepTurnitinModal = ({ onClose, onSave, readOnly, fileUrl: initialFileUrl, 
   }, [readOnly, initialFileUrl]);
 
   const handleFileChange = (file) => {
-    setFile(file);
     if (file) {
+      // Cambiamos el nombre del archivo antes de procesarlo
+      const newFileName = `RepTurnitin_${documentos.id}.pdf`;
+  
+      // Creamos un nuevo archivo con el nuevo nombre, conservando el contenido del archivo original
+      const renamedFile = new File([file], newFileName, { type: file.type });
+  
+      setFile(renamedFile);
+  
+      // Leer el contenido del archivo y actualizar el fileUrl para previsualización
       const reader = new FileReader();
       reader.onload = (event) => {
         const fileContent = event.target.result;
         setFileUrl(fileContent);
       };
-      reader.readAsDataURL(file);
+      reader.readAsDataURL(renamedFile);
     }
   };
 

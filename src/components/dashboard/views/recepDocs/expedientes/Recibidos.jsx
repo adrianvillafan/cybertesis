@@ -123,6 +123,7 @@ const Recibidos = ({ renderHeader }) => {
                     header: 'Acciones',
                     cell: item => <Button onClick={() => setExpedienteSeleccionado(item)}>Revisar</Button>,
                     sortingDisabled: true,
+                    minWidth: 140,
                   }
             ]}
             sortingColumn={sortingColumn}
@@ -139,6 +140,7 @@ const Recibidos = ({ renderHeader }) => {
                 />
             }
             filter={
+                
                 <Grid gridDefinition={[{ colspan: 6 }, { colspan: 3 }, { colspan: 2 }]}>
                     <TextFilter
                         filteringText={filteringText}

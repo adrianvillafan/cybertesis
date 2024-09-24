@@ -166,6 +166,24 @@ const ActaSustentacionModal = ({ onClose, documentos, onSave }) => {
     }
   };
 
+  const handleFileChange = (file) => {
+    if (file) {
+  
+      // Crear el nuevo nombre del archivo
+      const newFileName = `ActaSustentacion_${documentos.id}.pdf`;
+  
+      // Crear un nuevo archivo con el nuevo nombre, conservando el contenido del archivo original
+      const renamedFile = new File([file], newFileName, { type: file.type });
+  
+      // Guardar el nuevo archivo renombrado en el estado
+      setFile(renamedFile);
+  
+      // Mostrar el nuevo nombre del archivo en la consola
+      console.log("Nuevo nombre del archivo:", newFileName);
+    }
+  };
+  
+
   const handleSave = async () => {
     if (isFormComplete()) {
       try {
@@ -207,7 +225,7 @@ const ActaSustentacionModal = ({ onClose, documentos, onSave }) => {
         </>
       }
       file={file}
-      setFile={setFile}
+      setFile={handleFileChange}
       fileUrl={fileUrl}
       setFileUrl={setFileUrl}
       showForm={showForm}

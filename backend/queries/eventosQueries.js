@@ -12,8 +12,9 @@ export const insertEvento = (eventoDetails, callback) => {
       document_id,
       tipo_documento_id,
       event_description,
-      created_at
-    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+      created_at,
+      is_notificacion
+    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
     RETURNING event_id
   `;
   const eventoValues = [
@@ -25,7 +26,8 @@ export const insertEvento = (eventoDetails, callback) => {
     eventoDetails.document_id || null,
     eventoDetails.tipo_documento_id,
     eventoDetails.event_description,
-    new Date()
+    new Date(),
+    eventoDetails.is_notificacion || 0   // Valor por defecto 0 si no se especifica
   ];
 
   // Ejecutar la consulta de inserción del evento
@@ -58,10 +60,10 @@ export const markEventoAsRead = (eventId, callback) => {
   });
 };
 
-// Obtener eventos no leídos donde el usuario es target (usando userId y tipo de usuario)
+// Obtener eventos no leídos donde el usuario es target (usando userId, tipo de usuario y notificación)
 export const getEventosNoLeidosByTargetUserId = (userId, tipoUserId, callback) => {
   const query = `
-    SELECT event_id, actor_user_id, actor_tipo_user_id, target_user_id, target_tipo_user_id, action_type, document_id, tipo_documento_id, event_description, created_at 
+    SELECT event_id, actor_user_id, actor_tipo_user_id, target_user_id, target_tipo_user_id, action_type, document_id, tipo_documento_id, event_description, created_at, is_notificacion
     FROM eventos 
     WHERE target_user_id = $1 AND target_tipo_user_id = $2 AND read_at IS NULL
     ORDER BY created_at DESC
@@ -77,10 +79,10 @@ export const getEventosNoLeidosByTargetUserId = (userId, tipoUserId, callback) =
   });
 };
 
-// Obtener eventos no leídos donde el usuario es actor (usando userId y tipo de usuario)
+// Obtener eventos no leídos donde el usuario es actor (usando userId, tipo de usuario y notificación)
 export const getEventosNoLeidosByActorUserId = (userId, tipoUserId, callback) => {
   const query = `
-    SELECT event_id, actor_user_id, actor_tipo_user_id, target_user_id, target_tipo_user_id, action_type, document_id, tipo_documento_id, event_description, created_at 
+    SELECT event_id, actor_user_id, actor_tipo_user_id, target_user_id, target_tipo_user_id, action_type, document_id, tipo_documento_id, event_description, created_at, is_notificacion
     FROM eventos 
     WHERE actor_user_id = $1 AND actor_tipo_user_id = $2 AND read_at IS NULL
     ORDER BY created_at DESC
@@ -96,10 +98,10 @@ export const getEventosNoLeidosByActorUserId = (userId, tipoUserId, callback) =>
   });
 };
 
-// Obtener todos los eventos donde el usuario es target (usando userId y tipo de usuario)
+// Obtener todos los eventos donde el usuario es target (incluye is_notificacion)
 export const getEventosByTargetUserId = (userId, tipoUserId, callback) => {
   const query = `
-    SELECT event_id, actor_user_id, actor_tipo_user_id, target_user_id, target_tipo_user_id, action_type, document_id, tipo_documento_id, event_description, created_at, read_at
+    SELECT event_id, actor_user_id, actor_tipo_user_id, target_user_id, target_tipo_user_id, action_type, document_id, tipo_documento_id, event_description, created_at, read_at, is_notificacion
     FROM eventos 
     WHERE target_user_id = $1 AND target_tipo_user_id = $2
     ORDER BY created_at DESC
@@ -115,10 +117,10 @@ export const getEventosByTargetUserId = (userId, tipoUserId, callback) => {
   });
 };
 
-// Obtener todos los eventos donde el usuario es actor (usando userId y tipo de usuario)
+// Obtener todos los eventos donde el usuario es actor (incluye is_notificacion)
 export const getEventosByActorUserId = (userId, tipoUserId, callback) => {
   const query = `
-    SELECT event_id, actor_user_id, actor_tipo_user_id, target_user_id, target_tipo_user_id, action_type, document_id, tipo_documento_id, event_description, created_at, read_at
+    SELECT event_id, actor_user_id, actor_tipo_user_id, target_user_id, target_tipo_user_id, action_type, document_id, tipo_documento_id, event_description, created_at, read_at, is_notificacion
     FROM eventos 
     WHERE actor_user_id = $1 AND actor_tipo_user_id = $2
     ORDER BY created_at DESC
@@ -134,10 +136,10 @@ export const getEventosByActorUserId = (userId, tipoUserId, callback) => {
   });
 };
 
-// Obtener eventos relacionados con un documento específico (usando tipo de usuario)
+// Obtener eventos relacionados con un documento específico (incluye is_notificacion)
 export const getEventosByDocumentId = (documentId, actorTipoUserId, targetTipoUserId, callback) => {
   const query = `
-    SELECT event_id, actor_user_id, actor_tipo_user_id, target_user_id, target_tipo_user_id, action_type, document_id, tipo_documento_id, event_description, created_at, read_at
+    SELECT event_id, actor_user_id, actor_tipo_user_id, target_user_id, target_tipo_user_id, action_type, document_id, tipo_documento_id, event_description, created_at, read_at, is_notificacion
     FROM eventos 
     WHERE document_id = $1 AND actor_tipo_user_id = $2 AND target_tipo_user_id = $3
     ORDER BY created_at DESC

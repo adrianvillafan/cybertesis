@@ -3,7 +3,7 @@ import ModalTwoCol from './ModalTwoCol';
 import { Button, FormField, Input, Select, SpaceBetween, Container, Header, ColumnLayout, Box, StatusIndicator } from '@cloudscape-design/components';
 import { fetchDatosByDni, fetchDatosOrcid, saveTesis, fetchTesisById, uploadTesisFile } from '../../../../../../api';
 
-const TesisModal = ({ onClose, alumnoData, onSave, readOnly, fileUrl, formData: initialFormData, documentos_id }) => {
+const TesisModal = ({ onClose, alumnoData, onSave, readOnly, fileUrl, formData: initialFormData, documentos_id, user }) => {
   const [file, setFile] = useState(null);
   const [localFileUrl, setLocalFileUrl] = useState(fileUrl);
   const [showForm, setShowForm] = useState(false);
@@ -278,17 +278,27 @@ const TesisModal = ({ onClose, alumnoData, onSave, readOnly, fileUrl, formData: 
 
     if (isFormComplete()) {
       try {
-        // Define the new file name
-        const newFileName = `${formData.autores[0].dni}_${formData.tipo}_${formData.grado}_${formData.year}.pdf`;
-        console.log("newFileName:", newFileName);
 
         // Create a new file object with the new name
-        const newFile = new File([file], newFileName, { type: file.type });
+        const newFile = new File([file], file, { type: file.type });
         console.log("newFile:", newFile);
 
-        // Subir el archivo
-        console.log("Tratando de subir archivo...");
-        const uploadResponse = await uploadTesisFile(newFile);
+        // Definir los detalles del evento
+        const eventoDetails = {
+          actor_user_id: user.user_id,
+          actor_tipo_user_id: user.current_team_id,
+          target_user_id: documentos_id.estudiante_id, // Ajusta según tu lógica
+          target_tipo_user_id: 2, // Ajusta según tu lógica
+          document_id: documentos_id.id, // Ajusta según tu lógica
+          tipo_documento_id: 1, // Tipo tesis
+          action_type: 'Subida de tesis',
+          event_description: `Se cargó el archivo pdf de la tesis ${formData.titulo}`,
+          is_notificacion: 0
+        };
+
+        // Subir el archivo y enviar los detalles del evento
+        const uploadResponse = await uploadTesisFile(newFile, eventoDetails);
+
         const { fileName } = uploadResponse;
         console.log("uploadResponse:", uploadResponse);
 
@@ -300,18 +310,44 @@ const TesisModal = ({ onClose, alumnoData, onSave, readOnly, fileUrl, formData: 
           autor2: formData.autores[1]?.id || null,
           asesor1: formData.asesores[0].id,
           asesor2: formData.asesores[1]?.id || null,
-          documentos_id: documentos_id.id
+          documentos_id: documentos_id.id,
+          actor_user_id: user.user_id,
+          actor_tipo_user_id: user.current_team_id,
+          target_user_id: documentos_id.estudiante_id, // Ajusta según tu lógica
+          target_tipo_user_id: 2, // Ajusta según tu lógica
+          document_id: documentos_id.id, // Ajusta según tu lógica
+          tipo_documento_id: 1, // Tipo tesis
+          action_type: 'Registro de tesis',
+          event_description: `Se registro la tesis ${formData.titulo}`,
+          is_notificacion: 1
         };
 
         const saveResponse = await saveTesis(tesisData);
 
-        onSave({ formData, fileUrl });
+        onSave({ formData, fileUrl: fileName });
         onClose();
       } catch (error) {
         alert("Error al guardar la tesis: " + error.message);
       }
     } else {
       alert("Todos los campos deben estar completos.");
+    }
+  };
+
+  const handleFileChange = (file) => {
+    if (file) {
+
+      // Crear el nuevo nombre del archivo
+      const newFileName = `Tesis_${documentos_id.id}.pdf`;
+
+      // Crear un nuevo archivo con el nuevo nombre, conservando el contenido del archivo original
+      const renamedFile = new File([file], newFileName, { type: file.type });
+
+      // Guardar el nuevo archivo renombrado en el estado
+      setFile(renamedFile);
+
+      // Mostrar el nuevo nombre del archivo en la consola
+      console.log("Nuevo nombre del archivo:", newFileName);
     }
   };
 
@@ -326,7 +362,7 @@ const TesisModal = ({ onClose, alumnoData, onSave, readOnly, fileUrl, formData: 
         </>
       }
       file={file}
-      setFile={setFile}
+      setFile={handleFileChange}
       fileUrl={localFileUrl}
       setFileUrl={setLocalFileUrl}
       showForm={showForm}

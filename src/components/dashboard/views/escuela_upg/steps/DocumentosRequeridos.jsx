@@ -32,7 +32,8 @@ const DocumentosRequeridos = ({
   handleNextStep,
   setErrorMessage,
   alumnoData,
-  setStep
+  setStep,
+  user
 }) => {
   const [selectedDoc, setSelectedDoc] = useState(null);
   const [savedDocuments, setSavedDocuments] = useState({});
@@ -181,6 +182,7 @@ const DocumentosRequeridos = ({
       {selectedDoc?.type === 'Tesis' && (
         selectedDoc.editing ? (
           <TesisModal
+            user={user}
             onClose={handleModalClose}
             alumnoData={alumnoData}
             onSave={(data) => handleSaveDocument('Tesis', data)}
@@ -199,6 +201,7 @@ const DocumentosRequeridos = ({
       {selectedDoc?.type === 'Acta de Sustentación' && (
         selectedDoc.editing ? (
           <ActaSustentacionModal
+            user={user}
             onClose={handleModalClose}
             onSave={(data) => handleSaveDocument('Acta de Sustentación', data)}
             documentos={documentos}
@@ -213,6 +216,7 @@ const DocumentosRequeridos = ({
       {selectedDoc?.type === 'Certificado de Similitud' && (
         selectedDoc.editing ? (
           <CertificadoSimilitud
+            user={user}
             onClose={handleModalClose}
             onSave={(data) => handleSaveDocument('Certificado de Similitud', data)}
             readOnly={false}
@@ -229,6 +233,7 @@ const DocumentosRequeridos = ({
       {selectedDoc?.type === 'Autorización para el depósito de obra en Cybertesis' && (
         selectedDoc.editing ? (
           <AutoCyber
+            user={user}
             onClose={handleModalClose}
             onSave={(data) => handleSaveDocument('Autorización para el depósito de obra en Cybertesis', data)}
             readOnly={false}
@@ -245,6 +250,7 @@ const DocumentosRequeridos = ({
       {selectedDoc?.type === 'Hoja de Metadatos' && (
         selectedDoc.editing ? (
           <MetadatosModal
+            user={user}
             onClose={handleModalClose}
             onSave={(data) => handleSaveDocument('Hoja de Metadatos', data)}
             readOnly={false}
@@ -262,6 +268,7 @@ const DocumentosRequeridos = ({
       {selectedDoc?.type === 'Reporte de Turnitin' && (
         selectedDoc.editing ? (
           <RepTurnitinModal
+            user={user}
             onClose={handleModalClose}
             onSave={(data) => handleSaveDocument('Reporte de Turnitin', data)}
             readOnly={false}
@@ -278,6 +285,7 @@ const DocumentosRequeridos = ({
       {selectedDoc?.type === 'Consentimiento Informado' && (
         selectedDoc.editing ? (
           <ConsentimientoInformado
+            user={user}
             onClose={handleModalClose}
             onSave={(data) => handleSaveDocument('Consentimiento Informado', data)}
             readOnly={false}
@@ -294,6 +302,7 @@ const DocumentosRequeridos = ({
       {selectedDoc?.type === 'Postergación de Publicación' && (
         selectedDoc.editing ? (
           <PostergacionPublicacion
+            user={user}
             onClose={handleModalClose}
             onSave={(data) => handleSaveDocument('Postergación de Publicación', data)}
             readOnly={false}
@@ -309,6 +318,7 @@ const DocumentosRequeridos = ({
       )}
       {showDeleteConfirmation && deleteDocType === 'Tesis' && (
         <TesisModalDelete
+          user={user}
           visible={showDeleteConfirmation}
           onClose={() => setShowDeleteConfirmation(false)}
           onConfirm={handleDeleteDocument}
@@ -317,6 +327,7 @@ const DocumentosRequeridos = ({
       )}
       {showDeleteConfirmation && deleteDocType === 'Acta de Sustentación' && (
         <ActaSustentacionModalDelete
+          user={user}
           visible={showDeleteConfirmation}
           onClose={() => setShowDeleteConfirmation(false)}
           onConfirm={handleDeleteDocument}
@@ -325,6 +336,7 @@ const DocumentosRequeridos = ({
       )}
       {showDeleteConfirmation && deleteDocType === 'Certificado de Similitud' && (
         <CertificadoSimilitudDelete
+          user={user}
           visible={showDeleteConfirmation}
           onClose={() => setShowDeleteConfirmation(false)}
           onConfirm={handleDeleteDocument}
@@ -333,6 +345,7 @@ const DocumentosRequeridos = ({
       )}
       {showDeleteConfirmation && deleteDocType === 'Autorización para el depósito de obra en Cybertesis' && (
         <AutoCyberDelete
+          user={user}
           visible={showDeleteConfirmation}
           onClose={() => setShowDeleteConfirmation(false)}
           onConfirm={handleDeleteDocument}
@@ -341,6 +354,7 @@ const DocumentosRequeridos = ({
       )}
       {showDeleteConfirmation && deleteDocType === 'Hoja de Metadatos' && (
         <MetadatosModalDelete
+          user={user}
           visible={showDeleteConfirmation}
           onClose={() => setShowDeleteConfirmation(false)}
           onConfirm={handleDeleteDocument}
@@ -349,6 +363,7 @@ const DocumentosRequeridos = ({
       )}
       {showDeleteConfirmation && deleteDocType === 'Reporte de Turnitin' && (
         <RepTurnitinModalDelete
+          user={user}
           visible={showDeleteConfirmation}
           onClose={() => setShowDeleteConfirmation(false)}
           onConfirm={handleDeleteDocument}
@@ -357,6 +372,7 @@ const DocumentosRequeridos = ({
       )}
       {showDeleteConfirmation && deleteDocType === 'Consentimiento Informado' && (
         <ConsentimientoInformadoDelete
+          user={user}
           visible={showDeleteConfirmation}
           onClose={() => setShowDeleteConfirmation(false)}
           onConfirm={handleDeleteDocument}
@@ -365,6 +381,7 @@ const DocumentosRequeridos = ({
       )}
       {showDeleteConfirmation && deleteDocType === 'Postergación de Publicación' && (
         <PostergacionPublicacionDelete
+          user={user}
           visible={showDeleteConfirmation}
           onClose={() => setShowDeleteConfirmation(false)}
           onConfirm={handleDeleteDocument}

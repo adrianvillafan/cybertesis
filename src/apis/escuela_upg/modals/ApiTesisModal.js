@@ -24,32 +24,24 @@ export const saveTesis = async (tesisData) => {
   }
 };
 
-// Función para obtener los datos de una tesis por ID
-export const fetchTesisById = async (tesisId) => {
-  try {
-    const response = await fetch(`http://localhost:3000/api/files/tesis/${tesisId}`, {
-      headers: {
-        'Authorization': `Bearer ${getToken()}`
-      }
-    });
-    return await response.json();
-  } catch (error) {
-    console.error('Error al obtener los datos de la tesis:', error);
-    throw error;
-  }
-};
+
 
 // Función para cargar el archivo PDF a MinIO
-export const uploadTesisFile = async (file) => {
+export const uploadTesisFile = async (file, eventoDetails) => {
   const formData = new FormData();
   formData.append('file', file);
   formData.append('type', 'TESIS'); // Asegúrate de usar mayúsculas
+
+  for (let key in eventoDetails) {
+    formData.append(key, eventoDetails[key]);
+  }
 
   // Log each entry in the FormData
   for (let pair of formData.entries()) {
     console.log(pair[0] + ', ' + pair[1]);
   }
   console.log('formData', formData);
+  console.log('eventoDetails', eventoDetails);
 
   try {
     const response = await fetch('http://localhost:3000/api/files/upload', {
@@ -69,6 +61,43 @@ export const uploadTesisFile = async (file) => {
   }
 };
 
+
+
+// Función para eliminar una tesis
+export const deleteTesis = async (id, eventoDetails) => {
+  try {
+    const response = await fetch(`http://localhost:3000/api/files/tesis/delete/${id}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${getToken()}`
+      },
+      body: JSON.stringify(eventoDetails)  // Enviar los detalles del evento en el body
+    });
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error al eliminar la tesis:', error);
+    throw error;
+  }
+};
+
+
+// Función para obtener los datos de una tesis por ID
+export const fetchTesisById = async (tesisId) => {
+  try {
+    const response = await fetch(`http://localhost:3000/api/files/tesis/${tesisId}`, {
+      headers: {
+        'Authorization': `Bearer ${getToken()}`
+      }
+    });
+    return await response.json();
+  } catch (error) {
+    console.error('Error al obtener los datos de la tesis:', error);
+    throw error;
+  }
+};
+
 // Función para obtener la URL de visualización del archivo PDF desde MinIO
 export const fetchTesisFileUrl = async (type, filename) => {
   try {
@@ -80,22 +109,6 @@ export const fetchTesisFileUrl = async (type, filename) => {
     return await response.json();
   } catch (error) {
     console.error('Error al obtener la URL del archivo:', error);
-    throw error;
-  }
-};
-
-// Función para eliminar una tesis
-export const deleteTesis = async (id) => {
-  try {
-    const response = await fetch(`http://localhost:3000/api/files/tesis/delete/${id}`, {
-      method: 'DELETE',
-      headers: {
-        'Authorization': `Bearer ${getToken()}`
-      }
-    });
-    return await response.json();
-  } catch (error) {
-    console.error('Error al eliminar la tesis:', error);
     throw error;
   }
 };

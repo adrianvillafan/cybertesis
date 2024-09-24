@@ -71,7 +71,6 @@ export const insertTesis = (tesisDetails, callback) => {
   });
 };
 
-
 export const deleteTesisById = (id, callback) => {
   const queryGetParticipantes = 'SELECT id_participantes FROM tesis WHERE id_tesis = $1';
 
@@ -89,56 +88,85 @@ export const deleteTesisById = (id, callback) => {
 
     const idParticipantes = results[0].id_participantes;
 
-    const queryDeleteMetadatos = 'DELETE FROM metadata WHERE id_participantes = $1';
-
-    executeQuery(queryDeleteMetadatos, [idParticipantes], (err) => {
+    // Comprobamos si existen metadatos para eliminar
+    const queryCheckMetadatos = 'SELECT * FROM metadata WHERE id_participantes = $1';
+    executeQuery(queryCheckMetadatos, [idParticipantes], (err, metadataResults) => {
       if (err) {
-        console.error('Error al eliminar metadatos:', err);
+        console.error('Error al verificar metadatos:', err);
         return callback(err, null);
       }
 
-      const queryDeleteParticipacion = 'DELETE FROM tesis_participacion WHERE id_participantes = $1';
-
-      executeQuery(queryDeleteParticipacion, [idParticipantes], (err) => {
-        if (err) {
-          console.error('Error al eliminar participación de tesis:', err);
-          return callback(err, null);
-        }
-
-        const queryUpdateDocumentosTesis = 'UPDATE documentos SET tesis_id = NULL WHERE tesis_id = $1';
-
-        executeQuery(queryUpdateDocumentosTesis, [id], (err) => {
+      if (metadataResults.length > 0) {
+        const queryDeleteMetadatos = 'DELETE FROM metadata WHERE id_participantes = $1';
+        executeQuery(queryDeleteMetadatos, [idParticipantes], (err) => {
           if (err) {
-            console.error('Error al actualizar documentos (tesis_id):', err);
+            console.error('Error al eliminar metadatos:', err);
             return callback(err, null);
           }
 
-          const queryDeleteActaSustentacion = 'DELETE FROM acta_sustentacion WHERE id_participantes = $1';
+          // Actualizamos documentos eliminando la referencia a los metadatos
+          const queryUpdateDocumentosMetadatos = 'UPDATE documentos SET metadatos_id = NULL WHERE tesis_id = $1';
+          executeQuery(queryUpdateDocumentosMetadatos, [id], (err) => {
+            if (err) {
+              console.error('Error al actualizar documentos (metadatos_id):', err);
+              return callback(err, null);
+            }
+          });
+        });
+      }
 
-          executeQuery(queryDeleteActaSustentacion, [idParticipantes], (err) => {
+      // Comprobamos si existe el acta de sustentación para eliminar
+      const queryCheckActa = 'SELECT * FROM acta_sustentacion WHERE id_participantes = $1';
+      executeQuery(queryCheckActa, [idParticipantes], (err, actaResults) => {
+        if (err) {
+          console.error('Error al verificar acta de sustentación:', err);
+          return callback(err, null);
+        }
+
+        if (actaResults.length > 0) {
+          const queryDeleteActa = 'DELETE FROM acta_sustentacion WHERE id_participantes = $1';
+          executeQuery(queryDeleteActa, [idParticipantes], (err) => {
             if (err) {
               console.error('Error al eliminar acta de sustentación:', err);
               return callback(err, null);
             }
 
-            const queryUpdateDocumentos = 'UPDATE documentos SET actasust_id = NULL, metadatos_id = NULL WHERE actasust_id = $1 OR metadatos_id = $1';
-
-            executeQuery(queryUpdateDocumentos, [idParticipantes], (err) => {
+            // Actualizamos documentos eliminando la referencia al acta de sustentación
+            const queryUpdateDocumentosActa = 'UPDATE documentos SET actasust_id = NULL WHERE tesis_id = $1';
+            executeQuery(queryUpdateDocumentosActa, [id], (err) => {
               if (err) {
-                console.error('Error al actualizar documentos (actasust_id, metadatos_id):', err);
+                console.error('Error al actualizar documentos (actasust_id):', err);
+                return callback(err, null);
+              }
+            });
+          });
+        }
+
+        // Eliminar la participación en la tesis
+        const queryDeleteParticipacion = 'DELETE FROM tesis_participacion WHERE id_participantes = $1';
+        executeQuery(queryDeleteParticipacion, [idParticipantes], (err) => {
+          if (err) {
+            console.error('Error al eliminar participación de tesis:', err);
+            return callback(err, null);
+          }
+
+          // Actualizamos documentos eliminando la referencia a la tesis
+          const queryUpdateDocumentosTesis = 'UPDATE documentos SET tesis_id = NULL WHERE tesis_id = $1';
+          executeQuery(queryUpdateDocumentosTesis, [id], (err) => {
+            if (err) {
+              console.error('Error al actualizar documentos (tesis_id):', err);
+              return callback(err, null);
+            }
+
+            // Finalmente, eliminamos la tesis
+            const queryDeleteTesis = 'DELETE FROM tesis WHERE id_tesis = $1';
+            executeQuery(queryDeleteTesis, [id], (err, results) => {
+              if (err) {
+                console.error('Error al eliminar tesis:', err);
                 return callback(err, null);
               }
 
-              const queryDeleteTesis = 'DELETE FROM tesis WHERE id_tesis = $1';
-
-              executeQuery(queryDeleteTesis, [id], (err, results) => {
-                if (err) {
-                  console.error('Error al eliminar tesis:', err);
-                  return callback(err, null);
-                }
-
-                callback(null, results.rowCount);
-              });
+              callback(null, results.rowCount);
             });
           });
         });
@@ -146,6 +174,7 @@ export const deleteTesisById = (id, callback) => {
     });
   });
 };
+
 
 
 

@@ -38,6 +38,7 @@ const IngresarDoc = () => {
       )}
       {step === 3 && (
         <DocumentosRequeridos
+          user={user}
           setStep={setStep}
           documentos={documentos}
           handleNextStep={handleNextStep}

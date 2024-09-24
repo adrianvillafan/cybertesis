@@ -17,7 +17,7 @@ import { insertAutoCyber, deleteAutoCyberById, getAutoCyberById } from '../queri
 import { insertReporteTurnitin, deleteReporteTurnitinById, getReporteTurnitinById } from '../queries/turnitinQueries.js';
 import { insertPostergacionPublicacion, getPostergacionPublicacionById, deletePostergacionPublicacionById } from '../queries/postergacionQueries.js';
 import { insertConsentimientoInformado, getConsentimientoInformadoById, deleteConsentimientoInformadoById } from '../queries/consentimientoQueries.js';
-
+import { insertEvento } from '../queries/eventosQueries.js';
 
 const router = express.Router();
 const storage = multer.memoryStorage();
@@ -38,11 +38,7 @@ const getBucketName = (type) => BUCKETS[type];
 
 router.post('/upload', upload.single('file'), async (req, res) => {
   const { file } = req;
-  const { type } = req.body;
-
-  console.log('file', file);
-  console.log('type', type);
-  console.log('BUCKETS', getBucketName(type));
+  const { type, actor_user_id, actor_tipo_user_id, target_user_id, target_tipo_user_id, document_id, tipo_documento_id, action_type, event_description, is_notificacion } = req.body;
 
   if (!file) {
     return res.status(400).send('No se subió ningún archivo.');
@@ -50,18 +46,40 @@ router.post('/upload', upload.single('file'), async (req, res) => {
 
   try {
     const bucketName = getBucketName(type);
-    console.log('bucketName', bucketName);
 
     if (!bucketName) {
       throw new Error('No se proporcionó un bucket válido.');
     }
 
     const uploadResult = await uploadFileToMinIO(file, bucketName, file.originalname);
+    
+    // Aquí es donde insertarías el evento después de una subida exitosa
+    const eventoDetails = {
+      actor_user_id,
+      actor_tipo_user_id,
+      target_user_id,
+      target_tipo_user_id,
+      action_type,
+      document_id,
+      tipo_documento_id,
+      event_description,
+      is_notificacion
+    };
+    
+    insertEvento(eventoDetails, (err, eventId) => {
+      if (err) {
+        console.error('Error al registrar evento:', err);
+      } else {
+        console.log('Evento registrado con ID:', eventId);
+      }
+    });
+
     res.json({ message: uploadResult, fileName: file.originalname });
   } catch (error) {
     res.status(500).send('Error al subir el archivo: ' + error.message);
   }
 });
+
 
 router.get('/download/:type/:filename', async (req, res) => {
   const { type, filename } = req.params;
@@ -89,26 +107,75 @@ router.get('/view/:type/:filename', async (req, res) => {
 
 router.delete('/delete/:type/:filename', async (req, res) => {
   const { type, filename } = req.params;
+  const { actor_user_id, actor_tipo_user_id, target_user_id, target_tipo_user_id, document_id, tipo_documento_id } = req.body; // Datos adicionales para el evento
 
   try {
     const bucketName = getBucketName(type);
+    
+    // Eliminar el archivo de MinIO
     await deleteFileFromMinIO(bucketName, filename);
+
+    // Después de eliminar el archivo, registra el evento
+    const eventoDetails = {
+      actor_user_id: actor_user_id,                 // Usuario que realiza la acción (quién eliminó)
+      actor_tipo_user_id: actor_tipo_user_id,       // Tipo de usuario que elimina el archivo
+      target_user_id: target_user_id || null,       // Usuario afectado por la acción (opcional)
+      target_tipo_user_id: target_tipo_user_id || null, // Tipo de usuario afectado (opcional)
+      action_type: 'Eliminación de archivo',        // Acción realizada
+      document_id: document_id || null,             // ID del documento relacionado (si aplica)
+      tipo_documento_id: tipo_documento_id || null, // Tipo de documento (si aplica)
+      event_description: `El usuario ${actor_user_id} eliminó el archivo ${filename}.`,
+      is_notificacion: 1                            // Definir si se muestra como notificación (1 o 0)
+    };
+
+    // Insertar el evento
+    insertEvento(eventoDetails, (err, eventId) => {
+      if (err) {
+        console.error('Error al registrar evento de eliminación:', err);
+      } else {
+        console.log('Evento registrado con ID:', eventId);
+      }
+    });
+
     res.send({ message: 'Archivo eliminado correctamente' });
   } catch (error) {
     res.status(500).send('Error al eliminar el archivo: ' + error.message);
   }
 });
 
+
 // ------------------ Tesis Routes ------------------
 
 router.post('/tesis/insert', async (req, res) => {
   const tesisDetails = req.body;
   console.log('tesisDetails', tesisDetails);
+
   try {
     insertTesis(tesisDetails, (err, tesisId) => {
       if (err) {
         res.status(500).send('Error al insertar tesis: ' + err.message);
       } else {
+        // Después de insertar la tesis, registra el evento de inserción
+        const eventoDetails = {
+          actor_user_id: tesisDetails.actor_user_id,  // Usuario que hizo la inserción
+          actor_tipo_user_id: tesisDetails.actor_tipo_user_id,  // Tipo de usuario que hizo la inserción
+          target_user_id: tesisDetails.target_user_id || null,  // Usuario target, si aplica
+          target_tipo_user_id: tesisDetails.target_tipo_user_id || null,  // Tipo de usuario target, si aplica
+          action_type: 'Registro de tesis',  // Acción realizada
+          document_id: tesisId,  // ID del documento recién insertado
+          tipo_documento_id: tesisDetails.tipo_documento_id,  // Tipo de documento
+          event_description: `Se registró la tesis ${tesisDetails.titulo || 'sin título'}.`,  // Descripción del evento
+          is_notificacion: tesisDetails.is_notificacion  // Si debe aparecer en notificaciones
+        };
+
+        insertEvento(eventoDetails, (err, eventId) => {
+          if (err) {
+            console.error('Error al registrar evento:', err);
+          } else {
+            console.log('Evento de registro de tesis registrado con ID:', eventId);
+          }
+        });
+
         res.json({ message: 'Tesis insertada correctamente', tesisId });
       }
     });
@@ -118,10 +185,23 @@ router.post('/tesis/insert', async (req, res) => {
 });
 
 
+
 router.delete('/tesis/delete/:id', async (req, res) => {
   const { id } = req.params;
+  const {
+    actor_user_id,
+    actor_tipo_user_id,
+    target_user_id,
+    target_tipo_user_id,
+    document_id,
+    tipo_documento_id,
+    action_type,
+    event_description,
+    is_notificacion
+  } = req.body; // Recibe los datos enviados desde el frontend
 
   try {
+    // Buscar la tesis para obtener el filename y eliminarla de MinIO
     const tesis = await new Promise((resolve, reject) => {
       getTesisById(id, (err, result) => {
         if (err) reject(err);
@@ -133,7 +213,32 @@ router.delete('/tesis/delete/:id', async (req, res) => {
       return res.status(404).send('Tesis no encontrada.');
     }
 
+    // Eliminar el archivo de MinIO
     await deleteFileFromMinIO(BUCKETS.TESIS, tesis.file_url);
+
+    // Registrar el evento usando los datos recibidos desde el frontend
+    const eventoDetails = {
+      actor_user_id,
+      actor_tipo_user_id,
+      target_user_id,
+      target_tipo_user_id,
+      action_type,
+      document_id: document_id || id, // Usa el document_id del frontend o el id de la tesis
+      tipo_documento_id: tipo_documento_id || 1, // Tipo de documento (tesis)
+      event_description,
+      is_notificacion
+    };
+
+    // Insertar el evento
+    insertEvento(eventoDetails, (err, eventId) => {
+      if (err) {
+        console.error('Error al registrar evento de eliminación:', err);
+      } else {
+        console.log('Evento registrado con ID:', eventId);
+      }
+    });
+
+    // Eliminar la tesis de la base de datos
     await new Promise((resolve, reject) => {
       deleteTesisById(id, (err, results) => {
         if (err) reject(err);
@@ -141,9 +246,9 @@ router.delete('/tesis/delete/:id', async (req, res) => {
       });
     });
 
-    res.json({ message: 'Tesis eliminada correctamente' });
+    res.send({ message: 'Tesis eliminada correctamente' });
   } catch (error) {
-    res.status(500).send('Error al eliminar tesis: ' + error.message);
+    res.status(500).send('Error al eliminar la tesis: ' + error.message);
   }
 });
 

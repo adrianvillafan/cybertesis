@@ -2,8 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Modal, FileUpload, Box, SpaceBetween, Icon, Spinner } from '@cloudscape-design/components';
 import { Document, Page, pdfjs } from 'react-pdf';
 import 'pdfjs-dist/web/pdf_viewer.css';
-import 'react-pdf/dist/Page/TextLayer.css';
-import 'react-pdf/dist/Page/AnnotationLayer.css';
+import 'react-pdf/dist/esm/Page/TextLayer.css';
+import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.js`;
 
@@ -17,6 +17,8 @@ const ModalOneCol = ({ onClose, headerText, footerButtons, file, setFile, fileUr
     const popoverRef = useRef(null); // Ref para el popover
     const iconRef = useRef(null); // Ref para el ícono
     const [width, setWidth] = useState(0);
+
+    console.log('fileUrl:', fileUrl);
 
     useEffect(() => {
         const handleResize = () => {
