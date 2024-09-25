@@ -457,7 +457,7 @@ router.post('/metadata/insert', async (req, res) => {
           target_tipo_user_id: metadataDetails.target_tipo_user_id,
           action_type: metadataDetails.action_type || 'Inserción de metadatos', // Valor predeterminado si no se proporciona
           document_id: metadataId,  // Usar el ID del metadato insertado
-          tipo_documento_id: metadataDetails.tipo_documento_id || 3,  // Asignar un valor predeterminado si es necesario
+          tipo_documento_id: metadataDetails.tipo_documento_id || 5,  // Asignar un valor predeterminado si es necesario
           event_description: metadataDetails.event_description || `Se insertaron metadatos con ID ${metadataId}`, // Descripción del evento
           is_notificacion: metadataDetails.is_notificacion || 0  // Valor predeterminado si no se proporciona
         };
@@ -516,7 +516,7 @@ router.delete('/metadata/delete/:id', async (req, res) => {
       target_tipo_user_id,
       action_type: action_type || 'Eliminación de metadatos', // Acción predeterminada si no se proporciona
       document_id: id,  // Asignar el ID de los metadatos eliminados como document_id
-      tipo_documento_id: 3, // Tipo de documento para metadatos
+      tipo_documento_id: 5, // Tipo de documento para metadatos
       event_description: event_description || `Se eliminaron los metadatos con ID ${id}`, // Descripción predeterminada
       is_notificacion: is_notificacion || 0 // Valor predeterminado para la notificación
     };
@@ -611,7 +611,7 @@ router.post('/certificado/insert', async (req, res) => {
           target_tipo_user_id: certificadoDetails.target_tipo_user_id,
           action_type: 'Registro de certificado de similitud',  // Acción especificada
           document_id: certificadoId,  // Usar el ID generado del certificado
-          tipo_documento_id: certificadoDetails.tipo_documento_id || 4,  // Tipo de documento para certificados
+          tipo_documento_id: certificadoDetails.tipo_documento_id || 3,  // Tipo de documento para certificados
           event_description: `Se registró el certificado de similitud con ID ${certificadoId}.`,  // Descripción del evento
           is_notificacion: certificadoDetails.is_notificacion || 0  // Valor de notificación predeterminado
         };
@@ -686,7 +686,7 @@ router.delete('/certificado/delete/:id', async (req, res) => {
       target_tipo_user_id,
       action_type: action_type || 'Eliminación de certificado de similitud',
       document_id: id, // Usar el ID del certificado que se está eliminando
-      tipo_documento_id: 4, // Suponiendo que 4 es el tipo de documento para certificados
+      tipo_documento_id: 3, 
       event_description: event_description || `Se eliminó el certificado de similitud con ID ${id}.`,
       is_notificacion: is_notificacion || 1
     };
@@ -728,7 +728,7 @@ router.post('/autocyber/insert', async (req, res) => {
           target_tipo_user_id,
           action_type: action_type || 'Inserción de AutoCyber', // Acción realizada
           document_id: autoCyberId, // ID del documento recién insertado (autoCyberId)
-          tipo_documento_id: tipo_documento_id || 5, // Tipo de documento (asignar según tu lógica)
+          tipo_documento_id: tipo_documento_id || 4, // Tipo de documento (asignar según tu lógica)
           event_description: event_description || `Se insertó un AutoCyber con ID ${autoCyberId}.`,
           is_notificacion: is_notificacion || 1
         };
@@ -783,7 +783,7 @@ router.delete('/autocyber/delete/:id', async (req, res) => {
       target_tipo_user_id,
       action_type: action_type || 'Eliminación de AutoCyber', // Acción predeterminada si no se especifica
       document_id: id, // Usamos el ID del AutoCyber eliminado como document_id
-      tipo_documento_id: tipo_documento_id || 5, // Tipo de documento, ajustar según la lógica
+      tipo_documento_id: tipo_documento_id || 4, // Tipo de documento, ajustar según la lógica
       event_description: event_description || `Se eliminó el AutoCyber con ID ${id}.`,
       is_notificacion: is_notificacion || 1
     };
@@ -995,7 +995,7 @@ router.post('/postergacion/insert', async (req, res) => {
           target_tipo_user_id,
           action_type: action_type || 'Registro de postergación de publicación', // Acción predeterminada
           document_id: postergacionId, // Usar el ID generado de la postergación
-          tipo_documento_id: tipo_documento_id || 7, // Tipo de documento
+          tipo_documento_id: tipo_documento_id || 8, // Tipo de documento
           event_description: event_description || `Se registró la postergación de publicación con ID ${postergacionId}.`,
           is_notificacion
         };
@@ -1059,7 +1059,7 @@ router.delete('/postergacion/delete/:id', async (req, res) => {
       target_tipo_user_id,
       action_type: action_type || 'Eliminación de postergación de publicación', // Acción predeterminada
       document_id: id, // Usar el ID de la postergación que se está eliminando
-      tipo_documento_id: tipo_documento_id || 7, // Tipo de documento
+      tipo_documento_id: tipo_documento_id || 8, // Tipo de documento
       event_description: event_description || `Se eliminó la postergación de publicación con ID ${id}.`,
       is_notificacion
     };
@@ -1130,7 +1130,7 @@ router.post('/consentimiento/insert', async (req, res) => {
           target_tipo_user_id,
           action_type: action_type || 'Registro de consentimiento informado', // Acción predeterminada
           document_id: consentimientoId, // Usar el ID generado del consentimiento
-          tipo_documento_id: tipo_documento_id || 8, // Tipo de documento
+          tipo_documento_id: tipo_documento_id || 7, // Tipo de documento
           event_description: event_description || `Se registró el consentimiento informado con ID ${consentimientoId}.`,
           is_notificacion
         };
@@ -1198,7 +1198,7 @@ router.delete('/consentimiento/delete/:id', async (req, res) => {
       target_tipo_user_id,
       action_type: action_type || 'Eliminación de consentimiento informado', // Acción predeterminada
       document_id: id, // Usar el ID del consentimiento eliminado
-      tipo_documento_id: tipo_documento_id || 8, // Tipo de documento
+      tipo_documento_id: tipo_documento_id || 7, // Tipo de documento
       event_description: event_description || `Se eliminó el consentimiento informado con ID ${id}.`,
       is_notificacion
     };
