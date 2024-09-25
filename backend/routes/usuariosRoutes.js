@@ -1,6 +1,15 @@
 import express from 'express';
 import { fetchListaAlumnos, fetchAlumnoData , fetchEscuelaUpgData,fetchListaAlumnosByProgramaId, fetchProgramasByFacultadId } from '../queries/escuelaUpgQueries.js'
 import { fetchDatosByDni } from '../queries/datosDniQueries.js';
+import {
+  getEventosNoLeidosByTargetUserId,
+  getEventosNoLeidosByActorUserId,
+  getEventosByTargetUserId,
+  getEventosByActorUserId,
+  getEventosByDocumentId,
+  markEventoAsRead
+} from '../queries/eventosQueries.js'; // Importar las consultas de eventos
+
 import fetch from 'node-fetch';
 
 const router = express.Router();
@@ -107,6 +116,81 @@ router.get('/datosorcid/:orcid', async (req, res) => {
   } catch (error) {
     res.status(500).send({ message: "Error al obtener datos del ORCID", error: error.toString() });
   }
+});
+
+
+// EVENTOS
+
+// Ruta para obtener eventos no leídos donde el usuario es el target
+router.get('/eventos/target/no-leidos/:userId/:tipoUserId', (req, res) => {
+  const { userId, tipoUserId } = req.params;
+  getEventosNoLeidosByTargetUserId(userId, tipoUserId, (error, eventos) => {
+    if (error) {
+      res.status(500).send({ message: "Error al obtener eventos no leídos para el target", error: error.toString() });
+    } else {
+      res.json(eventos);
+    }
+  });
+});
+
+// Ruta para obtener eventos no leídos donde el usuario es el actor
+router.get('/eventos/actor/no-leidos/:userId/:tipoUserId', (req, res) => {
+  const { userId, tipoUserId } = req.params;
+  getEventosNoLeidosByActorUserId(userId, tipoUserId, (error, eventos) => {
+    if (error) {
+      res.status(500).send({ message: "Error al obtener eventos no leídos para el actor", error: error.toString() });
+    } else {
+      res.json(eventos);
+    }
+  });
+});
+
+// Ruta para obtener todos los eventos donde el usuario es el target
+router.get('/eventos/target/:userId/:tipoUserId', (req, res) => {
+  const { userId, tipoUserId } = req.params;
+  getEventosByTargetUserId(userId, tipoUserId, (error, eventos) => {
+    if (error) {
+      res.status(500).send({ message: "Error al obtener eventos para el target", error: error.toString() });
+    } else {
+      res.json(eventos);
+    }
+  });
+});
+
+// Ruta para obtener todos los eventos donde el usuario es el actor
+router.get('/eventos/actor/:userId/:tipoUserId', (req, res) => {
+  const { userId, tipoUserId } = req.params;
+  getEventosByActorUserId(userId, tipoUserId, (error, eventos) => {
+    if (error) {
+      res.status(500).send({ message: "Error al obtener eventos para el actor", error: error.toString() });
+    } else {
+      res.json(eventos);
+    }
+  });
+});
+
+// Ruta para obtener eventos relacionados con un documento específico
+router.get('/eventos/documento/:documentId/:actorTipoUserId/:targetTipoUserId', (req, res) => {
+  const { documentId, actorTipoUserId, targetTipoUserId } = req.params;
+  getEventosByDocumentId(documentId, actorTipoUserId, targetTipoUserId, (error, eventos) => {
+    if (error) {
+      res.status(500).send({ message: "Error al obtener eventos para el documento", error: error.toString() });
+    } else {
+      res.json(eventos);
+    }
+  });
+});
+
+// Ruta para marcar un evento como leído
+router.put('/eventos/read/:eventId', (req, res) => {
+  const { eventId } = req.params;
+  markEventoAsRead(eventId, (error, result) => {
+    if (error) {
+      res.status(500).send({ message: "Error al marcar el evento como leído", error: error.toString() });
+    } else {
+      res.json({ message: `Evento con ID ${eventId} marcado como leído`, rowsAffected: result });
+    }
+  });
 });
 
 export default router;

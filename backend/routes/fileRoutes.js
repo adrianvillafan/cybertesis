@@ -65,7 +65,7 @@ router.post('/upload', upload.single('file'), async (req, res) => {
       event_description,
       is_notificacion
     };
-    
+
     insertEvento(eventoDetails, (err, eventId) => {
       if (err) {
         console.error('Error al registrar evento:', err);
