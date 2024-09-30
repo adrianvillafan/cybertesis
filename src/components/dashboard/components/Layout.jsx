@@ -12,6 +12,7 @@ import {
 import { I18nProvider } from '@cloudscape-design/components/i18n';
 import messages from '@cloudscape-design/components/i18n/messages/all.es';
 import UserContext from '../contexts/UserContext';
+import Notificaciones from './Notificaciones'; // Importa tu componente aquí
 
 const LOCALE = 'es';
 
@@ -19,8 +20,6 @@ const Layout = ({ navigationItems, contentHeader, children, onNavigation, onLogo
   const [activeHref, setActiveHref] = React.useState("/");
   const { user } = useContext(UserContext);
 
-  console.log('User:', user);
-  
   const updatedNavigationItems = [
     { type: "link", text: <a onClick={() => onNavigation('inicio')}> <Icon name="user-profile" /> Inicio</a>, href: '#inicio' },
     ...navigationItems, // Opciones específicas del usuario
@@ -59,16 +58,14 @@ const Layout = ({ navigationItems, contentHeader, children, onNavigation, onLogo
                       text: "Reportar Problema",
                       href: "#",
                       external: true,
-                      externalIconAriaLabel:
-                        " (opens in new tab)"
+                      externalIconAriaLabel: " (opens in new tab)"
                     },
                     {
                       id: "feedback",
                       text: "Términos Políticos",
                       href: "#",
                       external: true,
-                      externalIconAriaLabel:
-                        " (opens in new tab)"
+                      externalIconAriaLabel: " (opens in new tab)"
                     }
                   ]
                 },
@@ -80,34 +77,31 @@ const Layout = ({ navigationItems, contentHeader, children, onNavigation, onLogo
         <AppLayout
           headerVariant="high-contrast"
           toolsHide={true}
-          breadcrumbs={
-            <BreadcrumbGroup
-            />
-          }
+          breadcrumbs={<BreadcrumbGroup />}
           navigation={
-            <SideNavigation
-              activeHref={activeHref}
-              header={{
-                href: '#', 
-                text: (
-                  <div>
-                    <div style={{ fontWeight: 'bold', fontSize: '16px' }}>
-                      {user.guard_name}
+            <div>
+              <SideNavigation
+                activeHref={activeHref}
+                header={{
+                  href: '#', 
+                  text: (
+                    <div>
+                      <div style={{ fontWeight: 'bold', fontSize: '16px' }}>{user.guard_name}</div>
+                      <div style={{ fontWeight: 'lighter', fontSize: '12px' }}>{user.name}</div>
                     </div>
-                    <div style={{ fontWeight: 'lighter', fontSize: '12px' }}>
-                      {user.name}
-                    </div>
-                  </div>
-                ),
-              }}
-              items={updatedNavigationItems}
-              onFollow={event => {
-                if (!event.detail.external) {
-                  event.preventDefault();
-                  setActiveHref(event.detail.href);
-                }
-              }}
-            />
+                  ),
+                }}
+                items={updatedNavigationItems}
+                onFollow={event => {
+                  if (!event.detail.external) {
+                    event.preventDefault();
+                    setActiveHref(event.detail.href);
+                  }
+                }}
+              />
+
+              <Notificaciones/>
+            </div>
           }
           content={
             <ContentLayout
