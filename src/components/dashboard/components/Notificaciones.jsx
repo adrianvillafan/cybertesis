@@ -1,6 +1,5 @@
 import React from 'react';
-
-import { Container, Header, ColumnLayout, Box, Button, Badge } from '@cloudscape-design/components';
+import { Box, Badge, ColumnLayout, Alert } from '@cloudscape-design/components';
 
 const alertas = [
   {
@@ -31,39 +30,81 @@ const alertas = [
 
 const Notificaciones = () => {
   return (
-    <Container>
+    <Box padding={{ vertical: 'xs', horizontal: 'l' }} width="100%">
       {/* Encabezado de Advertencias */}
-      <Box 
-        padding={{ vertical: 's', horizontal: 'l' }} 
-        display="flex" 
-        alignItems="center" 
-        justifyContent="space-between"
-      >
-        <Header variant="h2" style={{ margin: 0 }}>Advertencias</Header>
+      <Box display="flex" alignItems="center" margin={{ bottom: 's' }}>
+        <span style={{ fontSize: '18px', fontWeight: 'bold', marginRight: '10px', marginLeft: '10px' }}>
+          Advertencias
+        </span>
         <Badge color="blue">22</Badge>
       </Box>
-      
-      
-      {/* Sección de Alertas */}
-      <ColumnLayout columns={4} borders="vertical" variant="text-grid">
-        {alertas.map((alerta) => (
-          <Container 
-            key={alerta.id} 
-            header={
-              <Header variant="h5" style={{ fontSize: '10px', display: 'flex', alignItems: 'center', justifyContent: 'flex-start' }}>
-                <Button iconName="add-plus" variant="icon" ariaLabel="Agregar" />
-                <span style={{ marginLeft: '5px' }}>{alerta.title}</span> 
-              </Header>
-            }
+
+      {/* Contenedor para las Alertas sin color de fondo y sin bordes */}
+      <div 
+        style={{ 
+          maxHeight: '450px', // Máxima altura del contenedor
+          height: '50vh', // Altura responsiva (50% de la altura de la pantalla)
+          width: '95%', // Ancho completo
+          overflowY: 'auto', // Permitir desplazamiento vertical
+          overflowX: 'hidden', // Evitar desplazamiento horizontal
+          padding: '10px', // Espaciado interior
+          borderRadius: '5px', // Bordes redondeados
+          backgroundColor: '#f9f9f9', // Color de fondo
+        }} 
+      >
+        <ColumnLayout columns={1} borders="vertical" variant="text-grid">
+          {/* Primer cuadro como alerta de advertencia */}
+          <Alert 
+            key={alertas[0].id} 
+            statusIconAriaLabel="Warning" 
+            type="warning"
+            header={alertas[0].title}
           >
             <Box style={{ fontSize: '12px' }}>
-              {alerta.text}
-              <span style={{ color: 'red' }}>{alerta.number}</span>
+              {alertas[0].text}
+              <span style={{ color: 'red' }}>{alertas[0].number}</span>
             </Box>
-          </Container>
-        ))}
-      </ColumnLayout>
-    </Container>
+          </Alert>
+
+          {/* Segundo cuadro como alerta de información */}
+          <Alert 
+            key={alertas[1].id} 
+            statusIconAriaLabel="Info" 
+            header={alertas[1].title}
+          >
+            <Box style={{ fontSize: '12px' }}>
+              {alertas[1].text}
+              <span style={{ color: 'red' }}>{alertas[1].number}</span>
+            </Box>
+          </Alert>
+
+          {/* Tercer cuadro como alerta de error */}
+          <Alert 
+            key={alertas[2].id} 
+            statusIconAriaLabel="Error" 
+            type="error" 
+            header="La cantidad de tesis que necesita corregir de Recepción de documentos son:"
+          >
+            <Box style={{ fontSize: '12px' }}>
+              {alertas[2].text}
+              <span style={{ color: 'red' }}>{alertas[2].number}</span>
+            </Box>
+          </Alert>
+
+          {/* Cuarto cuadro como alerta regular */}
+          <Alert 
+            key={alertas[3].id} 
+            statusIconAriaLabel="Info" 
+            header={alertas[3].title}
+          >
+            <Box style={{ fontSize: '12px' }}>
+              {alertas[3].text}
+              <span style={{ color: 'red' }}>{alertas[3].number}</span>
+            </Box>
+          </Alert>
+        </ColumnLayout>
+      </div>
+    </Box>
   );
 };
 
