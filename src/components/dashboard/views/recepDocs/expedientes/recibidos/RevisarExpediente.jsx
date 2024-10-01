@@ -1,38 +1,55 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Container, Header, Box, Button, SpaceBetween, ColumnLayout, Table, Badge } from '@cloudscape-design/components';
+import { fetchExpedienteDetails, fetchDocumentosRelacionados } from '../../../../../../../api'; // Importamos las funciones de la API
 import ModalOneDoc from './visores/ModalOneDoc';
 import ModalTwoDocs from './visores/ModalTwoDocs';
 import ModalThreeDocs from './visores/ModalThreeDocs';
 
-const RevisarExpediente = ({ expedienteId, onBack }) => {
-    // Estado para seleccionar documentos
+const RevisarExpediente = ({ solicitudId, expedienteId, onBack }) => {
+    // Estado para los detalles del expediente y documentos relacionados
+    const [expediente, setExpediente] = useState(null);
+    const [documentos, setDocumentos] = useState([]);
     const [selectedDocuments, setSelectedDocuments] = useState([]);
     const [showModal, setShowModal] = useState(false);
 
-    // Datos estáticos para simular la información del expediente
-    const expediente = {
-        id: expedienteId,
-        nombre: 'Juan Pérez',
-        facultad: 'Ingeniería',
-        grado: 'Pregrado',
-        programa: 'Ingeniería de Sistemas',
-        tipoTrabajo: 'Tesis',
-        estado: 'Recibido',
-        dni: '12345678',
-        fecha: '2024-09-15'
-    };
+    // useEffect para obtener los detalles del expediente al cargar el componente
+    useEffect(() => {
+        const obtenerDetallesExpediente = async () => {
+            try {
+                const detalles = await fetchExpedienteDetails(solicitudId, expedienteId);
+                setExpediente(detalles);
+            } catch (error) {
+                console.error('Error al obtener los detalles del expediente:', error);
+            }
+        };
 
-    // Datos de los documentos con estados simulados
-    const documentos = [
-        { id: 1, nombre: 'Tesis', display: 'Registro de Tesis', lastWritten: 'Tue Feb 27 15:45:49 GMT-800 2024', size: '116.9 kB', estado: 'Revisado', fileUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
-        { id: 2, nombre: 'Acta de Sustentación', display: 'Registro de Acta de Sustentación', lastWritten: 'Tue Feb 27 14:00:24 GMT-800 2024', size: '2.2 MB', estado: 'Revisado', fileUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
-        { id: 3, nombre: 'Certificado de Similitud', display: 'Registro de Certificado de Similitud', lastWritten: 'Sun Feb 25 06:09:38 GMT-800 2024', size: '417.5 kB', estado: 'Revisado', fileUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
-        { id: 4, nombre: 'Autorización para el depósito de obra en Cybertesis', display: 'Autorización para el depósito de obra en Cybertesis', lastWritten: 'Sat Feb 24 06:08:39 GMT-800 2024', size: '863.9 kB', estado: 'Revisado' , fileUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf'},
-        { id: 5, nombre: 'Hoja de Metadatos', display: 'Registro de Metadatos Complementarios', lastWritten: 'Thu Feb 01 15:55:20 GMT-800 2024', size: '80.7 kB', estado: 'Revisado', fileUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
-        { id: 6, nombre: 'Reporte de Turnitin', display: 'Registro de Reporte de Turnitin', lastWritten: 'Mon Mar 1 10:30:20 GMT-800 2024', size: '512.0 kB', estado: 'Revisado', fileUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
-        { id: 7, nombre: 'Consentimiento Informado', display: 'Registro de Consentimiento Informado', lastWritten: 'Tue Mar 2 12:45:35 GMT-800 2024', size: '1.1 MB', estado: 'Revisado', fileUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
-        { id: 8, nombre: 'Postergación de Publicación', display: 'Solicitud de Postergación en Cybertesis', lastWritten: 'Wed Mar 3 14:15:49 GMT-800 2024', size: '204.9 kB', estado: 'Revisado', fileUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' }
-    ];
+        obtenerDetallesExpediente();
+    }, [solicitudId, expedienteId]);
+
+    // useEffect para obtener los documentos relacionados al cargar el componente
+    useEffect(() => {
+        const obtenerDocumentosRelacionados = async () => {
+            try {
+                const docs = await fetchDocumentosRelacionados(solicitudId, expedienteId);
+                // Transformar los documentos para adecuar el formato
+                const documentosFormateados = [
+                    { id: docs.tesis_id, nombre: 'Tesis', estado: docs.tesis_estado, fechaCarga: docs.fecha_tesis },
+                    { id: docs.actasust_id, nombre: 'Acta de Sustentación', estado: docs.acta_estado, fechaCarga: docs.fecha_actasust },
+                    { id: docs.certsimil_id, nombre: 'Certificado de Similitud', estado: docs.certificado_estado, fechaCarga: docs.fecha_certsimil },
+                    { id: docs.autocyber_id, nombre: 'Autorización Cybertesis', estado: docs.auto_estado, fechaCarga: docs.fecha_autocyber },
+                    { id: docs.metadatos_id, nombre: 'Metadatos Complementarios', estado: docs.metadatos_estado, fechaCarga: docs.fecha_metadatos },
+                    { id: docs.repturnitin_id, nombre: 'Reporte de Turnitin', estado: docs.turnitin_estado, fechaCarga: docs.fecha_repturnitin },
+                    { id: docs.consentimiento_id, nombre: 'Consentimiento Informado', estado: docs.consentimiento_estado, fechaCarga: docs.fecha_consentimiento },
+                    { id: docs.postergacion_id, nombre: 'Postergación de Publicación', estado: docs.postergacion_estado, fechaCarga: docs.fecha_postergacion }
+                ].filter(doc => doc.id); // Filtrar los documentos que no tengan ID
+                setDocumentos(documentosFormateados);
+            } catch (error) {
+                console.error('Error al obtener los documentos relacionados:', error);
+            }
+        };
+
+        obtenerDocumentosRelacionados();
+    }, [solicitudId, expedienteId]);
 
     // Funciones para determinar el estado de los documentos
     const hayDocumentosPendientes = documentos.some(doc => doc.estado === 'Pendiente');
@@ -40,23 +57,12 @@ const RevisarExpediente = ({ expedienteId, onBack }) => {
     const todosRevisados = documentos.every(doc => doc.estado === 'Revisado');
 
     // Cambiar el texto del botón dependiendo del estado de los documentos
-    const botonPrincipalTexto = hayDocumentosObservados  ? 'Enviar observación' : 'Enviar a Cybertesis';
+    const botonPrincipalTexto = hayDocumentosObservados ? 'Enviar observación' : 'Enviar a Cybertesis';
     const botonPrincipalHabilitado = todosRevisados || (hayDocumentosObservados && !hayDocumentosPendientes);
     const botonPrincipalIcono = hayDocumentosObservados ? 'status-warning' : null;
 
     // Funciones de Visualizar según el número de documentos seleccionados
     const handleVisualizar = () => {
-        if (selectedDocuments.length === 1) {
-            // Llamar a función específica para 1 documento
-            console.log("Visualizando 1 documento");
-        } else if (selectedDocuments.length === 2) {
-            // Llamar a función específica para 2 documentos
-            console.log("Visualizando 2 documentos");
-        } else if (selectedDocuments.length === 3) {
-            // Llamar a función específica para 3 documentos
-            console.log("Visualizando 3 documentos");
-        }
-
         setShowModal(true);
     };
 
@@ -65,14 +71,18 @@ const RevisarExpediente = ({ expedienteId, onBack }) => {
         setShowModal(false);
     };
 
+    if (!expediente) {
+        return <Box>Cargando detalles del expediente...</Box>;
+    }
+
     return (
-        <SpaceBetween size="l" >
+        <SpaceBetween size="l">
 
             <Container
                 header={
                     <Header
                         variant="h2"
-                        description={`Detalles del Expediente ID: ${expediente.id}`}
+                        description={`Detalles del Expediente ID: ${expedienteId}`}
                         actions={<Button onClick={onBack}>Volver</Button>}
                     >
                         Revisar Expediente
@@ -81,14 +91,15 @@ const RevisarExpediente = ({ expedienteId, onBack }) => {
             >
                 <SpaceBetween size="m">
                     <ColumnLayout columns={2} variant="text-grid">
-                        <Box><strong>Nombre del Estudiante:</strong><Box>{expediente.nombre}</Box></Box>
+                        <Box><strong>Nombre del Estudiante:</strong><Box>{expediente.nombre_completo}</Box></Box>
                         <Box><strong>DNI:</strong><Box>{expediente.dni}</Box></Box>
                         <Box><strong>Facultad:</strong><Box>{expediente.facultad}</Box></Box>
                         <Box><strong>Grado:</strong><Box>{expediente.grado}</Box></Box>
                         <Box><strong>Programa:</strong><Box>{expediente.programa}</Box></Box>
-                        <Box><strong>Tipo de Trabajo:</strong><Box>{expediente.tipoTrabajo}</Box></Box>
+                        <Box><strong>Título de Tesis:</strong><Box>{expediente.titulo_tesis}</Box></Box>
+                        <Box><strong>Asesor(es):</strong><Box>{expediente.asesor1}{expediente.asesor2 ? `, ${expediente.asesor2}` : ''}</Box></Box>
                         <Box><strong>Estado del Expediente:</strong><Box>{expediente.estado}</Box></Box>
-                        <Box><strong>Fecha de Recepción:</strong><Box>{expediente.fecha}</Box></Box>
+                        <Box><strong>Fecha de Recepción:</strong><Box>{new Date(expediente.fecha_carga).toLocaleDateString()}</Box></Box>
                     </ColumnLayout>
                 </SpaceBetween>
             </Container>
@@ -101,19 +112,18 @@ const RevisarExpediente = ({ expedienteId, onBack }) => {
                         counter={`(${selectedDocuments.length}/${documentos.length})`}
                         actions={
                             <SpaceBetween direction="horizontal" size="xs">
-                                {/* Los botones estarán deshabilitados si no hay documentos seleccionados */}
-                                <Button 
+                                <Button
                                     disabled={selectedDocuments.length === 0 || selectedDocuments.length > 3}
                                     onClick={handleVisualizar}
                                 >
                                     Visualizar
                                 </Button>
-                                <Button 
+                                <Button
                                     disabled={selectedDocuments.length === 0}
                                 >
                                     Descargar
                                 </Button>
-                                <Button 
+                                <Button
                                     variant="primary"
                                     disabled={!botonPrincipalHabilitado}
                                     iconAlign="right"
@@ -142,15 +152,9 @@ const RevisarExpediente = ({ expedienteId, onBack }) => {
                             cell: item => item.nombre,
                         },
                         {
-                            id: 'lastWritten',
-                            header: 'Última Modificación',
-                            cell: item => item.lastWritten,
-                        },
-                        {
-                            id: 'size',
-                            header: 'Tamaño',
-                            cell: item => item.size,
-                            align: 'right'
+                            id: 'fechaCarga',
+                            header: 'Fecha de Carga',
+                            cell: item => new Date(item.fechaCarga).toLocaleDateString(),
                         },
                         {
                             id: 'estado',
@@ -170,9 +174,8 @@ const RevisarExpediente = ({ expedienteId, onBack }) => {
                 />
             </Container>
 
-
-             {/* Modales para la visualización de documentos */}
-             {showModal && selectedDocuments.length === 1 && (
+            {/* Modales para la visualización de documentos */}
+            {showModal && selectedDocuments.length === 1 && (
                 <ModalOneDoc
                     onClose={closeModal}
                     fileUrl={selectedDocuments[0].fileUrl}
@@ -195,7 +198,6 @@ const RevisarExpediente = ({ expedienteId, onBack }) => {
                     headerText="Visualización de Tres Documentos"
                 />
             )}
-
         </SpaceBetween>
     );
 };

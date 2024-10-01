@@ -1,6 +1,6 @@
 import React from 'react';
 import { Box, Header, Button, SpaceBetween } from '@cloudscape-design/components';
-import { updateEstadoId, sendNotificationEmail } from '../../../../../../api'; // Importa sendNotificationEmail
+import { updateEstadoId, sendNotificationEmail, createSolicitud } from '../../../../../../api'; // Importa createSolicitud
 
 const DeclaracionJurada = ({ setStep, documentos, alumnoData }) => {
   console.log(alumnoData);
@@ -9,17 +9,22 @@ const DeclaracionJurada = ({ setStep, documentos, alumnoData }) => {
     try {
       // Obtener el ID del documento y los datos del alumno
       const documentId = documentos.id;
-      const nombre = alumnoData.nombre +  ' ' + alumnoData.apellidos_pat + ' ' + alumnoData.apellidos_mat ; // Nombre del alumno
+      const nombre = `${alumnoData.nombre} ${alumnoData.apellidos_pat} ${alumnoData.apellidos_mat}`; // Nombre del alumno
       const email = alumnoData.correo_institucional;  // Correo del alumno
-  
+      const facultadId = alumnoData.facultad_id; // ID de la facultad
+
       console.log('Actualizando el estado del documento...');
       await updateEstadoId(documentId, 1);
       console.log('Estado del documento actualizado');
-  
+
+      console.log('Creando solicitud...');
+      await createSolicitud(facultadId, documentId);
+      console.log('Solicitud creada');
+
       console.log('Enviando correo de notificación...');
       await sendNotificationEmail(email, nombre, `Su documento ha sido registrado con éxito. ID del documento: ${documentId}`);
       console.log('Correo de notificación enviado');
-  
+
       console.log('Cambiando paso a 5...');
       setStep(5); // Este debería cambiar el paso si todo ha sido exitoso
     } catch (error) {
@@ -27,7 +32,6 @@ const DeclaracionJurada = ({ setStep, documentos, alumnoData }) => {
       // Manejar los errores de forma adecuada
     }
   };
-  
 
   return (
     <Box>
