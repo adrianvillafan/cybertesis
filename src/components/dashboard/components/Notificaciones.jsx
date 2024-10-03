@@ -31,25 +31,27 @@ const alertas = [
 const Notificaciones = () => {
   return (
     <Box padding={{ vertical: 'xs', horizontal: 'l' }} width="100%">
-      {/* Encabezado de Advertencias */}
-      <Box display="flex" alignItems="center" margin={{ bottom: 's' }}>
+      {/* Encabezado de Advertencias 
+      
+         <Box display="flex" alignItems="center" margin={{ bottom: 's' }}>
         <span style={{ fontSize: '18px', fontWeight: 'bold', marginRight: '10px', marginLeft: '10px' }}>
           Advertencias
         </span>
         <Badge color="blue">22</Badge>
-      </Box>
+      </Box>   
+      */}
 
-      {/* Contenedor para las Alertas sin color de fondo y sin bordes */}
+
       <div 
         style={{ 
-          maxHeight: '450px', // Máxima altura del contenedor
+          maxHeight: '500px', 
           height: '50vh', // Altura responsiva (50% de la altura de la pantalla)
-          width: '95%', // Ancho completo
-          overflowY: 'auto', // Permitir desplazamiento vertical
-          overflowX: 'hidden', // Evitar desplazamiento horizontal
-          padding: '10px', // Espaciado interior
-          borderRadius: '5px', // Bordes redondeados
-          backgroundColor: '#f9f9f9', // Color de fondo
+          width: '95%', 
+          overflowY: 'auto', 
+          overflowX: 'hidden', 
+          padding: '10px', 
+          borderRadius: '5px', 
+          backgroundColor: '#f9f9f9', 
         }} 
       >
         <ColumnLayout columns={1} borders="vertical" variant="text-grid">
