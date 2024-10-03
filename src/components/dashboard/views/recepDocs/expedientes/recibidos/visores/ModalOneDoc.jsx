@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Modal, Box, SpaceBetween, Spinner, Button, Icon } from '@cloudscape-design/components';
+import { Modal, Box, Spinner, Button, Icon, SpaceBetween, FormField, Input, RadioGroup } from '@cloudscape-design/components';
 import { Document, Page, pdfjs } from 'react-pdf';
 import 'pdfjs-dist/web/pdf_viewer.css';
 import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
@@ -20,16 +20,16 @@ pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/$
 const ModalOneDoc = ({ onClose, documento }) => {
   const [numPages, setNumPages] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [fileUrl, setFileUrl] = useState(null);
+  const [view, setView] = useState('document'); // Estado para gestionar la vista actual (documento, aprobar, observar)
+  const [selectedReason, setSelectedReason] = useState(''); // Razón de observación seleccionada
+  const [comment, setComment] = useState(''); // Comentario para observación
   const containerRef = useRef(null);
   const [scale, setScale] = useState(1.0); // Estado para el nivel de zoom
-  const [containerWidth, setContainerWidth] = useState(0); // Estado para el ancho del contenedor
 
   // Función para calcular la escala en función del ancho del contenedor
   const ajustarEscala = () => {
     if (containerRef.current) {
-      setContainerWidth(containerRef.current.offsetWidth);
       setScale(containerRef.current.offsetWidth / 650); // Ajustar escala a 650 de ancho base
     }
   };
@@ -41,7 +41,6 @@ const ModalOneDoc = ({ onClose, documento }) => {
     };
 
     window.addEventListener('resize', handleResize);
-
     return () => {
       window.removeEventListener('resize', handleResize);
     };
@@ -93,7 +92,6 @@ const ModalOneDoc = ({ onClose, documento }) => {
       }
       setIsLoading(false);
 
-      // Ajustar la escala cuando el documento está listo
       setTimeout(() => {
         ajustarEscala(); // Llamar a ajustar escala después de la carga del documento
       }, 100); // Asegurarse de que el modal esté completamente cargado
@@ -120,6 +118,120 @@ const ModalOneDoc = ({ onClose, documento }) => {
     setScale((prevScale) => Math.max(prevScale - 0.2, 0.5)); // Limitar el zoom mínimo a 0.5x
   };
 
+  const handleAprobarClick = () => {
+    setView('aprobar'); // Cambiar la vista a 'aprobar'
+  };
+
+  const handleObservarClick = () => {
+    setView('observar'); // Cambiar la vista a 'observar'
+  };
+
+  const handleConfirmAprobar = () => {
+    console.log('Documento aprobado');
+    setView('document');
+  };
+
+  const handleConfirmObservar = () => {
+    console.log('Razón seleccionada:', selectedReason);
+    console.log('Comentario:', comment);
+    setView('document');
+  };
+
+  const renderDocumentView = () => (
+    <>
+      <div ref={containerRef} style={{ height: '70vh', overflowY: 'auto', position: 'relative' }}>
+        {/* Botones para zoom, superpuestos sobre el contenedor del PDF */}
+        <div
+          style={{
+            position: 'fixed',
+            top: '50px',
+            left: '20px',
+            zIndex: 10,
+            display: 'flex',
+            gap: '10px',
+          }}
+        >
+          <Button onClick={handleZoomIn} variant="primary" size="small">
+            <Icon name="zoom-in" />
+          </Button>
+          <Button onClick={handleZoomOut} variant="primary" size="small">
+            <Icon name="zoom-out" />
+          </Button>
+        </div>
+
+        {fileUrl ? (
+          <Document
+            file={fileUrl}
+            onLoadSuccess={onDocumentLoadSuccess}
+            onLoadError={onDocumentLoadError}
+          >
+            {Array.from(new Array(numPages), (el, index) => (
+              <Page key={`page_${index + 1}`} pageNumber={index + 1} scale={scale} />
+            ))}
+          </Document>
+        ) : (
+          <Box color="red">No se pudo cargar el documento</Box>
+        )}
+      </div>
+
+      {/* Botones para Aprobar y Observar, sobrepuestos en la parte inferior */}
+      <div
+        style={{
+          position: 'fixed',
+          bottom: '20px',
+          left: '20px',
+          zIndex: 10,
+          display: 'flex',
+          gap: '10px',
+        }}
+      >
+        <Button onClick={handleAprobarClick}>Aprobar</Button>
+        <Button onClick={handleObservarClick} variant="warning">
+          Observar
+        </Button>
+      </div>
+    </>
+  );
+
+  const renderAprobarView = () => (
+    <Box padding="m">
+      <h3>¿Estás seguro de que deseas aprobar este documento?</h3>
+      <SpaceBetween direction="horizontal" size="m">
+        <Button onClick={handleConfirmAprobar} variant="primary">
+          Sí, aprobar
+        </Button>
+        <Button onClick={() => setView('document')}>Cancelar</Button>
+      </SpaceBetween>
+    </Box>
+  );
+
+  const renderObservarView = () => (
+    <Box padding="m">
+      <h3>Observaciones del Documento</h3>
+      <FormField label="Razón de la observación">
+        <RadioGroup
+          onChange={({ detail }) => setSelectedReason(detail.value)}
+          value={selectedReason}
+          items={[
+            { label: 'Contenido insuficiente', value: 'contenido_insuficiente' },
+            { label: 'Errores en la gramática', value: 'errores_gramatica' },
+            { label: 'Faltan referencias', value: 'faltan_referencias' },
+            { label: 'Otro', value: 'otro' },
+          ]}
+        />
+      </FormField>
+      <FormField label="Comentarios adicionales">
+        <Input value={comment} onChange={({ detail }) => setComment(detail.value)} />
+      </FormField>
+      <SpaceBetween direction="horizontal" size="m">
+        <Button onClick={handleConfirmObservar} variant="warning">
+          Enviar observación
+        </Button>
+        <Button onClick={() => setView('document')}>Cancelar</Button>
+      </SpaceBetween>
+    </Box>
+  );
+
   return (
     <Modal
       visible={true}
@@ -127,63 +239,15 @@ const ModalOneDoc = ({ onClose, documento }) => {
       closeAriaLabel="Cerrar modal"
       header={`Visualizando: ${documento.nombre}`}
       size="medium"
-      footer={
-        <SpaceBetween direction="horizontal" size="m">
-          <Button disabled={isSubmitting} onClick={() => console.log('Aprobar')}>
-            Aprobar
-          </Button>
-          <Button disabled={isSubmitting} onClick={() => console.log('Observar')} variant="warning">
-            Observar
-          </Button>
-          <Button disabled={isSubmitting} onClick={onClose}>
-            Cerrar
-          </Button>
-        </SpaceBetween>
-      }
     >
       {isLoading ? (
         <Spinner size="large" />
+      ) : view === 'document' ? (
+        renderDocumentView()
+      ) : view === 'aprobar' ? (
+        renderAprobarView()
       ) : (
-        <div ref={containerRef} style={{ height: '70vh', overflowY: 'auto', position: 'relative' }}>
-          {/* Botones para zoom, superpuestos sobre el contenedor del PDF */}
-          <div
-            style={{
-              position: 'fixed',
-              top: '50px',
-              left: '20px',
-              zIndex: 10,
-              display: 'flex',
-              gap: '10px',
-            }}
-          >
-            <Button onClick={handleZoomIn} variant="primary" size="small">
-              <Icon name="zoom-in" />
-            </Button>
-            <Button onClick={handleZoomOut} variant="primary" size="small">
-              <Icon name="zoom-out" />
-            </Button>
-          </div>
-
-          {fileUrl ? (
-            <Document
-              file={fileUrl}
-              onLoadSuccess={onDocumentLoadSuccess}
-              onLoadError={onDocumentLoadError}
-            >
-              {Array.from(new Array(numPages), (el, index) => (
-                <Page
-                  key={`page_${index + 1}`}
-                  pageNumber={index + 1}
-                  scale={scale} // Usar la escala calculada
-                  renderTextLayer={false}
-                  renderAnnotationLayer={false}
-                />
-              ))}
-            </Document>
-          ) : (
-            <Box color="red">No se pudo cargar el documento</Box>
-          )}
-        </div>
+        renderObservarView()
       )}
     </Modal>
   );
