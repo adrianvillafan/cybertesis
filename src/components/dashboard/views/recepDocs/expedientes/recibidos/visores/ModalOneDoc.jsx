@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Modal, Box, SpaceBetween, Spinner, Button } from '@cloudscape-design/components';
+import { Modal, Box, SpaceBetween, Spinner, Button, Icon } from '@cloudscape-design/components';
 import { Document, Page, pdfjs } from 'react-pdf';
 import 'pdfjs-dist/web/pdf_viewer.css';
 import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
@@ -24,6 +24,28 @@ const ModalOneDoc = ({ onClose, documento }) => {
   const [fileUrl, setFileUrl] = useState(null);
   const containerRef = useRef(null);
   const [scale, setScale] = useState(1.0); // Estado para el nivel de zoom
+  const [containerWidth, setContainerWidth] = useState(0); // Estado para el ancho del contenedor
+
+  // Función para calcular la escala en función del ancho del contenedor
+  const ajustarEscala = () => {
+    if (containerRef.current) {
+      setContainerWidth(containerRef.current.offsetWidth);
+      setScale(containerRef.current.offsetWidth / 650); // Ajustar escala a 650 de ancho base
+    }
+  };
+
+  // Efecto para ajustar el ancho del contenedor después de cargar el modal
+  useEffect(() => {
+    const handleResize = () => {
+      ajustarEscala();
+    };
+
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
 
   useEffect(() => {
     const obtenerDocumento = async () => {
@@ -70,6 +92,11 @@ const ModalOneDoc = ({ onClose, documento }) => {
         console.error('Error al obtener el documento:', error);
       }
       setIsLoading(false);
+
+      // Ajustar la escala cuando el documento está listo
+      setTimeout(() => {
+        ajustarEscala(); // Llamar a ajustar escala después de la carga del documento
+      }, 100); // Asegurarse de que el modal esté completamente cargado
     };
 
     obtenerDocumento();
@@ -130,10 +157,10 @@ const ModalOneDoc = ({ onClose, documento }) => {
             }}
           >
             <Button onClick={handleZoomIn} variant="primary" size="small">
-              Zoom +
+              <Icon name="zoom-in" />
             </Button>
             <Button onClick={handleZoomOut} variant="primary" size="small">
-              Zoom -
+              <Icon name="zoom-out" />
             </Button>
           </div>
 
@@ -147,7 +174,7 @@ const ModalOneDoc = ({ onClose, documento }) => {
                 <Page
                   key={`page_${index + 1}`}
                   pageNumber={index + 1}
-                  scale={scale} // Usar la escala para hacer zoom
+                  scale={scale} // Usar la escala calculada
                   renderTextLayer={false}
                   renderAnnotationLayer={false}
                 />

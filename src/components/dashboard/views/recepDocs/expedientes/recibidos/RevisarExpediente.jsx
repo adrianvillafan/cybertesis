@@ -149,7 +149,7 @@ useEffect(() => {
             {showModal && selectedDocuments.length === 2 && (
                 <ModalTwoDocs
                     onClose={closeModal}
-                    documento={[selectedDocuments[0], selectedDocuments[1]]}
+                    documentos={[selectedDocuments[0], selectedDocuments[1]]}
                     headerText="Visualización de Dos Documentos"
                 />
             )}
@@ -157,7 +157,7 @@ useEffect(() => {
             {showModal && selectedDocuments.length === 3 && (
                 <ModalThreeDocs
                     onClose={closeModal}
-                    documento={[selectedDocuments[0], selectedDocuments[1], selectedDocuments[2]]}
+                    documentos={[selectedDocuments[0], selectedDocuments[1], selectedDocuments[2]]}
                     headerText="Visualización de Tres Documentos"
                 />
             )}
