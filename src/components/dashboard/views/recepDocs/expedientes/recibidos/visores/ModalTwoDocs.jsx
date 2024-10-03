@@ -30,7 +30,7 @@ const ModalTwoDocs = ({ onClose, documentos }) => {
       const containerWidth = containerRefs[index].current.offsetWidth;
       setScales((prevScales) => {
         const newScales = [...prevScales];
-        newScales[index] = containerWidth / 650; // Ajustar la escala con 650 como base
+        newScales[index] = containerWidth / (650); // Ajustar la escala con 650 como base
         return newScales;
       });
     }
@@ -149,7 +149,7 @@ const ModalTwoDocs = ({ onClose, documentos }) => {
             <div
               key={index}
               ref={containerRefs[index]}
-              style={{ height: '70vh', overflowY: 'auto', position: 'relative', width: '48%' }}
+              style={{ height: '70vh', overflowY: 'auto', position: 'relative', width: '95%' }}
             >
               {/* Botones para zoom, sobrepuestos sobre el contenedor del PDF */}
               <div
