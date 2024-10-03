@@ -103,7 +103,14 @@ const Layout = ({ navigationItems, contentHeader, children, onNavigation, onLogo
               />
 
               <Notificaciones/>
-
+ 
+                <div style={{
+                  height: '1px',              
+                  backgroundColor: '#ccc',    
+                  width: '88%',                
+                  margin: '10px auto',        
+                }} />
+              
                 <Box padding={{ vertical: 's', horizontal: 'l' }} display="flex" alignItems="center">
                   <a
                     href="#"
