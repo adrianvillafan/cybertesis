@@ -114,23 +114,54 @@ export function fetchDocumentosRelacionados(solicitudId, expedienteId, callback)
     const sql = `
         SELECT
             d.tesis_id,
-            d.actasust_id,
-            d.certsimil_id,
-            d.autocyber_id,
-            d.metadatos_id,
-            d.repturnitin_id,
-            d.consentimiento_id,
-            d.postergacion_id,
+            t.fecha_modificacion AS tesis_fecha_modificacion,
             s.tesis_estado,
+            s.tesis_fecha_revision,
+
+            d.actasust_id,
+            a.updated_at AS actasust_fecha_modificacion,
             s.acta_estado,
+            s.acta_fecha_revision,
+
+            d.certsimil_id,
+            c.updated_at AS certsimil_fecha_modificacion,
             s.certificado_estado,
+            s.certificado_fecha_revision,
+
+            d.autocyber_id,
+            au.updated_at AS autocyber_fecha_modificacion,
             s.auto_estado,
+            s.auto_fecha_revision,
+
+            d.metadatos_id,
+            m.updated_at AS metadatos_fecha_modificacion,
             s.metadatos_estado,
+            s.metadatos_fecha_revision,
+
+            d.repturnitin_id,
+            rt.updated_at AS repturnitin_fecha_modificacion,
             s.turnitin_estado,
+            s.turnitin_fecha_revision,
+
+            d.consentimiento_id,
+            con.updated_date AS consentimiento_fecha_modificacion,
             s.consentimiento_estado,
-            s.postergacion_estado
+            s.consentimiento_fecha_revision,
+
+            d.postergacion_id,
+            p.updated_date AS postergacion_fecha_modificacion,
+            s.postergacion_estado,
+            s.postergacion_fecha_revision
         FROM documentos d
         JOIN solicitudes s ON d.id = s.id_documentos
+        LEFT JOIN tesis t ON d.tesis_id = t.id_tesis
+        LEFT JOIN acta_sustentacion a ON d.actasust_id = a.id
+        LEFT JOIN certificado_similitud c ON d.certsimil_id = c.id
+        LEFT JOIN auto_cyber au ON d.autocyber_id = au.id
+        LEFT JOIN metadata m ON d.metadatos_id = m.id
+        LEFT JOIN reporte_turnitin rt ON d.repturnitin_id = rt.id
+        LEFT JOIN consentimiento con ON d.consentimiento_id = con.id
+        LEFT JOIN postergacion p ON d.postergacion_id = p.id
         WHERE s.id = $1 AND d.id = $2;
     `;
 
@@ -140,8 +171,9 @@ export function fetchDocumentosRelacionados(solicitudId, expedienteId, callback)
             callback({ message: 'Error al obtener los documentos relacionados' }, null);
         } else {
             console.log('Documentos relacionados encontrados:', results);
-            callback(null, results); // Devolvemos todos los resultados obtenidos
+            callback(null, results);
         }
     });
 }
+
 

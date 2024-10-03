@@ -1,18 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Header, Box, Button, SpaceBetween, ColumnLayout, Table, Badge } from '@cloudscape-design/components';
+import { Box, SpaceBetween } from '@cloudscape-design/components';
 import { fetchExpedienteDetails, fetchDocumentosRelacionados } from '../../../../../../../api'; // Importamos las funciones de la API
+import DetallesExpediente from './DetallesExpediente';
+import DocumentosRelacionados from './DocumentosRelacionados';
 import ModalOneDoc from './visores/ModalOneDoc';
 import ModalTwoDocs from './visores/ModalTwoDocs';
 import ModalThreeDocs from './visores/ModalThreeDocs';
 
 const RevisarExpediente = ({ solicitudId, expedienteId, onBack }) => {
-    // Estado para los detalles del expediente y documentos relacionados
     const [expediente, setExpediente] = useState(null);
     const [documentos, setDocumentos] = useState([]);
     const [selectedDocuments, setSelectedDocuments] = useState([]);
     const [showModal, setShowModal] = useState(false);
 
-    // useEffect para obtener los detalles del expediente al cargar el componente
+    // useEffect para obtener los detalles del expediente
     useEffect(() => {
         const obtenerDetallesExpediente = async () => {
             try {
@@ -26,47 +27,98 @@ const RevisarExpediente = ({ solicitudId, expedienteId, onBack }) => {
         obtenerDetallesExpediente();
     }, [solicitudId, expedienteId]);
 
-    // useEffect para obtener los documentos relacionados al cargar el componente
-    useEffect(() => {
-        const obtenerDocumentosRelacionados = async () => {
-            try {
-                const docs = await fetchDocumentosRelacionados(solicitudId, expedienteId);
-                // Transformar los documentos para adecuar el formato
+    // useEffect para obtener los documentos relacionados
+useEffect(() => {
+    const obtenerDocumentosRelacionados = async () => {
+        try {
+            const docs = await fetchDocumentosRelacionados(solicitudId, expedienteId);
+
+            if (docs.length > 0) {
+                const doc = docs[0];
+
                 const documentosFormateados = [
-                    { id: docs.tesis_id, nombre: 'Tesis', estado: docs.tesis_estado, fechaCarga: docs.fecha_tesis },
-                    { id: docs.actasust_id, nombre: 'Acta de Sustentación', estado: docs.acta_estado, fechaCarga: docs.fecha_actasust },
-                    { id: docs.certsimil_id, nombre: 'Certificado de Similitud', estado: docs.certificado_estado, fechaCarga: docs.fecha_certsimil },
-                    { id: docs.autocyber_id, nombre: 'Autorización Cybertesis', estado: docs.auto_estado, fechaCarga: docs.fecha_autocyber },
-                    { id: docs.metadatos_id, nombre: 'Metadatos Complementarios', estado: docs.metadatos_estado, fechaCarga: docs.fecha_metadatos },
-                    { id: docs.repturnitin_id, nombre: 'Reporte de Turnitin', estado: docs.turnitin_estado, fechaCarga: docs.fecha_repturnitin },
-                    { id: docs.consentimiento_id, nombre: 'Consentimiento Informado', estado: docs.consentimiento_estado, fechaCarga: docs.fecha_consentimiento },
-                    { id: docs.postergacion_id, nombre: 'Postergación de Publicación', estado: docs.postergacion_estado, fechaCarga: docs.fecha_postergacion }
-                ].filter(doc => doc.id); // Filtrar los documentos que no tengan ID
+                    {
+                        id: doc.tesis_id,
+                        idtable: 1,
+                        nombre: 'Tesis',
+                        estado: doc.tesis_estado,
+                        fechaRevision: doc.tesis_fecha_revision,
+                        fechaModificacion: doc.tesis_fecha_modificacion
+                    },
+                    {
+                        id: doc.actasust_id,
+                        idtable: 2,
+                        nombre: 'Acta de Sustentación',
+                        estado: doc.acta_estado,
+                        fechaRevision: doc.acta_fecha_revision,
+                        fechaModificacion: doc.actasust_fecha_modificacion
+                    },
+                    {
+                        id: doc.certsimil_id,
+                        idtable: 3,
+                        nombre: 'Certificado de Similitud',
+                        estado: doc.certificado_estado,
+                        fechaRevision: doc.certificado_fecha_revision,
+                        fechaModificacion: doc.certsimil_fecha_modificacion
+                    },
+                    {
+                        id: doc.autocyber_id,
+                        idtable: 4,
+                        nombre: 'Autorización Cybertesis',
+                        estado: doc.auto_estado,
+                        fechaRevision: doc.auto_fecha_revision,
+                        fechaModificacion: doc.autocyber_fecha_modificacion
+                    },
+                    {
+                        id: doc.metadatos_id,
+                        idtable: 5,
+                        nombre: 'Metadatos Complementarios',
+                        estado: doc.metadatos_estado,
+                        fechaRevision: doc.metadatos_fecha_revision,
+                        fechaModificacion: doc.metadatos_fecha_modificacion
+                    },
+                    {
+                        id: doc.repturnitin_id,
+                        idtable: 6,
+                        nombre: 'Reporte de Turnitin',
+                        estado: doc.turnitin_estado,
+                        fechaRevision: doc.turnitin_fecha_revision,
+                        fechaModificacion: doc.repturnitin_fecha_modificacion
+                    },
+                    {
+                        id: doc.consentimiento_id,
+                        idtable: 7,
+                        nombre: 'Consentimiento Informado',
+                        estado: doc.consentimiento_estado,
+                        fechaRevision: doc.consentimiento_fecha_revision,
+                        fechaModificacion: doc.consentimiento_fecha_modificacion
+                    },
+                    {
+                        id: doc.postergacion_id,
+                        idtable: 8,
+                        nombre: 'Postergación de Publicación',
+                        estado: doc.postergacion_estado,
+                        fechaRevision: doc.postergacion_fecha_revision,
+                        fechaModificacion: doc.postergacion_fecha_modificacion
+                    }
+                ].filter(doc => doc.id !== null); // Filtrar los documentos que no tengan ID
+
                 setDocumentos(documentosFormateados);
-            } catch (error) {
-                console.error('Error al obtener los documentos relacionados:', error);
             }
-        };
+        } catch (error) {
+            console.error('Error al obtener los documentos relacionados:', error);
+        }
+    };
 
-        obtenerDocumentosRelacionados();
-    }, [solicitudId, expedienteId]);
+    obtenerDocumentosRelacionados();
+}, [solicitudId, expedienteId]);
 
-    // Funciones para determinar el estado de los documentos
-    const hayDocumentosPendientes = documentos.some(doc => doc.estado === 'Pendiente');
-    const hayDocumentosObservados = documentos.some(doc => doc.estado === 'Observado');
-    const todosRevisados = documentos.every(doc => doc.estado === 'Revisado');
 
-    // Cambiar el texto del botón dependiendo del estado de los documentos
-    const botonPrincipalTexto = hayDocumentosObservados ? 'Enviar observación' : 'Enviar a Cybertesis';
-    const botonPrincipalHabilitado = todosRevisados || (hayDocumentosObservados && !hayDocumentosPendientes);
-    const botonPrincipalIcono = hayDocumentosObservados ? 'status-warning' : null;
-
-    // Funciones de Visualizar según el número de documentos seleccionados
+    // Manejo de visualización de documentos
     const handleVisualizar = () => {
         setShowModal(true);
     };
 
-    // Función para cerrar el modal
     const closeModal = () => {
         setShowModal(false);
     };
@@ -77,108 +129,19 @@ const RevisarExpediente = ({ solicitudId, expedienteId, onBack }) => {
 
     return (
         <SpaceBetween size="l">
-
-            <Container
-                header={
-                    <Header
-                        variant="h2"
-                        description={`Detalles del Expediente ID: ${expedienteId}`}
-                        actions={<Button onClick={onBack}>Volver</Button>}
-                    >
-                        Revisar Expediente
-                    </Header>
-                }
-            >
-                <SpaceBetween size="m">
-                    <ColumnLayout columns={2} variant="text-grid">
-                        <Box><strong>Nombre del Estudiante:</strong><Box>{expediente.nombre_completo}</Box></Box>
-                        <Box><strong>DNI:</strong><Box>{expediente.dni}</Box></Box>
-                        <Box><strong>Facultad:</strong><Box>{expediente.facultad}</Box></Box>
-                        <Box><strong>Grado:</strong><Box>{expediente.grado}</Box></Box>
-                        <Box><strong>Programa:</strong><Box>{expediente.programa}</Box></Box>
-                        <Box><strong>Título de Tesis:</strong><Box>{expediente.titulo_tesis}</Box></Box>
-                        <Box><strong>Asesor(es):</strong><Box>{expediente.asesor1}{expediente.asesor2 ? `, ${expediente.asesor2}` : ''}</Box></Box>
-                        <Box><strong>Estado del Expediente:</strong><Box>{expediente.estado}</Box></Box>
-                        <Box><strong>Fecha de Recepción:</strong><Box>{new Date(expediente.fecha_carga).toLocaleDateString()}</Box></Box>
-                    </ColumnLayout>
-                </SpaceBetween>
-            </Container>
-
-            {/* Contenedor para la tabla de documentos */}
-            <Container
-                header={
-                    <Header
-                        variant="h2"
-                        counter={`(${selectedDocuments.length}/${documentos.length})`}
-                        actions={
-                            <SpaceBetween direction="horizontal" size="xs">
-                                <Button
-                                    disabled={selectedDocuments.length === 0 || selectedDocuments.length > 3}
-                                    onClick={handleVisualizar}
-                                >
-                                    Visualizar
-                                </Button>
-                                <Button
-                                    disabled={selectedDocuments.length === 0}
-                                >
-                                    Descargar
-                                </Button>
-                                <Button
-                                    variant="primary"
-                                    disabled={!botonPrincipalHabilitado}
-                                    iconAlign="right"
-                                    iconName={botonPrincipalIcono}
-                                >
-                                    {botonPrincipalTexto}
-                                </Button>
-                            </SpaceBetween>
-                        }
-                    >
-                        Documentos Relacionados
-                    </Header>
-                }
-            >
-                <Table
-                    selectionType="multi"
-                    trackBy="id"
-                    selectedItems={selectedDocuments}
-                    onSelectionChange={({ detail }) => setSelectedDocuments(detail.selectedItems)}
-                    items={documentos}
-                    variant="embedded"
-                    columnDefinitions={[
-                        {
-                            id: 'nombre',
-                            header: 'Nombre del Documento',
-                            cell: item => item.nombre,
-                        },
-                        {
-                            id: 'fechaCarga',
-                            header: 'Fecha de Carga',
-                            cell: item => new Date(item.fechaCarga).toLocaleDateString(),
-                        },
-                        {
-                            id: 'estado',
-                            header: 'Estado',
-                            cell: item => (
-                                <Badge color={item.estado === 'Revisado' ? 'green' : item.estado === 'Pendiente' ? 'blue' : 'red'}>
-                                    {item.estado}
-                                </Badge>
-                            )
-                        }
-                    ]}
-                    ariaLabels={{
-                        allItemsSelectionLabel: () => 'Seleccionar todos los documentos',
-                        itemSelectionLabel: (detail, item) => `Seleccionar ${item.nombre}`,
-                    }}
-                    empty={<Box>No hay documentos relacionados</Box>}
-                />
-            </Container>
+            <DetallesExpediente expediente={expediente} onBack={onBack} />
+            <DocumentosRelacionados
+                documentos={documentos}
+                selectedDocuments={selectedDocuments}
+                setSelectedDocuments={setSelectedDocuments}
+                handleVisualizar={handleVisualizar}
+            />
 
             {/* Modales para la visualización de documentos */}
             {showModal && selectedDocuments.length === 1 && (
                 <ModalOneDoc
                     onClose={closeModal}
-                    fileUrl={selectedDocuments[0].fileUrl}
+                    documento={selectedDocuments[0]}
                     headerText="Visualización de Documento"
                 />
             )}
@@ -186,7 +149,7 @@ const RevisarExpediente = ({ solicitudId, expedienteId, onBack }) => {
             {showModal && selectedDocuments.length === 2 && (
                 <ModalTwoDocs
                     onClose={closeModal}
-                    fileUrls={[selectedDocuments[0].fileUrl, selectedDocuments[1].fileUrl]}
+                    documento={[selectedDocuments[0], selectedDocuments[1]]}
                     headerText="Visualización de Dos Documentos"
                 />
             )}
@@ -194,7 +157,7 @@ const RevisarExpediente = ({ solicitudId, expedienteId, onBack }) => {
             {showModal && selectedDocuments.length === 3 && (
                 <ModalThreeDocs
                     onClose={closeModal}
-                    fileUrls={[selectedDocuments[0].fileUrl, selectedDocuments[1].fileUrl, selectedDocuments[2].fileUrl]}
+                    documento={[selectedDocuments[0], selectedDocuments[1], selectedDocuments[2]]}
                     headerText="Visualización de Tres Documentos"
                 />
             )}
