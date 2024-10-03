@@ -7,12 +7,14 @@ import {
   SideNavigation,
   Badge,
   Icon,
-  TopNavigation
+  TopNavigation,
+  Box,
 } from '@cloudscape-design/components';
 import { I18nProvider } from '@cloudscape-design/components/i18n';
 import messages from '@cloudscape-design/components/i18n/messages/all.es';
 import UserContext from '../contexts/UserContext';
-import Notificaciones from './Notificaciones'; // Importa tu componente aquí
+import Notificaciones from './Notificaciones'; 
+
 
 const LOCALE = 'es';
 
@@ -22,10 +24,10 @@ const Layout = ({ navigationItems, contentHeader, children, onNavigation, onLogo
 
   const updatedNavigationItems = [
     { type: "link", text: <a onClick={() => onNavigation('inicio')}> <Icon name="user-profile" /> Inicio</a>, href: '#inicio' },
-    ...navigationItems, // Opciones específicas del usuario
+    ...navigationItems, 
     { type: "divider" },
     { type: "link", text: <a onClick={() => onNavigation('notifications')}> <Icon name="notification" />  Notificaciones</a>, href: '#notificacion', info: <Badge color="red">23</Badge> },
-    { type: "link", text: <a onClick={onLogoutClick}> <Icon name="redo" /> Cerrar Sesión</a>, href: '#' } // Botón de Cerrar Sesión al final
+    
   ];
 
   return (
@@ -36,7 +38,7 @@ const Layout = ({ navigationItems, contentHeader, children, onNavigation, onLogo
             href: "#",
             title: "Recepción de Documentos de Grados y Títulos en CYBERTESIS",
             logo: {
-              src: "src/components/dashboard/components/logo-pa-vrip1.png",  // Actualiza con la ruta correcta del logo
+              src: "src/components/dashboard/components/logo-pa-vrip1.png",  
               alt: "VRIP Logo"
             }
           }}
@@ -101,7 +103,50 @@ const Layout = ({ navigationItems, contentHeader, children, onNavigation, onLogo
               />
 
               <Notificaciones/>
-            </div>
+ 
+                <div style={{
+                  height: '1px',              
+                  backgroundColor: '#ccc',    
+                  width: '88%',                
+                  margin: '10px auto',        
+                }} />
+              
+                <Box padding={{ vertical: 's', horizontal: 'l' }} display="flex" alignItems="center">
+                  <a
+                    href="#"
+                    onClick={(event) => {
+                      event.preventDefault();
+                      onLogoutClick(); 
+                    }}
+                    className="awsui_link awsui_link_size-small awsui_link_variant-normal" 
+                      style={{
+                        textDecoration: 'none',        
+                        color: '#424650',              
+                        display: 'flex',               
+                        alignItems: 'center',          
+                        cursor: 'pointer',             
+                        width: 'fit-content',          
+                        padding: '5px',               
+                        transition: 'color 0.3s ease', 
+                      }}
+                    onMouseOver={(e) => {
+                      e.currentTarget.style.color = '#0073e6'; 
+                    }}
+                    onMouseOut={(e) => {
+                      e.currentTarget.style.color = '#424650'; 
+                    }}
+                  >
+                    <Icon 
+                      name="redo" 
+                      style={{
+                        fill: '#424650', 
+                        transition: 'fill 0.3s ease' 
+                      }} 
+                    />
+                    <span style={{ marginLeft: '8px' }}>Cerrar Sesión</span>
+                  </a>
+                </Box>               
+              </div>
           }
           content={
             <ContentLayout
