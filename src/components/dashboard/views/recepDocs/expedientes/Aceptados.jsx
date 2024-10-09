@@ -24,9 +24,49 @@ const Aceptados = ({ renderHeader }) => {
       header={renderHeader('Expedientes Aceptados', filteredItems.length)}
       items={paginatedItems}
       columnDefinitions={[
+        {
+          id: 'solicitudId',
+          header: 'Solicitud ID',
+          cell: item => item.solicitudid,
+          sortingField: 'solicitudid', // Ordenamiento por ID de solicitud
+      },
         { id: 'expedienteId', header: 'Exp. ID', cell: item => item.expedienteId },
-        { id: 'dni', header: 'DNI', cell: item => item.dni },
+        {
+          id: 'codigoEstudiante',
+          header: 'Código Estudiante',
+          cell: item => item.codigo_estudiante,
+          sortingField: 'codigo_estudiante', // Ordenamiento por código de estudiante
+      },
+        { id: 'dni', header: 'DNI', cell: item => item.dni, sortingField: 'dni' },
         { id: 'nombre', header: 'Nombre y Apellido', cell: item => item.nombre },
+        {
+          id: 'facultad',
+          header: 'Facultad',
+          cell: item => item.facultad,
+          sortingField: 'facultad', // Ordenamiento por facultad
+      },
+      {
+        id: 'grado',
+        header: 'Grado',
+        cell: item => item.grado,
+        sortingField: 'grado', // Ordenamiento por grado
+    },
+    {
+      /*id: 'programa',
+      header: 'Programa',
+      cell: item => formatPrograma(item.programa),
+      sortingField: 'programa', // Ordenamiento por programa*/
+        id: 'programa',
+        header: 'Programa',
+        cell: item => item.programa ? formatPrograma(item.programa) : 'No definido',
+        sortingField: 'programa',
+  },
+    {
+      id: 'fechaCarga',
+      header: 'Fecha de Carga',
+      cell: item => new Date(item.fecha_carga).toLocaleDateString(),
+      sortingField: 'fecha_carga', // Ordenamiento por fecha de carga
+  },
         { id: 'acciones', header: 'Acciones', cell: item => <Button>Abrir</Button> }
       ]}
       pagination={
