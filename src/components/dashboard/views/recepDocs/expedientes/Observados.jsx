@@ -44,7 +44,7 @@ const Observados = ({ renderHeader }) => {
       },
         { id: 'dni', header: 'DNI', cell: item => item.dni, sortingField: 'dni'},
 
-        { id: 'nombre', header: 'Nombre y Apellido', cell: item => item.nombre },
+        { id: 'nombre', header: 'Nombre y Apellido', cell: item => item.nombre, sortingField: 'nombre_completo', },
         {
           id: 'facultad',
           header: 'Facultad',

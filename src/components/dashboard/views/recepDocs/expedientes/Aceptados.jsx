@@ -38,7 +38,7 @@ const Aceptados = ({ renderHeader }) => {
           sortingField: 'codigo_estudiante', // Ordenamiento por código de estudiante
       },
         { id: 'dni', header: 'DNI', cell: item => item.dni, sortingField: 'dni' },
-        { id: 'nombre', header: 'Nombre y Apellido', cell: item => item.nombre },
+        { id: 'nombre', header: 'Nombre y Apellido', cell: item => item.nombre, sortingField: 'nombre_completo', },
         {
           id: 'facultad',
           header: 'Facultad',
