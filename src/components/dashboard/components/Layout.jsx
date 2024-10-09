@@ -23,11 +23,36 @@ const Layout = ({ navigationItems, contentHeader, children, onNavigation, onLogo
   const { user } = useContext(UserContext);
 
   const updatedNavigationItems = [
-    { type: "link", text: <a onClick={() => onNavigation('inicio')}> <Icon name="user-profile" /> Inicio</a>, href: '#inicio' },
-    ...navigationItems, 
+    {
+      type: "link",
+      text: (
+        <Box
+          onClick={() => onNavigation('inicio')}
+          display="flex"
+          alignItems="center"
+          cursor="pointer"
+        >
+          <Icon name="user-profile" /> Inicio
+        </Box>
+      ),
+      href: '#inicio'
+    },
+    ...navigationItems,
     { type: "divider" },
-    { type: "link", text: <a onClick={() => onNavigation('notifications')}> <Icon name="notification" />  Notificaciones</a>, href: '#notificacion', info: <Badge color="red">23</Badge> },
-    
+    {
+      type: "link",
+      text: (
+        <Box
+          onClick={() => onNavigation('notifications')}
+          display="flex"
+          alignItems="center"
+          cursor="pointer"
+        >
+          <Icon name="notification" /> Notificaciones <Badge color="red">23</Badge>
+        </Box>
+      ),
+      href: '#notificacion'
+    }
   ];
 
   return (
