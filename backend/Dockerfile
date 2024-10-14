@@ -25,6 +25,7 @@ ENV DB_HOST=cybertesis-cybertesis.h.aivencloud.com
 ENV DB_USER=avnadmin
 ENV DB_PASSWORD=AVNS_12534vn8JCCz0xKpNOo
 ENV DB_DATABASE=defaultdb
+ENV DB_PORT=27628
 
 ENV USER=adrianmarcelv@gmail.com
 ENV APP_PASSWORD=xpjpxrzjrgrsjdme

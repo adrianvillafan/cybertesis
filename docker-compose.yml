@@ -39,6 +39,9 @@ services:
     command: npm run dev  # Usa Nodemon para iniciar la aplicación
     depends_on:
       - minio
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
     networks:
       - app-network
 
