@@ -14,6 +14,7 @@ import {
   fetchConsentimientoById,
   fetchPostergacionById,
 } from '../../../../../../../../api';
+import ReviewDocumentView from './ReviewDocumentView';
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.js`;
 
@@ -23,6 +24,8 @@ const ModalTwoDocs = ({ onClose, documentos }) => {
   const [numPagesArray, setNumPagesArray] = useState([null, null]); // Número de páginas de cada documento
   const containerRefs = [useRef(null), useRef(null)];
   const [scales, setScales] = useState([1.0, 1.0]); // Escala de cada documento
+  const [reviewMode, setReviewMode] = useState(null); // Estado para manejar el modo de revisión
+  const [selectedDocIndex, setSelectedDocIndex] = useState(null); // Índice del documento seleccionado para revisión
 
   // Función para calcular la escala según el ancho del contenedor
   const ajustarEscala = (index) => {
@@ -133,6 +136,30 @@ const ModalTwoDocs = ({ onClose, documentos }) => {
     });
   };
 
+  const handleAprobar = (index) => {
+    setSelectedDocIndex(index);
+    setReviewMode('aprobar');
+  };
+
+  const handleObservar = (index) => {
+    setSelectedDocIndex(index);
+    setReviewMode('observar');
+  };
+
+  if (reviewMode && selectedDocIndex !== null) {
+    return (
+      <ReviewDocumentView
+        onClose={() => {
+          setReviewMode(null);
+          setSelectedDocIndex(null);
+        }}
+        documento={documentos[selectedDocIndex]}
+        fileUrl={fileUrls[selectedDocIndex]}
+        actionType={reviewMode}
+      />
+    );
+  }
+
   return (
     <Modal
       visible={true}
@@ -201,10 +228,10 @@ const ModalTwoDocs = ({ onClose, documentos }) => {
                   gap: '10px',
                 }}
               >
-                <Button onClick={() => console.log(`Aprobar documento ${index + 1}`)}>
+                <Button onClick={() => handleAprobar(index)} variant="primary">
                   Aprobar
                 </Button>
-                <Button onClick={() => console.log(`Observar documento ${index + 1}`)} variant="warning">
+                <Button onClick={() => handleObservar(index)} variant="warning">
                   Observar
                 </Button>
               </div>

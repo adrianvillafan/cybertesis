@@ -14,6 +14,7 @@ import {
   fetchConsentimientoById,
   fetchPostergacionById,
 } from '../../../../../../../../api';
+import ReviewDocumentView from './ReviewDocumentView';
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.js`;
 
@@ -23,6 +24,7 @@ const ModalThreeDocs = ({ onClose, documentos }) => {
   const [numPagesArray, setNumPagesArray] = useState([null, null, null]); // Número de páginas de cada documento
   const containerRefs = [useRef(null), useRef(null), useRef(null)];
   const [scales, setScales] = useState([1.0, 1.0, 1.0]); // Escala de cada documento
+  const [reviewMode, setReviewMode] = useState({ mode: null, index: null }); // Estado para manejar el modo de revisión
 
   // Función para calcular la escala según el ancho del contenedor
   const ajustarEscala = (index) => {
@@ -135,6 +137,25 @@ const ModalThreeDocs = ({ onClose, documentos }) => {
     });
   };
 
+  const handleAprobar = (index) => {
+    setReviewMode({ mode: 'aprobar', index });
+  };
+
+  const handleObservar = (index) => {
+    setReviewMode({ mode: 'observar', index });
+  };
+
+  if (reviewMode.mode) {
+    return (
+      <ReviewDocumentView
+        onClose={() => setReviewMode({ mode: null, index: null })}
+        documento={documentos[reviewMode.index]}
+        fileUrl={fileUrls[reviewMode.index]}
+        actionType={reviewMode.mode}
+      />
+    );
+  }
+
   return (
     <Modal
       visible={true}
@@ -158,7 +179,7 @@ const ModalThreeDocs = ({ onClose, documentos }) => {
                 style={{
                   position: 'fixed',
                   top: '50px',
-                  left: `calc(${(index+1) * 33}%+20px)`, // Distribución de los botones según el índice
+                  left: `calc(${(index + 1) * 33}%+20px)`, // Distribución de los botones según el índice
                   zIndex: 10,
                   display: 'flex',
                   gap: '10px',
@@ -197,16 +218,16 @@ const ModalThreeDocs = ({ onClose, documentos }) => {
                 style={{
                   position: 'fixed',
                   bottom: '20px',
-                  left: `calc(${(index+1) * 33}%+20px)`,
+                  left: `calc(${(index + 1) * 33}%+20px)`,
                   zIndex: 10,
                   display: 'flex',
                   gap: '10px',
                 }}
               >
-                <Button onClick={() => console.log(`Aprobar documento ${index + 1}`)}>
+                <Button onClick={() => handleAprobar(index)}>
                   Aprobar
                 </Button>
-                <Button onClick={() => console.log(`Observar documento ${index + 1}`)} variant="warning">
+                <Button onClick={() => handleObservar(index)} variant="warning">
                   Observar
                 </Button>
               </div>

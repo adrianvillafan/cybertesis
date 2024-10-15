@@ -13,7 +13,7 @@ const ReviewDocumentView = ({ onClose, documento, fileUrl, actionType }) => {
   const [selectedReason, setSelectedReason] = useState(''); // Razón de observación seleccionada
   const [comment, setComment] = useState(''); // Comentario para observación
   const containerRef = useRef(null);
-  const [scale, setScale] = useState(1.0); // Estado para el nivel de zoom
+  const [scale, setScale] = useState(0.95); // Estado para el nivel de zoom
 
   // Función para calcular la escala en función del ancho del contenedor
   const ajustarEscala = () => {
@@ -76,21 +76,18 @@ const ReviewDocumentView = ({ onClose, documento, fileUrl, actionType }) => {
     onClose();
   };
 
-  const handleRegresar = () => {
-    onClose();
-  };
-
   return (
     <Modal
       visible={true}
-      onDismiss={handleRegresar}
+      onDismiss={onClose}
+      closeAriaLabel="Cerrar modal"
       header={`Visualizando: ${documento.nombre}`}
       size="max"
     >
       {isLoading ? (
         <Spinner size="large" />
       ) : (
-        <ColumnLayout columns={2} variant="text-grid">
+        <ColumnLayout columns={2} variant="default">
           <div ref={containerRef} style={{ height: '70vh', overflowY: 'auto', position: 'relative', width: '100%' }}>
             {/* Botones para zoom, sobrepuestos sobre el contenedor del PDF */}
             <div
@@ -130,7 +127,7 @@ const ReviewDocumentView = ({ onClose, documento, fileUrl, actionType }) => {
             {actionType === 'aprobar' ? (
               <>
                 <Box variant="h3" margin={{ bottom: 'm' }}>¿Estás seguro de que deseas aprobar este documento?</Box>
-                <Box textAlign="center">
+                <Box textAlign="center" margin={{ top: 'm' }}>
                   <Button onClick={handleConfirmAprobar} variant="primary">
                     Sí, aprobar
                   </Button>
@@ -153,12 +150,12 @@ const ReviewDocumentView = ({ onClose, documento, fileUrl, actionType }) => {
                 />
 
                 {selectedReason === 'otro' && (
-                  <FormField label="Comentarios adicionales">
+                  <FormField label="Comentarios adicionales" margin={{ top: 'm' }}>
                     <Textarea value={comment} onChange={({ detail }) => setComment(detail.value)} />
                   </FormField>
                 )}
 
-                <Box textAlign="center">
+                <Box textAlign="center" margin={{ top: 'm' }}>
                   <Button onClick={handleConfirmObservar} variant="warning">
                     Enviar observación
                   </Button>

@@ -24,7 +24,7 @@ const ModalOneDoc = ({ onClose, documento }) => {
   const [fileUrl, setFileUrl] = useState(null);
   const [reviewMode, setReviewMode] = useState(null); // Estado para manejar el modo de revisión
   const containerRef = useRef(null);
-  const [scale, setScale] = useState(1.2); // Estado para el nivel de zoom
+  const [scale, setScale] = useState(1.25); // Estado para el nivel de zoom
 
   useEffect(() => {
     const obtenerDocumento = async () => {
