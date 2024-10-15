@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
-import { Table, Button, Pagination, TextFilter, Box } from '@cloudscape-design/components';
+import { Table, Button, Pagination, TextFilter, Box, Grid, Select } from '@cloudscape-design/components';
 
 const Aceptados = ({ renderHeader }) => {
   const [filteringText, setFilteringText] = useState('');
   const [pageNumber, setPageNumber] = useState(1);
   const [pageSize] = useState(10);
+  const [selectedGrado, setSelectedGrado] = useState('todos');
+  const [selectedFacultad, setSelectedFacultad] = useState(null);
 
   const expedientesAceptados = [
     { id: 3, nombre: 'Carlos García', estado: 'Aceptado', dni: '56781234', expedienteId: 'EXP003' },
@@ -19,6 +21,8 @@ const Aceptados = ({ renderHeader }) => {
 
   const paginatedItems = filteredItems.slice((pageNumber - 1) * pageSize, pageNumber * pageSize);
 
+  // Obtenemos todas las facultades disponibles en los expedientes
+const facultadesDisponibles = [...new Set(expedientesAceptados.map(exp => exp.facultad))];
   return (
     <Table
       header={renderHeader('Expedientes Aceptados', filteredItems.length)}
@@ -51,23 +55,29 @@ const Aceptados = ({ renderHeader }) => {
         cell: item => item.grado,
         sortingField: 'grado', // Ordenamiento por grado
     },
-    {
-      /*id: 'programa',
-      header: 'Programa',
-      cell: item => formatPrograma(item.programa),
-      sortingField: 'programa', // Ordenamiento por programa*/
-        id: 'programa',
-        header: 'Programa',
-        cell: item => item.programa ? formatPrograma(item.programa) : 'No definido',
-        sortingField: 'programa',
-  },
-    {
-      id: 'fechaCarga',
-      header: 'Fecha de Carga',
-      cell: item => new Date(item.fecha_carga).toLocaleDateString(),
-      sortingField: 'fecha_carga', // Ordenamiento por fecha de carga
-  },
-        { id: 'acciones', header: 'Acciones', cell: item => <Button>Abrir</Button> }
+        {
+          /*id: 'programa',
+          header: 'Programa',
+          cell: item => formatPrograma(item.programa),
+          sortingField: 'programa', // Ordenamiento por programa*/
+            id: 'programa',
+            header: 'Programa',
+            cell: item => item.programa ? formatPrograma(item.programa) : 'No definido',
+            sortingField: 'programa',
+      },
+        {
+          id: 'fechaCarga',
+          header: 'Fecha de Carga',
+          cell: item => new Date(item.fecha_carga).toLocaleDateString(),
+          sortingField: 'fecha_carga', // Ordenamiento por fecha de carga
+      },
+      {
+        id: 'acciones',
+        header: 'Acciones',
+        cell: item => <Button>Abrir</Button>,
+        sortingDisabled: true,
+        minWidth: 140,
+    }
       ]}
       pagination={
         <Pagination
@@ -77,11 +87,32 @@ const Aceptados = ({ renderHeader }) => {
         />
       }
       filter={
-        <TextFilter
-          filteringText={filteringText}
-          filteringPlaceholder="Buscar expediente..."
-          onChange={({ detail }) => setFilteringText(detail.filteringText)}
-        />
+        <Grid gridDefinition={[{ colspan: 6 }, { colspan: 3 }, { colspan: 2 }]}>
+                    <TextFilter
+                        filteringText={filteringText}
+                        filteringPlaceholder="Buscar expediente..."
+                        onChange={({ detail }) => setFilteringText(detail.filteringText)}
+                    />
+                    <Select
+                        selectedOption={selectedFacultad ? { label: selectedFacultad } : { label: 'Todas las facultades' }}
+                        onChange={({ detail }) => setSelectedFacultad(detail.selectedOption.label === 'Todas las facultades' ? null : detail.selectedOption.label)}
+                        options={[
+                            { label: 'Todas las facultades', value: null },
+                            ...facultadesDisponibles.map(facultad => ({ label: facultad, value: facultad }))
+                        ]}
+                        placeholder="Seleccionar facultad"
+                    />
+                    <Select
+                        selectedOption={{ label: selectedGrado }}
+                        onChange={({ detail }) => setSelectedGrado(detail.selectedOption.value)}
+                        options={[
+                            { label: 'Todos', value: 'todos' },
+                            { label: 'Pregrado', value: 'pregrado' },
+                            { label: 'Posgrado', value: 'posgrado' }
+                        ]}
+                        placeholder="Seleccionar grado"
+                    />
+                </Grid>
       }
       empty={<Box>No hay expedientes aceptados</Box>}
     />
