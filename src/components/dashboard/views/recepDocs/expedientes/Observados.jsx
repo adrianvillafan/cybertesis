@@ -89,19 +89,25 @@ const facultadesDisponibles = [...new Set(expedientesObservados.map(exp => exp.f
       }
       ]}
       pagination={
+        <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', transform: 'translateY(-20px)' }}>
         <Pagination
           currentPageIndex={pageNumber}
           pagesCount={Math.ceil(filteredItems.length / pageSize)}
           onChange={({ detail }) => setPageNumber(detail.currentPageIndex)}
         />
+        </div>
       }
       filter={
-        <Grid gridDefinition={[{ colspan: 6 }, { colspan: 3 }, { colspan: 2 }]}>
+        <div style={{ marginTop: '20px', marginBottom: '20px' }}>
+        <Grid gridDefinition={[{ colspan: 6 }, { colspan: 3 }, { colspan: 3 }]}>
+                <Box marginRight="s">
                     <TextFilter
                         filteringText={filteringText}
                         filteringPlaceholder="Buscar expediente..."
                         onChange={({ detail }) => setFilteringText(detail.filteringText)}
                     />
+                </Box>
+                <Box marginRight="s">
                     <Select
                         selectedOption={selectedFacultad ? { label: selectedFacultad } : { label: 'Todas las facultades' }}
                         onChange={({ detail }) => setSelectedFacultad(detail.selectedOption.label === 'Todas las facultades' ? null : detail.selectedOption.label)}
@@ -111,6 +117,8 @@ const facultadesDisponibles = [...new Set(expedientesObservados.map(exp => exp.f
                         ]}
                         placeholder="Seleccionar facultad"
                     />
+                </Box>
+                <Box marginRight="s">
                     <Select
                         selectedOption={{ label: selectedGrado }}
                         onChange={({ detail }) => setSelectedGrado(detail.selectedOption.value)}
@@ -121,7 +129,9 @@ const facultadesDisponibles = [...new Set(expedientesObservados.map(exp => exp.f
                         ]}
                         placeholder="Seleccionar grado"
                     />
-                </Grid>
+                </Box>
+            </Grid>
+          </div>
       }
       empty={<Box>No hay expedientes observados</Box>}
     />

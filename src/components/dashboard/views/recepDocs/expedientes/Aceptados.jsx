@@ -80,39 +80,49 @@ const facultadesDisponibles = [...new Set(expedientesAceptados.map(exp => exp.fa
     }
       ]}
       pagination={
-        <Pagination
-          currentPageIndex={pageNumber}
-          pagesCount={Math.ceil(filteredItems.length / pageSize)}
-          onChange={({ detail }) => setPageNumber(detail.currentPageIndex)}
-        />
+        <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', transform: 'translateY(-20px)' }}>
+          <Pagination
+            currentPageIndex={pageNumber}
+            pagesCount={Math.ceil(filteredItems.length / pageSize)}
+            onChange={({ detail }) => setPageNumber(detail.currentPageIndex)}
+          />
+        </div>
       }
       filter={
-        <Grid gridDefinition={[{ colspan: 6 }, { colspan: 3 }, { colspan: 2 }]}>
-                    <TextFilter
-                        filteringText={filteringText}
-                        filteringPlaceholder="Buscar expediente..."
-                        onChange={({ detail }) => setFilteringText(detail.filteringText)}
-                    />
-                    <Select
-                        selectedOption={selectedFacultad ? { label: selectedFacultad } : { label: 'Todas las facultades' }}
-                        onChange={({ detail }) => setSelectedFacultad(detail.selectedOption.label === 'Todas las facultades' ? null : detail.selectedOption.label)}
-                        options={[
-                            { label: 'Todas las facultades', value: null },
-                            ...facultadesDisponibles.map(facultad => ({ label: facultad, value: facultad }))
-                        ]}
-                        placeholder="Seleccionar facultad"
-                    />
-                    <Select
-                        selectedOption={{ label: selectedGrado }}
-                        onChange={({ detail }) => setSelectedGrado(detail.selectedOption.value)}
-                        options={[
-                            { label: 'Todos', value: 'todos' },
-                            { label: 'Pregrado', value: 'pregrado' },
-                            { label: 'Posgrado', value: 'posgrado' }
-                        ]}
-                        placeholder="Seleccionar grado"
-                    />
-                </Grid>
+        <div style={{ marginTop: '20px', marginBottom: '20px' }}>
+        <Grid gridDefinition={[{ colspan: 6 }, { colspan: 3 }, { colspan: 3 }]}>
+        <Box marginRight="s">
+            <TextFilter
+                filteringText={filteringText}
+                filteringPlaceholder="Buscar expediente..."
+                onChange={({ detail }) => setFilteringText(detail.filteringText)}
+            />
+        </Box>
+        <Box marginRight="s">
+            <Select
+                selectedOption={selectedFacultad ? { label: selectedFacultad } : { label: 'Todas las facultades' }}
+                onChange={({ detail }) => setSelectedFacultad(detail.selectedOption.label === 'Todas las facultades' ? null : detail.selectedOption.label)}
+                options={[
+                    { label: 'Todas las facultades', value: null },
+                    ...facultadesDisponibles.map(facultad => ({ label: facultad, value: facultad }))
+                ]}
+                placeholder="Seleccionar facultad"
+            />
+        </Box>
+        <Box marginRight="s">
+            <Select
+                selectedOption={{ label: selectedGrado }}
+                onChange={({ detail }) => setSelectedGrado(detail.selectedOption.value)}
+                options={[
+                    { label: 'Todos', value: 'todos' },
+                    { label: 'Pregrado', value: 'pregrado' },
+                    { label: 'Posgrado', value: 'posgrado' }
+                ]}
+                placeholder="Seleccionar grado"
+            />
+        </Box>
+    </Grid>
+    </div>
       }
       empty={<Box>No hay expedientes aceptados</Box>}
     />

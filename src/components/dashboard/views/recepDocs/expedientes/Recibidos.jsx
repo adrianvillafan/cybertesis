@@ -141,6 +141,7 @@ const Recibidos = ({ renderHeader }) => {
                     cell: item => <Button onClick={() => setExpedienteSeleccionado(item)}>Revisar</Button>,
                     sortingDisabled: true,
                     minWidth: 140,
+                    sticky: 'right',
                 }
             ]}
             sortingColumn={sortingColumn}
@@ -150,19 +151,26 @@ const Recibidos = ({ renderHeader }) => {
                 setIsAscending(detail.isDescending ? false : true);
             }}
             pagination={
+                <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', transform: 'translateY(-20px)' }}>
                 <Pagination
                     currentPageIndex={pageNumber}
                     pagesCount={Math.ceil(sortedItems.length / pageSize)}
                     onChange={({ detail }) => setPageNumber(detail.currentPageIndex)}
                 />
+            </div>
             }
             filter={
-                <Grid gridDefinition={[{ colspan: 6 }, { colspan: 3 }, { colspan: 2 }]}>
+        <div style={{ marginTop: '20px', marginBottom: '20px' }}>
+           
+            <Grid gridDefinition={[{ colspan: 6 }, { colspan: 3 }, { colspan: 3 }]}>
+                <Box marginRight="s">
                     <TextFilter
                         filteringText={filteringText}
                         filteringPlaceholder="Buscar expediente..."
                         onChange={({ detail }) => setFilteringText(detail.filteringText)}
                     />
+                </Box>
+                <Box marginRight="s">
                     <Select
                         selectedOption={selectedFacultad ? { label: selectedFacultad } : { label: 'Todas las facultades' }}
                         onChange={({ detail }) => setSelectedFacultad(detail.selectedOption.label === 'Todas las facultades' ? null : detail.selectedOption.label)}
@@ -172,6 +180,8 @@ const Recibidos = ({ renderHeader }) => {
                         ]}
                         placeholder="Seleccionar facultad"
                     />
+                </Box>
+                <Box marginRight="s">
                     <Select
                         selectedOption={{ label: selectedGrado }}
                         onChange={({ detail }) => setSelectedGrado(detail.selectedOption.value)}
@@ -182,7 +192,9 @@ const Recibidos = ({ renderHeader }) => {
                         ]}
                         placeholder="Seleccionar grado"
                     />
-                </Grid>
+                </Box>
+            </Grid>
+         </div>
             }
             empty={<Box>No hay expedientes recibidos</Box>}
         />
