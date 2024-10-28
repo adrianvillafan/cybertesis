@@ -28,7 +28,6 @@ const Recibidos = ({ renderHeader }) => {
                 setIsLoading(false);
             }
         };
-
         cargarExpedientes();
     }, []);
 

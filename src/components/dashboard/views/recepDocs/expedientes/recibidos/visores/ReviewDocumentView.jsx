@@ -4,6 +4,7 @@ import { Document, Page, pdfjs } from 'react-pdf';
 import 'pdfjs-dist/web/pdf_viewer.css';
 import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
 import 'react-pdf/dist/esm/Page/TextLayer.css';
+import { updateEstadoDocumento } from '../../../../../../../../api';
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.js`;
 
@@ -65,15 +66,24 @@ const ReviewDocumentView = ({ onClose, documento, fileUrl, actionType }) => {
     setScale((prevScale) => Math.max(prevScale - 0.2, 0.5)); // Limitar el zoom mínimo a 0.5x
   };
 
-  const handleConfirmAprobar = () => {
-    console.log('Documento aprobado');
-    onClose();
+  const handleConfirmAprobar = async () => {
+    try {
+      await updateEstadoDocumento(documento.solicitudId, documento.tipoDocumento, 1, null, null, 123); // Estado 1 = Aprobado, revisorId = 123 (ejemplo)
+      console.log('Documento aprobado');
+      onClose();
+    } catch (error) {
+      console.error('Error al aprobar el documento:', error);
+    }
   };
 
-  const handleConfirmObservar = () => {
-    console.log('Razón seleccionada:', selectedReason);
-    console.log('Comentario:', comment);
-    onClose();
+  const handleConfirmObservar = async () => {
+    try {
+      await updateEstadoDocumento(documento.solicitudId, documento.tipoDocumento, 2, selectedReason, comment, 123); // Estado 2 = Observado, revisorId = 123 (ejemplo)
+      console.log('Documento observado');
+      onClose();
+    } catch (error) {
+      console.error('Error al observar el documento:', error);
+    }
   };
 
   return (

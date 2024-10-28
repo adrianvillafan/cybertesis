@@ -26,6 +26,8 @@ const ModalOneDoc = ({ onClose, documento }) => {
   const containerRef = useRef(null);
   const [scale, setScale] = useState(1.25); // Estado para el nivel de zoom
 
+  console.log("documento",documento);
+
   useEffect(() => {
     const obtenerDocumento = async () => {
       setIsLoading(true);
