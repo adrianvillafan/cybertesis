@@ -117,7 +117,7 @@ router.get('/expedientexestado/documentos/:solicitudId/:expedienteId', (req, res
 });
 
 // Nueva ruta para actualizar el estado de un documento específico
-router.put('/solicitudes/:solicitudId/documento/:tipoDocumento/estado', (req, res) => {
+router.put('/solicitud/:solicitudId/documento/:tipoDocumento/estado', (req, res) => {
   const { solicitudId, tipoDocumento } = req.params;
   const { estado, motivoObservacion, comentariosRevision, revisorId } = req.body;
 

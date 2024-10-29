@@ -66,7 +66,7 @@ export async function fetchDocumentosRelacionados(solicitudId, expedienteId) {
 // Función para actualizar el estado de un documento específico
 export async function updateEstadoDocumento(solicitudId, tipoDocumento, estado, motivoObservacion, comentariosRevision, revisorId) {
   try {
-    const response = await fetch(`http://localhost:3000/api/solicitudes/${solicitudId}/documento/${tipoDocumento}/estado`, {
+    const response = await fetch(`http://localhost:3000/api/solicitudes/solicitud/${solicitudId}/documento/${tipoDocumento}/estado`, {
       method: 'PUT',
       headers: {
         'Authorization': `Bearer ${getToken()}`,

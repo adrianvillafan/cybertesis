@@ -1,14 +1,17 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useContext } from 'react';
 import { Modal, Box, Spinner, Button, Icon, SpaceBetween, FormField, Textarea, RadioGroup, ColumnLayout, Tiles } from '@cloudscape-design/components';
 import { Document, Page, pdfjs } from 'react-pdf';
 import 'pdfjs-dist/web/pdf_viewer.css';
 import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
 import 'react-pdf/dist/esm/Page/TextLayer.css';
+import UserContext from '../../../../../contexts/UserContext';
 import { updateEstadoDocumento } from '../../../../../../../../api';
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.js`;
 
-const ReviewDocumentView = ({ onClose, documento, fileUrl, actionType }) => {
+const ReviewDocumentView = ({ onClose, documento, fileUrl, actionType, solicitudId }) => {
+  const { user } = useContext(UserContext);
+  console.log('documento', documento);
   const [numPages, setNumPages] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedReason, setSelectedReason] = useState(''); // Razón de observación seleccionada
@@ -68,7 +71,8 @@ const ReviewDocumentView = ({ onClose, documento, fileUrl, actionType }) => {
 
   const handleConfirmAprobar = async () => {
     try {
-      await updateEstadoDocumento(documento.solicitudId, documento.tipoDocumento, 1, null, null, 123); // Estado 1 = Aprobado, revisorId = 123 (ejemplo)
+      console.log('Datos enviando:', solicitudId, documento.idtable, 1, null, null, user.id);
+      await updateEstadoDocumento(solicitudId, documento.idtable, 1, null, null, user.id); // Estado 1 = Aprobado, revisorId = user.id (ejemplo)
       console.log('Documento aprobado');
       onClose();
     } catch (error) {
@@ -78,7 +82,8 @@ const ReviewDocumentView = ({ onClose, documento, fileUrl, actionType }) => {
 
   const handleConfirmObservar = async () => {
     try {
-      await updateEstadoDocumento(documento.solicitudId, documento.tipoDocumento, 2, selectedReason, comment, 123); // Estado 2 = Observado, revisorId = 123 (ejemplo)
+      console.log('Datos enviando:', solicitudId, documento.idtable, 2, selectedReason, comment, user.id);
+      await updateEstadoDocumento(solicitudId, documento.idtable, 2, selectedReason, comment, user.id); // Estado 2 = Observado, revisorId = 123 (ejemplo)
       console.log('Documento observado');
       onClose();
     } catch (error) {

@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Modal, Box, Spinner, Button, Icon, SpaceBetween } from '@cloudscape-design/components';
+import { Modal, Box, Spinner, Button, Icon, Badge, SpaceBetween } from '@cloudscape-design/components';
 import { Document, Page, pdfjs } from 'react-pdf';
 import 'pdfjs-dist/web/pdf_viewer.css';
 import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
@@ -18,7 +18,7 @@ import ReviewDocumentView from './ReviewDocumentView';
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.js`;
 
-const ModalOneDoc = ({ onClose, documento }) => {
+const ModalOneDoc = ({ onClose, documento, solicitudId }) => {
   const [numPages, setNumPages] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [fileUrl, setFileUrl] = useState(null);
@@ -26,7 +26,7 @@ const ModalOneDoc = ({ onClose, documento }) => {
   const containerRef = useRef(null);
   const [scale, setScale] = useState(1.25); // Estado para el nivel de zoom
 
-  console.log("documento",documento);
+  console.log("documento", documento);
 
   useEffect(() => {
     const obtenerDocumento = async () => {
@@ -109,6 +109,7 @@ const ModalOneDoc = ({ onClose, documento }) => {
       <ReviewDocumentView
         onClose={() => setReviewMode(null)}
         documento={documento}
+        solicitudId={solicitudId}
         fileUrl={fileUrl}
         actionType={reviewMode}
       />
@@ -160,23 +161,29 @@ const ModalOneDoc = ({ onClose, documento }) => {
             <Box color="red">No se pudo cargar el documento</Box>
           )}
 
-          {/* Botones para aprobar u observar el documento */}
+          {/* Mostrar estado o botones según el estado del documento */}
           <div
             style={{
               position: 'fixed',
               bottom: '20px',
               left: '20px',
               zIndex: 10,
-              display: 'flex',
-              gap: '10px',
             }}
           >
-            <Button onClick={handleAprobar} variant="primary">
-              Aprobar
-            </Button>
-            <Button onClick={handleObservar} variant="warning">
-              Observar
-            </Button>
+            {documento.estado === 1 ? (
+              <Badge color="green">Aceptado</Badge>
+            ) : documento.estado === 2 ? (
+              <Badge color="red">Observado</Badge>
+            ) : (
+              <SpaceBetween size="xs" direction="horizontal">
+                <Button onClick={handleAprobar} variant="primary">
+                  Aprobar
+                </Button>
+                <Button onClick={handleObservar} variant="warning">
+                  Observar
+                </Button>
+              </SpaceBetween>
+            )}
           </div>
         </div>
       )}

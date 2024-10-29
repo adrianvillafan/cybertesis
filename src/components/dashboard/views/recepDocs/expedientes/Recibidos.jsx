@@ -144,6 +144,7 @@ const Recibidos = ({ renderHeader }) => {
                 }
             ]}
             sortingColumn={sortingColumn}
+            stickyColumns={{ first: 0, last: 1 }}
             sortingDescending={!isAscending}
             onSortingChange={({ detail }) => {
                 setSortingColumn(detail.sortingColumn);

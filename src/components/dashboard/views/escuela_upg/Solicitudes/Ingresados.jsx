@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Table, Button, Pagination, TextFilter, Box, Select, Grid } from '@cloudscape-design/components';
+import { Table, Pagination, TextFilter, Box, Select, Grid } from '@cloudscape-design/components';
 
 const Ingresados = ({ renderHeader, expedientes, isLoading }) => {
   const [filteringText, setFilteringText] = useState('');
