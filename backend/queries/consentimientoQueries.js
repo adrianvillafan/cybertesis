@@ -77,16 +77,13 @@ export const getConsentimientoInformadoById = (id, callback) => {
 export const deleteConsentimientoInformadoById = (id, callback) => {
   // Actualizamos la tabla de documentos para desvincular el consentimiento
   const queryUpdateDocumentos = 'UPDATE documentos SET consentimiento_id = NULL WHERE consentimiento_id = $1';
-
   executeQuery(queryUpdateDocumentos, [id], (err, updateResults) => {
     if (err) {
       console.error('Error al actualizar documentos:', err);
       return callback(err, null);
     }
-
     // Finalmente, eliminamos el Consentimiento Informado
     const queryDeleteConsentimiento = 'DELETE FROM consentimiento WHERE id = $1';
-
     executeQuery(queryDeleteConsentimiento, [id], (err, deleteResults) => {
       if (err) {
         console.error('Error al eliminar Consentimiento Informado:', err);

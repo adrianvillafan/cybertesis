@@ -177,3 +177,46 @@ export function fetchDocumentosRelacionados(solicitudId, expedienteId, callback)
 }
 
 
+// Nueva función para actualizar el estado y observaciones de un documento
+export function updateEstadoDocumento(solicitudId, tipoDocumento, estado, motivoObservacion, comentariosRevision, revisorId, callback) {
+    const tiposDocumentos = {
+        1: 'tesis',
+        2: 'acta',
+        3: 'certificado',
+        4: 'auto',
+        5: 'metadatos',
+        6: 'turnitin',
+        7: 'consentimiento',
+        8: 'postergacion'
+    };
+
+    if (!tiposDocumentos[tipoDocumento]) {
+        return callback({ message: 'Tipo de documento no válido' }, null);
+    }
+
+    const estadoColumna = `${tiposDocumentos[tipoDocumento]}_estado`;
+    const fechaRevisionColumna = `${tiposDocumentos[tipoDocumento]}_fecha_revision`;
+    const motivoColumna = `${tiposDocumentos[tipoDocumento]}_motivo_observacion`;
+    const comentariosColumna = `${tiposDocumentos[tipoDocumento]}_comentarios_revision`;
+    const revisorColumna = `${tiposDocumentos[tipoDocumento]}_revisor_id`;
+
+    const sql = `
+        UPDATE solicitudes
+        SET ${estadoColumna} = $1,
+            ${fechaRevisionColumna} = NOW(),
+            ${motivoColumna} = $2,
+            ${comentariosColumna} = $3,
+            ${revisorColumna} = $4
+        WHERE id = $5
+    `;
+
+    executeQuery(sql, [estado, motivoObservacion, comentariosRevision, revisorId, solicitudId], (err, result) => {
+        if (err) {
+            console.error('Error al actualizar el estado del documento:', err);
+            callback(err, null);
+        } else {
+            callback(null, result);
+        }
+    });
+}
+

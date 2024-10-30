@@ -62,3 +62,33 @@ export async function fetchDocumentosRelacionados(solicitudId, expedienteId) {
     throw error;
   }
 }
+
+// Función para actualizar el estado de un documento específico
+export async function updateEstadoDocumento(solicitudId, tipoDocumento, estado, motivoObservacion, comentariosRevision, revisorId) {
+  try {
+    const response = await fetch(`http://localhost:3000/api/solicitudes/solicitud/${solicitudId}/documento/${tipoDocumento}/estado`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${getToken()}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        estado,
+        motivoObservacion,
+        comentariosRevision,
+        revisorId,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error('No se pudo actualizar el estado del documento');
+    }
+
+    const result = await response.json();
+    console.log('Estado del documento actualizado correctamente:', result);
+    return result;
+  } catch (error) {
+    console.error('Error al actualizar el estado del documento:', error);
+    throw error;
+  }
+}

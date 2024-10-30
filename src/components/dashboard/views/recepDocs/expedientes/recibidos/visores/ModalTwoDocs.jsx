@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Modal, Box, Spinner, Button, Icon, ColumnLayout } from '@cloudscape-design/components';
+import { Modal, Box, Spinner, Button, Icon, ColumnLayout, Badge, SpaceBetween } from '@cloudscape-design/components';
 import { Document, Page, pdfjs } from 'react-pdf';
 import 'pdfjs-dist/web/pdf_viewer.css';
 import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
@@ -18,7 +18,7 @@ import ReviewDocumentView from './ReviewDocumentView';
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.js`;
 
-const ModalTwoDocs = ({ onClose, documentos }) => {
+const ModalTwoDocs = ({ onClose, documentos, solicitudId }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [fileUrls, setFileUrls] = useState([null, null]);
   const [numPagesArray, setNumPagesArray] = useState([null, null]); // Número de páginas de cada documento
@@ -153,6 +153,7 @@ const ModalTwoDocs = ({ onClose, documentos }) => {
           setReviewMode(null);
           setSelectedDocIndex(null);
         }}
+        solicitudId={solicitudId}
         documento={documentos[selectedDocIndex]}
         fileUrl={fileUrls[selectedDocIndex]}
         actionType={reviewMode}
@@ -217,23 +218,29 @@ const ModalTwoDocs = ({ onClose, documentos }) => {
                 <Box color="red">No se pudo cargar el documento</Box>
               )}
 
-              {/* Botones para Aprobar/Observar cada documento */}
+              {/* Mostrar estado o botones según el estado del documento */}
               <div
                 style={{
                   position: 'fixed',
                   bottom: '20px',
                   left: index === 0 ? '20px' : 'calc(50% + 20px)',
                   zIndex: 10,
-                  display: 'flex',
-                  gap: '10px',
                 }}
               >
-                <Button onClick={() => handleAprobar(index)} variant="primary">
-                  Aprobar
-                </Button>
-                <Button onClick={() => handleObservar(index)} variant="warning">
-                  Observar
-                </Button>
+                {documentos[index].estado === 1 ? (
+                  <Badge color="green">Aceptado</Badge>
+                ) : documentos[index].estado === 2 ? (
+                  <Badge color="red">Observado</Badge>
+                ) : (
+                  <SpaceBetween size="xs" direction="horizontal">
+                    <Button onClick={() => handleAprobar(index)} variant="primary">
+                      Aprobar
+                    </Button>
+                    <Button onClick={() => handleObservar(index)} variant="warning">
+                      Observar
+                    </Button>
+                  </SpaceBetween>
+                )}
               </div>
             </div>
           ))}

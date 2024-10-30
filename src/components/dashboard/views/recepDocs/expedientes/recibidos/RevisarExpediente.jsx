@@ -155,6 +155,7 @@ const RevisarExpediente = ({ solicitudId, expedienteId, onBack }) => {
                 <ModalOneDoc
                     onClose={closeModal}
                     documento={selectedDocuments[0]}
+                    solicitudId={solicitudId}
                     headerText="Visualización de Documento"
                 />
             )}
@@ -163,6 +164,7 @@ const RevisarExpediente = ({ solicitudId, expedienteId, onBack }) => {
                 <ModalTwoDocs
                     onClose={closeModal}
                     documentos={[selectedDocuments[0], selectedDocuments[1]]}
+                    solicitudId={solicitudId}
                     headerText="Visualización de Dos Documentos"
                 />
             )}
@@ -171,6 +173,7 @@ const RevisarExpediente = ({ solicitudId, expedienteId, onBack }) => {
                 <ModalThreeDocs
                     onClose={closeModal}
                     documentos={[selectedDocuments[0], selectedDocuments[1], selectedDocuments[2]]}
+                    solicitudId={solicitudId}
                     headerText="Visualización de Tres Documentos"
                 />
             )}

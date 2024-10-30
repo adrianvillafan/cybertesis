@@ -2,7 +2,7 @@ import express from 'express';
 import { updateEstadoIdByDocumentId } from '../queries/solicitudQueries.js';
 import { fetchExpedientes, createSolicitud, fetchSolicitudesByAlumno } from '../queries/studentQueries.js';
 import { fetchDocumentosPorEstudiante } from '../queries/escuelaUpgQueries.js';
-import { fetchExpedientesByEstado, fetchExpedienteDetails, fetchDocumentosRelacionados } from '../queries/recepDocsQueries.js'; // Importamos las funciones de consulta
+import { fetchExpedientesByEstado, fetchExpedienteDetails, fetchDocumentosRelacionados, updateEstadoDocumento } from '../queries/recepDocsQueries.js'; // Importamos las funciones de consulta
 
 
 
@@ -112,6 +112,20 @@ router.get('/expedientexestado/documentos/:solicitudId/:expedienteId', (req, res
       res.status(500).json({ message: 'Error al obtener documentos relacionados', error: err.message });
     } else {
       res.status(200).json(results);
+    }
+  });
+});
+
+// Nueva ruta para actualizar el estado de un documento específico
+router.put('/solicitud/:solicitudId/documento/:tipoDocumento/estado', (req, res) => {
+  const { solicitudId, tipoDocumento } = req.params;
+  const { estado, motivoObservacion, comentariosRevision, revisorId } = req.body;
+
+  updateEstadoDocumento(solicitudId, tipoDocumento, estado, motivoObservacion, comentariosRevision, revisorId, (err, results) => {
+    if (err) {
+      res.status(500).json({ message: 'Error al actualizar el estado del documento', error: err.message });
+    } else {
+      res.status(200).json({ message: 'Estado del documento actualizado correctamente', results });
     }
   });
 });
