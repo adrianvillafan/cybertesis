@@ -14,6 +14,102 @@ const RevisarExpediente = ({ solicitudId, expedienteId, onBack }) => {
     const [showModal, setShowModal] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
 
+    console.log('selectedDocuments', selectedDocuments);
+    console.log('documentos', documentos);
+
+    // Función para actualizar los documentos relacionados
+    const actualizarDocumentosRelacionados = async () => {
+        try {
+            setIsLoading(true); // Muestra el spinner mientras se actualiza la información
+            const docs = await fetchDocumentosRelacionados(solicitudId, expedienteId);
+            if (docs.length > 0) {
+                const doc = docs[0];
+                const documentosFormateados = [
+                    {
+                        id: doc.tesis_id,
+                        idtable: 1,
+                        nombre: 'Tesis',
+                        estado: doc.tesis_estado,
+                        fechaRevision: doc.tesis_fecha_revision,
+                        fechaModificacion: doc.tesis_fecha_modificacion
+                    },
+                    {
+                        id: doc.actasust_id,
+                        idtable: 2,
+                        nombre: 'Acta de Sustentación',
+                        estado: doc.acta_estado,
+                        fechaRevision: doc.acta_fecha_revision,
+                        fechaModificacion: doc.actasust_fecha_modificacion
+                    },
+                    {
+                        id: doc.certsimil_id,
+                        idtable: 3,
+                        nombre: 'Certificado de Similitud',
+                        estado: doc.certificado_estado,
+                        fechaRevision: doc.certificado_fecha_revision,
+                        fechaModificacion: doc.certsimil_fecha_modificacion
+                    },
+                    {
+                        id: doc.autocyber_id,
+                        idtable: 4,
+                        nombre: 'Autorización Cybertesis',
+                        estado: doc.auto_estado,
+                        fechaRevision: doc.auto_fecha_revision,
+                        fechaModificacion: doc.autocyber_fecha_modificacion
+                    },
+                    {
+                        id: doc.metadatos_id,
+                        idtable: 5,
+                        nombre: 'Metadatos Complementarios',
+                        estado: doc.metadatos_estado,
+                        fechaRevision: doc.metadatos_fecha_revision,
+                        fechaModificacion: doc.metadatos_fecha_modificacion
+                    },
+                    {
+                        id: doc.repturnitin_id,
+                        idtable: 6,
+                        nombre: 'Reporte de Turnitin',
+                        estado: doc.turnitin_estado,
+                        fechaRevision: doc.turnitin_fecha_revision,
+                        fechaModificacion: doc.repturnitin_fecha_modificacion
+                    },
+                    {
+                        id: doc.consentimiento_id,
+                        idtable: 7,
+                        nombre: 'Consentimiento Informado',
+                        estado: doc.consentimiento_estado,
+                        fechaRevision: doc.consentimiento_fecha_revision,
+                        fechaModificacion: doc.consentimiento_fecha_modificacion
+                    },
+                    {
+                        id: doc.postergacion_id,
+                        idtable: 8,
+                        nombre: 'Postergación de Publicación',
+                        estado: doc.postergacion_estado,
+                        fechaRevision: doc.postergacion_fecha_revision,
+                        fechaModificacion: doc.postergacion_fecha_modificacion
+                    }
+                ].filter(doc => doc.id !== null); // Filtrar los documentos que no tengan ID
+
+                setDocumentos(documentosFormateados);
+
+                // Actualizar `selectedDocuments` con los documentos actualizados
+                setSelectedDocuments((prevSelected) =>
+                    prevSelected.map((selectedDoc) => {
+                        const updatedDoc = documentosFormateados.find(doc => doc.id === selectedDoc.id);
+                        return updatedDoc ? updatedDoc : selectedDoc;
+                    })
+                );
+
+                return documentosFormateados;
+            }
+        } catch (error) {
+            console.error('Error al obtener los documentos relacionados:', error);
+        } finally {
+            setIsLoading(false); // Asegurarse de que el spinner desaparezca
+        }
+    };
+
     // useEffect para obtener los detalles del expediente
     useEffect(() => {
         const obtenerDetallesExpediente = async () => {
@@ -30,90 +126,7 @@ const RevisarExpediente = ({ solicitudId, expedienteId, onBack }) => {
 
     // useEffect para obtener los documentos relacionados
     useEffect(() => {
-        const obtenerDocumentosRelacionados = async () => {
-            try {
-                const docs = await fetchDocumentosRelacionados(solicitudId, expedienteId);
-
-                if (docs.length > 0) {
-                    const doc = docs[0];
-
-                    const documentosFormateados = [
-                        {
-                            id: doc.tesis_id,
-                            idtable: 1,
-                            nombre: 'Tesis',
-                            estado: doc.tesis_estado,
-                            fechaRevision: doc.tesis_fecha_revision,
-                            fechaModificacion: doc.tesis_fecha_modificacion
-                        },
-                        {
-                            id: doc.actasust_id,
-                            idtable: 2,
-                            nombre: 'Acta de Sustentación',
-                            estado: doc.acta_estado,
-                            fechaRevision: doc.acta_fecha_revision,
-                            fechaModificacion: doc.actasust_fecha_modificacion
-                        },
-                        {
-                            id: doc.certsimil_id,
-                            idtable: 3,
-                            nombre: 'Certificado de Similitud',
-                            estado: doc.certificado_estado,
-                            fechaRevision: doc.certificado_fecha_revision,
-                            fechaModificacion: doc.certsimil_fecha_modificacion
-                        },
-                        {
-                            id: doc.autocyber_id,
-                            idtable: 4,
-                            nombre: 'Autorización Cybertesis',
-                            estado: doc.auto_estado,
-                            fechaRevision: doc.auto_fecha_revision,
-                            fechaModificacion: doc.autocyber_fecha_modificacion
-                        },
-                        {
-                            id: doc.metadatos_id,
-                            idtable: 5,
-                            nombre: 'Metadatos Complementarios',
-                            estado: doc.metadatos_estado,
-                            fechaRevision: doc.metadatos_fecha_revision,
-                            fechaModificacion: doc.metadatos_fecha_modificacion
-                        },
-                        {
-                            id: doc.repturnitin_id,
-                            idtable: 6,
-                            nombre: 'Reporte de Turnitin',
-                            estado: doc.turnitin_estado,
-                            fechaRevision: doc.turnitin_fecha_revision,
-                            fechaModificacion: doc.repturnitin_fecha_modificacion
-                        },
-                        {
-                            id: doc.consentimiento_id,
-                            idtable: 7,
-                            nombre: 'Consentimiento Informado',
-                            estado: doc.consentimiento_estado,
-                            fechaRevision: doc.consentimiento_fecha_revision,
-                            fechaModificacion: doc.consentimiento_fecha_modificacion
-                        },
-                        {
-                            id: doc.postergacion_id,
-                            idtable: 8,
-                            nombre: 'Postergación de Publicación',
-                            estado: doc.postergacion_estado,
-                            fechaRevision: doc.postergacion_fecha_revision,
-                            fechaModificacion: doc.postergacion_fecha_modificacion
-                        }
-                    ].filter(doc => doc.id !== null); // Filtrar los documentos que no tengan ID
-
-                    setDocumentos(documentosFormateados);
-                }
-            } catch (error) {
-                console.error('Error al obtener los documentos relacionados:', error);
-            } finally {
-                setIsLoading(false); // Asegurarse de que el spinner desaparezca
-            }
-        };
-
-        obtenerDocumentosRelacionados();
+        actualizarDocumentosRelacionados();
     }, [solicitudId, expedienteId]);
 
     // Manejo de visualización de documentos
@@ -157,6 +170,7 @@ const RevisarExpediente = ({ solicitudId, expedienteId, onBack }) => {
                     documento={selectedDocuments[0]}
                     solicitudId={solicitudId}
                     headerText="Visualización de Documento"
+                    actualizarDocumentos={actualizarDocumentosRelacionados} // Pasar función para actualizar documentos
                 />
             )}
 
@@ -166,6 +180,7 @@ const RevisarExpediente = ({ solicitudId, expedienteId, onBack }) => {
                     documentos={[selectedDocuments[0], selectedDocuments[1]]}
                     solicitudId={solicitudId}
                     headerText="Visualización de Dos Documentos"
+                    actualizarDocumentos={actualizarDocumentosRelacionados} // Pasar función para actualizar documentos
                 />
             )}
 
@@ -175,6 +190,7 @@ const RevisarExpediente = ({ solicitudId, expedienteId, onBack }) => {
                     documentos={[selectedDocuments[0], selectedDocuments[1], selectedDocuments[2]]}
                     solicitudId={solicitudId}
                     headerText="Visualización de Tres Documentos"
+                    actualizarDocumentos={actualizarDocumentosRelacionados} // Pasar función para actualizar documentos
                 />
             )}
         </SpaceBetween>

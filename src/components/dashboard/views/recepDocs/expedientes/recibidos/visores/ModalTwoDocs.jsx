@@ -18,7 +18,7 @@ import ReviewDocumentView from './ReviewDocumentView';
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.js`;
 
-const ModalTwoDocs = ({ onClose, documentos, solicitudId }) => {
+const ModalTwoDocs = ({ onClose, documentos, solicitudId, actualizarDocumentos }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [fileUrls, setFileUrls] = useState([null, null]);
   const [numPagesArray, setNumPagesArray] = useState([null, null]); // Número de páginas de cada documento
@@ -146,6 +146,15 @@ const ModalTwoDocs = ({ onClose, documentos, solicitudId }) => {
     setReviewMode('observar');
   };
 
+  // Función para manejar la actualización completa del estado del documento
+  const handleActualizarDocumento = async () => {
+    const documentosActualizados = await actualizarDocumentos(); // Actualiza los documentos en RevisarExpediente.jsx y obtiene los actualizados
+    const documentoActualizado = documentosActualizados.find(doc => doc.id === documentos[selectedDocIndex].id);
+    if (documentoActualizado) {
+      documentos[selectedDocIndex] = { ...documentoActualizado }; // Actualiza el documento en este modal
+    }
+  };
+
   if (reviewMode && selectedDocIndex !== null) {
     return (
       <ReviewDocumentView
@@ -157,6 +166,7 @@ const ModalTwoDocs = ({ onClose, documentos, solicitudId }) => {
         documento={documentos[selectedDocIndex]}
         fileUrl={fileUrls[selectedDocIndex]}
         actionType={reviewMode}
+        actualizarDocumentos={handleActualizarDocumento}
       />
     );
   }

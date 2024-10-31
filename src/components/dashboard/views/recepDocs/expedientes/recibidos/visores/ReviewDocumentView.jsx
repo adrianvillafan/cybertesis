@@ -9,7 +9,7 @@ import { updateEstadoDocumento } from '../../../../../../../../api';
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.js`;
 
-const ReviewDocumentView = ({ onClose, documento, fileUrl, actionType, solicitudId }) => {
+const ReviewDocumentView = ({ onClose, documento, fileUrl, actionType, solicitudId, actualizarDocumentos }) => {
   const { user } = useContext(UserContext);
   console.log('documento', documento);
   const [numPages, setNumPages] = useState(null);
@@ -74,6 +74,7 @@ const ReviewDocumentView = ({ onClose, documento, fileUrl, actionType, solicitud
       console.log('Datos enviando:', solicitudId, documento.idtable, 1, null, null, user.id);
       await updateEstadoDocumento(solicitudId, documento.idtable, 1, null, null, user.id); // Estado 1 = Aprobado, revisorId = user.id (ejemplo)
       console.log('Documento aprobado');
+      actualizarDocumentos();
       onClose();
     } catch (error) {
       console.error('Error al aprobar el documento:', error);
@@ -85,6 +86,7 @@ const ReviewDocumentView = ({ onClose, documento, fileUrl, actionType, solicitud
       console.log('Datos enviando:', solicitudId, documento.idtable, 2, selectedReason, comment, user.id);
       await updateEstadoDocumento(solicitudId, documento.idtable, 2, selectedReason, comment, user.id); // Estado 2 = Observado, revisorId = 123 (ejemplo)
       console.log('Documento observado');
+      actualizarDocumentos();
       onClose();
     } catch (error) {
       console.error('Error al observar el documento:', error);

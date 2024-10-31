@@ -18,7 +18,8 @@ import ReviewDocumentView from './ReviewDocumentView';
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.js`;
 
-const ModalOneDoc = ({ onClose, documento, solicitudId }) => {
+const ModalOneDoc = ({ onClose, solicitudId, documento: initialDocumento, actualizarDocumentos }) => {
+  const [documento, setDocumento] = useState(initialDocumento);
   const [numPages, setNumPages] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [fileUrl, setFileUrl] = useState(null);
@@ -26,57 +27,63 @@ const ModalOneDoc = ({ onClose, documento, solicitudId }) => {
   const containerRef = useRef(null);
   const [scale, setScale] = useState(1.25); // Estado para el nivel de zoom
 
-  console.log("documento", documento);
+  // Sincroniza el `documento` cada vez que se actualice en `RevisarExpediente`
+  useEffect(() => {
+    // Utiliza un clon para asegurarte de que React detecte la actualización del objeto
+    setDocumento({ ...initialDocumento });
+  }, [initialDocumento]);
 
   useEffect(() => {
-    const obtenerDocumento = async () => {
-      setIsLoading(true);
-      try {
-        let response;
-        const id = documento.id;
-
-        switch (documento.idtable) {
-          case 1:
-            response = await fetchTesisById(id);
-            break;
-          case 2:
-            response = await fetchActaById(id);
-            break;
-          case 3:
-            response = await fetchCertificadoById(id);
-            break;
-          case 4:
-            response = await fetchAutoCyberById(id);
-            break;
-          case 5:
-            response = await fetchMetadataById(id);
-            break;
-          case 6:
-            response = await fetchTurnitinById(id);
-            break;
-          case 7:
-            response = await fetchConsentimientoById(id);
-            break;
-          case 8:
-            response = await fetchPostergacionById(id);
-            break;
-          default:
-            throw new Error('Tipo de documento desconocido');
-        }
-
-        if (response && response.file_url) {
-          setFileUrl(response.file_url);
-        } else {
-          console.error('No se pudo obtener la URL del documento');
-        }
-      } catch (error) {
-        console.error('Error al obtener el documento:', error);
-      }
-      setIsLoading(false);
-    };
-
-    obtenerDocumento();
+    if (documento) {
+      obtenerDocumento();
+    }
   }, [documento]);
+
+  const obtenerDocumento = async () => {
+    setIsLoading(true);
+    try {
+      let response;
+      const id = documento.id;
+
+      switch (documento.idtable) {
+        case 1:
+          response = await fetchTesisById(id);
+          break;
+        case 2:
+          response = await fetchActaById(id);
+          break;
+        case 3:
+          response = await fetchCertificadoById(id);
+          break;
+        case 4:
+          response = await fetchAutoCyberById(id);
+          break;
+        case 5:
+          response = await fetchMetadataById(id);
+          break;
+        case 6:
+          response = await fetchTurnitinById(id);
+          break;
+        case 7:
+          response = await fetchConsentimientoById(id);
+          break;
+        case 8:
+          response = await fetchPostergacionById(id);
+          break;
+        default:
+          throw new Error('Tipo de documento desconocido');
+      }
+
+      if (response && response.file_url) {
+        setFileUrl(response.file_url);
+      } else {
+        console.error('No se pudo obtener la URL del documento');
+      }
+    } catch (error) {
+      console.error('Error al obtener el documento:', error);
+    }
+    setIsLoading(false);
+  };
 
   const onDocumentLoadSuccess = ({ numPages }) => {
     setNumPages(numPages);
@@ -104,6 +111,15 @@ const ModalOneDoc = ({ onClose, documento, solicitudId }) => {
     setReviewMode('observar');
   };
 
+  // Función para manejar la actualización completa del estado del documento
+  const handleActualizarDocumento = async () => {
+    const documentosActualizados = await actualizarDocumentos(); // Actualiza los documentos en RevisarExpediente.jsx y obtiene los actualizados
+    const documentoActualizado = documentosActualizados.find(doc => doc.id === documento.id);
+    if (documentoActualizado) {
+      setDocumento({ ...documentoActualizado }); // Actualiza el documento en este modal
+    }
+  };
+
   if (reviewMode) {
     return (
       <ReviewDocumentView
@@ -112,6 +128,7 @@ const ModalOneDoc = ({ onClose, documento, solicitudId }) => {
         solicitudId={solicitudId}
         fileUrl={fileUrl}
         actionType={reviewMode}
+        actualizarDocumentos={handleActualizarDocumento}
       />
     );
   }
