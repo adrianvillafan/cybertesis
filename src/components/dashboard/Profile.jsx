@@ -76,10 +76,18 @@ const Profile = ({ isLoggedIn, setIsLoggedIn }) => {
           { type: "link", text: <a onClick={() => setActiveView('solicitudes')}> <Icon name="send" /> Expedientes</a>, href: '#solicitudes' },
           { type: "link", text: <a onClick={() => setActiveView('reports')}> <Icon name="file-open" /> Reportes</a>, href: '#reports' }
         ];
-      case 4: // RecepDocs
+        case 4: // RecepDocs
         return [
           { type: "link", text: <a onClick={() => setActiveView('expedientes')}>Expedientes</a>, href: '#expedientes' },
-          { type: "link", text: <a onClick={() => setActiveView('expedient-reports')}>Reporte de Expedientes</a>, href: '#expedient-reports' }
+          {
+            type: "expandable-link-group",
+            text: "Reporte",
+            href: "#reporte",
+            items: [
+              { type: "link", text: <a onClick={() => setActiveView('expedient-reports')}>Expediente</a>, href: '#expedient-reports' },
+              { type: "link", text: <a onClick={() => setActiveView('resultado-reports')}>Resultado</a>, href: '#resultado-reports' }
+            ]
+          }
         ];
       case 5: // UOARI
         return [
