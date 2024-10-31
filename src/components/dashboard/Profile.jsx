@@ -18,6 +18,7 @@ import Notif from './views/Notif';
 import Solicitudes from './views/escuela_upg/Solicitudes';
 import IngresarDoc from './views/escuela_upg/IngresarDoc';
 import Expedientes from './views/recepDocs/Expedientes';
+import ResultReports from './views/recepDocs/ResultReports';
 
 const Profile = ({ isLoggedIn, setIsLoggedIn }) => {
   const navigate = useNavigate();
@@ -32,6 +33,7 @@ const Profile = ({ isLoggedIn, setIsLoggedIn }) => {
       case 'reports': return 'Reportes';
       case 'requests': return 'Solicitudes';
       case 'expedient-reports': return 'Reporte de Expedientes';
+      case 'result-reports': return 'Reporte de Resultados';
       case 'register-cyberthesis': return 'Registrar CYBERTESIS';
       case 'my-reports': return 'Mis Reportes';
       case 'notifications': return 'Notificaciones';
@@ -56,6 +58,7 @@ const Profile = ({ isLoggedIn, setIsLoggedIn }) => {
 
   const handleNavigation = (href) => {
     setActiveView(href);
+    onsole.log("Active view set to:", href);
   };
 
   // Función para generar los elementos de navegación basados en el tipo de usuario
@@ -85,7 +88,7 @@ const Profile = ({ isLoggedIn, setIsLoggedIn }) => {
             href: "#reporte",
             items: [
               { type: "link", text: <a onClick={() => setActiveView('expedient-reports')}>Expediente</a>, href: '#expedient-reports' },
-              { type: "link", text: <a onClick={() => setActiveView('resultado-reports')}>Resultado</a>, href: '#resultado-reports' }
+              { type: "link", text: <a onClick={() => setActiveView('result-reports')}>Resultado</a>, href: '#result-reports' }
             ]
           }
         ];
@@ -147,6 +150,11 @@ const Profile = ({ isLoggedIn, setIsLoggedIn }) => {
           return <ExpedientReports />;
         }
         break;
+      case 'result-reports':
+          if (user.current_team_id === 4) {
+            return <ResultReports />;
+          }
+          break;
       case 'register-cyberthesis':
         if (user.current_team_id === 5) {
           return <RegisterCyberthesis />;
