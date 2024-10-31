@@ -107,7 +107,6 @@ const Profile = ({ isLoggedIn, setIsLoggedIn }) => {
 
   const renderView = () => {
     // Verifica que el usuario y su rol estén definidos antes de intentar renderizar una vista específica
-    console.log("Current active view:", activeView);
     if (!user) return <p>No estás logueado</p>;
 
     switch (activeView) {
