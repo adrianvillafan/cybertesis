@@ -1,3 +1,5 @@
+//src/components/dashboard/components/Layout.jsx
+
 import React, { useContext } from 'react';
 import {
   AppLayout,
@@ -14,28 +16,40 @@ import { I18nProvider } from '@cloudscape-design/components/i18n';
 import messages from '@cloudscape-design/components/i18n/messages/all.es';
 import UserContext from '../contexts/UserContext';
 import Notificaciones from './Notificaciones'; 
-
+import { useNavigate } from 'react-router-dom';
 
 const LOCALE = 'es';
 
 const Layout = ({ navigationItems, contentHeader, children, onNavigation, onLogoutClick }) => {
-  const [activeHref, setActiveHref] = React.useState("/");
+  const [activeHref, setActiveHref] = React.useState("/inicio");
   const { user } = useContext(UserContext);
+  const navigate = useNavigate();
 
   const updatedNavigationItems = [
-    { type: "link", text: <a onClick={() => onNavigation('inicio')}> <Icon name="user-profile" /> Inicio</a>, href: '#inicio' },
-    ...navigationItems, 
+    { type: "link", text: <span onClick={() => handleNavigation('inicio')}> <Icon name="user-profile" /> Inicio</span>, href: '/inicio' },
+    ...navigationItems,
     { type: "divider" },
-    { type: "link", text: <a onClick={() => onNavigation('notifications')}> <Icon name="notification" />  Notificaciones</a>, href: '#notificacion', info: <Badge color="red">23</Badge> },
-    
+    { 
+      type: "link", 
+      text: <span onClick={() => handleNavigation('notifications')}> <Icon name="notification" />  Notificaciones</span>, 
+      href: '/notifications', 
+      info: <Badge color="red">23</Badge> 
+    },
   ];
+
+  const handleNavigation = (view) => {
+    const route = view === 'inicio' ? '/' : `/${view}`;
+    setActiveHref(route);
+    navigate(route);
+  };
+  
 
   return (
     <I18nProvider locale={LOCALE} messages={[messages]}>
       <div>
         <TopNavigation
           identity={{
-            href: "#",
+            href: "/inicio",
             title: "Recepción de Documentos de Grados y Títulos en CYBERTESIS",
             logo: {
               src: "src/components/dashboard/components/logo-pa-vrip1.png",  
@@ -71,7 +85,10 @@ const Layout = ({ navigationItems, contentHeader, children, onNavigation, onLogo
                     }
                   ]
                 },
-                { id: "signout", text: <a onClick={onLogoutClick}> <Icon name="redo" /> Cerrar Sesión</a> }
+                { 
+                  id: "signout", 
+                  text: <span onClick={onLogoutClick}> <Icon name="redo" /> Cerrar Sesión</span> 
+                }
               ]
             }
           ]}
@@ -85,7 +102,7 @@ const Layout = ({ navigationItems, contentHeader, children, onNavigation, onLogo
               <SideNavigation
                 activeHref={activeHref}
                 header={{
-                  href: '#', 
+                  href: '/inicio', 
                   text: (
                     <div>
                       <div style={{ fontWeight: 'bold', fontSize: '16px' }}>{user.guard_name}</div>
@@ -97,7 +114,7 @@ const Layout = ({ navigationItems, contentHeader, children, onNavigation, onLogo
                 onFollow={event => {
                   if (!event.detail.external) {
                     event.preventDefault();
-                    setActiveHref(event.detail.href);
+                    handleNavigation(event.detail.href.replace('/', '')); // Extrae el view de la ruta
                   }
                 }}
               />

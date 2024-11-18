@@ -1,3 +1,5 @@
+//src/components/dashboard/views/Inicio.jsx
+
 import { useContext, useState, useEffect } from 'react';
 import UserContext from '../contexts/UserContext';
 import { Container, ColumnLayout, Box, SpaceBetween } from '@cloudscape-design/components';
