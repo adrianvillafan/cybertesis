@@ -1,4 +1,4 @@
-// En la ruta /src/components/dashboard/views/recepDocs/ExpedientReports.jsx
+//src/components/dashboard/views/recepDocs/ExpedientReports.jsx
 import React from 'react';
 import { Container, Box, Header, SpaceBetween, ColumnLayout, PieChart, AreaChart, BarChart } from '@cloudscape-design/components';
 

@@ -1,3 +1,5 @@
+//src/components/dashboard/views/recepDocs/expedientes/recibidos/DetallesExpediente.jsx
+
 import React from 'react';
 import { Container, Header, Box, ColumnLayout,Button } from '@cloudscape-design/components';
 

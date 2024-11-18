@@ -1,3 +1,5 @@
+//src/components/dashboard/views/recepDocs/expedientes/Recibidos.jsx
+
 import React, { useState, useEffect } from 'react';
 import { Table, Button, Pagination, TextFilter, Box, Select, Grid } from '@cloudscape-design/components';
 import { fetchExpedientesByEstado } from '../../../../../../api'; // Importar la función para obtener los expedientes

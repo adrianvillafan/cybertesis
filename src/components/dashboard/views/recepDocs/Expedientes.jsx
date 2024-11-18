@@ -1,3 +1,5 @@
+//src/components/dashboard/views/recepDocs/Expedientes.jsx
+
 import React, { useState } from 'react';
 import { SegmentedControl, Box, SpaceBetween, Header } from '@cloudscape-design/components';
 import Recibidos from './expedientes/Recibidos.jsx';

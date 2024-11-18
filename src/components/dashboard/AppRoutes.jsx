@@ -5,7 +5,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { useContext } from 'react';
 import UserContext from './contexts/UserContext';
 import Layout from './components/Layout';
-import { navigationItems, contentHeader } from './Navigation.jsx'; // Importamos `contentHeader`
+import { navigationItems, contentHeader } from './Navigation'; // Importamos `contentHeader`
 
 // Lazy loading de componentes para mejorar la carga inicial
 const ManageUsers = lazy(() => import('./views/admin/ManageUsers'));

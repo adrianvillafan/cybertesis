@@ -1,3 +1,5 @@
+//src/components/dashboard/views/recepDocs/expedientes/recibidos/RevisarExpediente.jsx
+
 import React, { useState, useEffect } from 'react';
 import { Box, SpaceBetween, Spinner, Container } from '@cloudscape-design/components';
 import { fetchExpedienteDetails, fetchDocumentosRelacionados } from '../../../../../../../api'; // Importamos las funciones de la API

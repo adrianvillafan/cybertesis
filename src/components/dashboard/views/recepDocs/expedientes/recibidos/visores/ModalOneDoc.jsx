@@ -1,3 +1,5 @@
+//src/components/dashboard/views/recepDocs/expedientes/recibidos/visores/ModalOneDoc.jsx
+
 import React, { useState, useRef, useEffect } from 'react';
 import { Modal, Box, Spinner, Button, Icon, Badge, SpaceBetween } from '@cloudscape-design/components';
 import { Document, Page, pdfjs } from 'react-pdf';

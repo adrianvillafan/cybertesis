@@ -1,3 +1,5 @@
+//src/components/dashboard/views/recepDocs/expedientes/Aceptados.jsx
+
 import React, { useState } from 'react';
 import { Table, Button, Pagination, TextFilter, Box, Grid, Select } from '@cloudscape-design/components';
 

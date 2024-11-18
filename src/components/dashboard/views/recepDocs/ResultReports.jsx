@@ -1,4 +1,4 @@
-// ResultReports.jsx
+//src/components/dashboard/views/recepDocs/ResultReports.jsx
 import React, { useState } from 'react';
 import { Table, Input, Button, SpaceBetween, Container, Header, DatePicker, Select } from '@cloudscape-design/components';
 
