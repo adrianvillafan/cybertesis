@@ -1,4 +1,4 @@
-//src/App.jsx
+// src/App.jsx
 
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
@@ -9,12 +9,21 @@ import AppRoutes from './components/dashboard/AppRoutes';
 const App = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
+  // Verificar si hay un token en el almacenamiento local para determinar si el usuario está logueado
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (token) {
       setIsLoggedIn(true);
     }
   }, []);
+
+  // Función para manejar el cierre de sesión
+  const handleLogout = () => {
+    // Limpiar el token del almacenamiento local y otros datos
+    localStorage.removeItem('token');
+    localStorage.removeItem('userData');
+    setIsLoggedIn(false);
+  };
 
   return (
     <UserProvider>
@@ -34,7 +43,7 @@ const App = () => {
             path="/*"
             element={
               isLoggedIn ? (
-                <AppRoutes onLogoutClick={() => setIsLoggedIn(false)} />
+                <AppRoutes onLogoutClick={handleLogout} />
               ) : (
                 <Navigate to="/" />
               )

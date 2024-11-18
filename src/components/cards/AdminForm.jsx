@@ -1,3 +1,5 @@
+// src/components/cards/AdminForm.jsx
+
 import React, { useState } from 'react';
 import Form from "@cloudscape-design/components/form";
 import SpaceBetween from "@cloudscape-design/components/space-between";
@@ -10,10 +12,10 @@ import Select from "@cloudscape-design/components/select";
 import FormField from "@cloudscape-design/components/form-field";
 import Box from '@cloudscape-design/components/box';
 
-import { handleSubmit } from '../../../api';
 import { useUser } from '../../hooks/useUser';
 import Alert from "@cloudscape-design/components/alert"; // Importa el componente Alert para mostrar mensajes de advertencia
 import Spinner from "@cloudscape-design/components/spinner"; // Importa el componente Spinner para indicar carga
+import authService from '../../services/authService'; // Importamos el servicio de autenticación
 
 const AdminForm = ({ handleBack }) => {
   const [form, setForm] = useState({ role: null, email: '', password: '', rememberMe: false });
@@ -21,35 +23,42 @@ const AdminForm = ({ handleBack }) => {
   const [isLoading, setIsLoading] = useState(false); // Estado para manejar la carga
   const { setUser } = useUser();
 
+  // Función para manejar el cambio de rol seleccionado
   const handleRoleChange = (selectedOption) => {
     setForm(prev => ({ ...prev, role: selectedOption }));
   };
 
+  // Función para manejar cambios en el formulario
   const handleChange = (key, value) => {
     setForm(prev => ({ ...prev, [key]: value }));
   };
 
+  // Función para manejar el submit del formulario
   const handleFormSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true); // Indica que la carga está en curso
+    setError(null); // Limpia cualquier error previo
+
     try {
-      console.log("handleFormSubmit called", form); // Confirma que se llama a esta función
-      form.email = form.email + '@unmsm.edu.pe'; // Agrega el dominio al correo
-      await handleSubmit(form, handleLoginSuccess);
+      const credentials = {
+        email: `${form.email}@unmsm.edu.pe`,
+        password: form.password,
+        role: form.role.value,
+      };
+
+      // Llamada al servicio de autenticación
+      const data = await authService.login(credentials);
+
+      if (data) {
+        setUser(data.userData);
+        window.location.href = '/profile'; // Redirige a la página de perfil tras el login exitoso
+      }
     } catch (error) {
-      setError('Error: Credenciales incorrectas.'); // Establece el mensaje de error
+      setError('Error: Credenciales incorrectas o problemas en la conexión.'); // Establece el mensaje de error
       console.error('Error al iniciar sesión:', error);
     } finally {
       setIsLoading(false); // Indica que la carga ha terminado
     }
-  };
-
-  const handleLoginSuccess = (token, userData) => {
-    console.log("handleLoginSuccess called", { token, userData }); // Confirma que se llama a esta función
-    localStorage.setItem('token', token);
-    localStorage.setItem('userData', JSON.stringify(userData));
-    setUser(userData);
-    window.location.href = '/profile';
   };
 
   return (
@@ -60,8 +69,7 @@ const AdminForm = ({ handleBack }) => {
         </div>
 
         <Container header={<Header variant="h2">Ingrese sus credenciales</Header>}>
-
-          <form onSubmit={(e) => e.preventDefault()}>
+          <form onSubmit={handleFormSubmit}>
             <Form
               variant="embedded"
               actions={
@@ -69,7 +77,7 @@ const AdminForm = ({ handleBack }) => {
                   {isLoading ? (
                     <Spinner /> // Muestra el spinner si isLoading es true
                   ) : (
-                    <Button onClick={handleFormSubmit} variant="primary">Ingresar</Button>
+                    <Button type="submit" variant="primary" disabled={isLoading}>Ingresar</Button>
                   )}
                 </SpaceBetween>
               }
@@ -77,7 +85,7 @@ const AdminForm = ({ handleBack }) => {
               <SpaceBetween direction="vertical" size="l">
                 {error && <Alert type="error" onDismiss={() => setError(null)}>{error}</Alert>}
                 <Select
-                  placeholder="Personal administrativo"
+                  placeholder="Selecciona un rol"
                   selectedOption={form.role}
                   onChange={({ detail }) => handleRoleChange(detail.selectedOption)}
                   options={[
@@ -86,6 +94,7 @@ const AdminForm = ({ handleBack }) => {
                     { label: "Escuela-UPG", value: 3 },
                     { label: "Administrador", value: 1 }
                   ]}
+                  required
                 />
                 <SpaceBetween direction="horizontal" size="xs" alignItems="center">
                   <FormField>

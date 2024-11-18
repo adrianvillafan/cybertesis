@@ -1,6 +1,6 @@
 // src/constants/solicitudApiRoutes.js
 
-import { BASE_URL } from './apiRoutes';
+import { BASE_URL } from './config';
 
 // Rutas específicas para solicitudes
 const SOLICITUD_BASE_URL = `${BASE_URL}/solicitudes`;

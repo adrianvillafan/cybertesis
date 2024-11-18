@@ -1,6 +1,6 @@
 // src/constants/fileApiRoutes.js
 
-import { BASE_URL } from './apiRoutes';
+import { BASE_URL } from './config';
 
 // Rutas específicas para manejo de archivos
 const FILE_BASE_URL = `${BASE_URL}/files`;

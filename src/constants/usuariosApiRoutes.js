@@ -1,6 +1,6 @@
 // src/constants/usuariosApiRoutes.js
 
-import { BASE_URL } from './apiRoutes';
+import { BASE_URL } from './config';
 
 // Base URL para el manejo de usuarios y estudiantes
 const USUARIOS_BASE_URL = `${BASE_URL}/estudiantes`;

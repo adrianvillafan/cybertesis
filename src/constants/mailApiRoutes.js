@@ -1,6 +1,6 @@
 // src/constants/mailApiRoutes.js
 
-import { BASE_URL } from './apiRoutes';
+import { BASE_URL } from './config';
 
 // Rutas para correos electrónicos
 const MAIL_BASE_URL = `${BASE_URL}/mailer`;
