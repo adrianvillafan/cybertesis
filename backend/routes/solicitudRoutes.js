@@ -1,8 +1,10 @@
+//backend/routes/solicitudRoutes.js
+
 import express from 'express';
 import { updateEstadoIdByDocumentId } from '../queries/solicitudQueries.js';
 import { fetchExpedientes, createSolicitud, fetchSolicitudesByAlumno } from '../queries/studentQueries.js';
 import { fetchDocumentosPorEstudiante } from '../queries/escuelaUpgQueries.js';
-import { fetchExpedientesByEstado, fetchExpedienteDetails, fetchDocumentosRelacionados, updateEstadoDocumento } from '../queries/recepDocsQueries.js'; // Importamos las funciones de consulta
+import { fetchExpedientesByEstado, fetchExpedienteDetails, fetchDocumentosRelacionados, updateEstadoDocumento, updateEstadoExpediente } from '../queries/recepDocsQueries.js'; // Importamos las funciones de consulta
 
 
 
@@ -130,5 +132,19 @@ router.put('/solicitud/:solicitudId/documento/:tipoDocumento/estado', (req, res)
   });
 });
 
+// Nueva ruta para actualizar el estado del expediente
+router.put('/solicitud/:solicitudId/estado', (req, res) => {
+  const { solicitudId } = req.params;
+  const { nuevoEstado } = req.body;
+
+  // Llamada a la función updateEstadoExpediente para actualizar el estado
+  updateEstadoExpediente(solicitudId, nuevoEstado, (err, results) => {
+    if (err) {
+      res.status(500).json({ message: 'Error al actualizar el estado del expediente', error: err.message });
+    } else {
+      res.status(200).json({ message: 'Estado del expediente actualizado correctamente', results });
+    }
+  });
+});
 
 export default router;

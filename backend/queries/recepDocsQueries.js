@@ -1,3 +1,5 @@
+//backend/queries/recepDocsQueries.js
+
 import { executeQuery } from '../config/db.js';
 
 // Función original para buscar datos de recepción de documentos y el rol asociado
@@ -220,3 +222,23 @@ export function updateEstadoDocumento(solicitudId, tipoDocumento, estado, motivo
     });
 }
 
+// Nueva función para actualizar el estado del expediente
+export function updateEstadoExpediente(solicitudId, nuevoEstado, callback) {
+    const sql = `
+        UPDATE solicitudes
+        SET id_estado = $1,
+            fecha_recdoc = NOW()
+        WHERE id = $2;
+    `;
+
+    // Ejecutar la consulta para actualizar el estado del expediente
+    executeQuery(sql, [nuevoEstado, solicitudId], (err, result) => {
+        if (err) {
+            console.error('Error al actualizar el estado del expediente:', err);
+            callback({ message: 'Error al actualizar el estado del expediente' }, null);
+        } else {
+            console.log('Expediente actualizado exitosamente:', solicitudId);
+            callback(null, result);
+        }
+    });
+}

@@ -18,7 +18,7 @@ import Spinner from "@cloudscape-design/components/spinner"; // Importa el compo
 import authService from '../../services/authService'; // Importamos el servicio de autenticación
 
 const AdminForm = ({ handleBack }) => {
-  const [form, setForm] = useState({ role: null, email: '', password: '', rememberMe: false });
+  const [form, setForm] = useState({ role: { label: 'Administrador', value: 1 }, email: '', password: '', rememberMe: false });
   const [error, setError] = useState(null); // Estado para manejar el mensaje de error
   const [isLoading, setIsLoading] = useState(false); // Estado para manejar la carga
   const { setUser } = useUser();
@@ -40,10 +40,12 @@ const AdminForm = ({ handleBack }) => {
     setError(null); // Limpia cualquier error previo
 
     try {
+      // Completar el correo electrónico con el dominio "@unmsm.edu.pe"
+      const emailWithDomain = form.email.includes('@unmsm.edu.pe') ? form.email : `${form.email}@unmsm.edu.pe`;
       const credentials = {
-        email: `${form.email}@unmsm.edu.pe`,
+        email: emailWithDomain,
         password: form.password,
-        role: form.role.value,
+        role: form.role, // Enviando el objeto `role` completo como en el ejemplo proporcionado
       };
 
       // Llamada al servicio de autenticación
@@ -100,8 +102,8 @@ const AdminForm = ({ handleBack }) => {
                   <FormField>
                     <Input
                       controlId='email'
-                      type="email"
-                      onChange={({ detail }) => setForm((prev) => ({ ...prev, email: detail.value }))}
+                      type="text"
+                      onChange={({ detail }) => handleChange('email', detail.value)}
                       value={form.email}
                       placeholder="Correo electrónico"
                       required

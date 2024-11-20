@@ -46,6 +46,18 @@ const solicitudService = {
       throw error;
     }
   },
+
+  // Nuevo método para actualizar el estado del expediente completo
+  updateEstadoExpediente: async (solicitudId, nuevoEstado) => {
+    try {
+      const result = await solicitudAPI.updateEstadoExpediente(solicitudId, nuevoEstado);
+      console.log('Estado del expediente actualizado correctamente:', result);
+      return result;
+    } catch (error) {
+      console.error('Error al actualizar el estado del expediente:', error);
+      throw error;
+    }
+  },
 };
 
 export default solicitudService;

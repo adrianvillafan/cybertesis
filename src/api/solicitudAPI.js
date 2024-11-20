@@ -2,17 +2,18 @@
 
 import axios from 'axios';
 import {
-  GET_EXPEDIENTES_BY_ESTADO,
+  FETCH_EXPEDIENTES_BY_ESTADO,
   GET_EXPEDIENTE_DETAILS,
-  GET_DOCUMENTOS_RELACIONADOS,
-  UPDATE_ESTADO_DOCUMENTO,
+  GET_RELATED_DOCUMENTS,
+  UPDATE_DOCUMENT_STATUS,
+  UPDATE_EXPEDIENTE_STATE, // Nueva ruta importada
 } from '../constants/solicitudApiRoutes';
 
 const getToken = () => localStorage.getItem('token');
 
 const solicitudAPI = {
   fetchExpedientesByEstado: async (estadoId) => {
-    const response = await axios.get(GET_EXPEDIENTES_BY_ESTADO.replace('{estadoId}', estadoId), {
+    const response = await axios.get(FETCH_EXPEDIENTES_BY_ESTADO.replace('{estadoId}', estadoId), {
       headers: {
         'Authorization': `Bearer ${getToken()}`,
       },
@@ -30,7 +31,7 @@ const solicitudAPI = {
   },
 
   fetchDocumentosRelacionados: async (solicitudId, expedienteId) => {
-    const response = await axios.get(GET_DOCUMENTOS_RELACIONADOS.replace('{solicitudId}', solicitudId).replace('{expedienteId}', expedienteId), {
+    const response = await axios.get(GET_RELATED_DOCUMENTS.replace('{solicitudId}', solicitudId).replace('{expedienteId}', expedienteId), {
       headers: {
         'Authorization': `Bearer ${getToken()}`,
       },
@@ -39,7 +40,7 @@ const solicitudAPI = {
   },
 
   updateEstadoDocumento: async (solicitudId, tipoDocumento, estado, motivoObservacion, comentariosRevision, revisorId) => {
-    const response = await axios.put(UPDATE_ESTADO_DOCUMENTO.replace('{solicitudId}', solicitudId).replace('{tipoDocumento}', tipoDocumento), {
+    const response = await axios.put(UPDATE_DOCUMENT_STATUS.replace('{solicitudId}', solicitudId).replace('{tipoDocumento}', tipoDocumento), {
       estado,
       motivoObservacion,
       comentariosRevision,
@@ -52,6 +53,20 @@ const solicitudAPI = {
     });
     return response.data;
   },
+
+  // Nueva función para actualizar el estado del expediente completo
+  updateEstadoExpediente: async (solicitudId, nuevoEstado) => {
+    const response = await axios.put(UPDATE_EXPEDIENTE_STATE.replace('{solicitudId}', solicitudId), {
+      nuevoEstado,
+    }, {
+      headers: {
+        'Authorization': `Bearer ${getToken()}`,
+        'Content-Type': 'application/json',
+      },
+    });
+    return response.data;
+  },
+  
 };
 
 export default solicitudAPI;

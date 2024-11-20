@@ -14,3 +14,4 @@ export const FETCH_EXPEDIENTES_BY_ESTADO = `${SOLICITUD_BASE_URL}/expedientexest
 export const GET_EXPEDIENTE_DETAILS = `${SOLICITUD_BASE_URL}/expedientexestado/detalles/{solicitudId}/{expedienteId}`;
 export const GET_RELATED_DOCUMENTS = `${SOLICITUD_BASE_URL}/expedientexestado/documentos/{solicitudId}/{expedienteId}`;
 export const UPDATE_DOCUMENT_STATUS = `${SOLICITUD_BASE_URL}/solicitud/{solicitudId}/documento/{tipoDocumento}/estado`;
+export const UPDATE_EXPEDIENTE_STATE = `${SOLICITUD_BASE_URL}/solicitud/{solicitudId}/estado`; 
