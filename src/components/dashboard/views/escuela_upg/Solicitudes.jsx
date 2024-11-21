@@ -8,6 +8,7 @@ import { fetchDocumentosPorEstudiante } from '../../../../../api';
 
 const Solicitudes = () => {
   const { user } = useContext(UserContext);
+  console.log('user', user);
   const [expedientes, setExpedientes] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);

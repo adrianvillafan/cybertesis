@@ -1,12 +1,10 @@
-//backend/routes/solicitudRoutes.js
+// backend/routes/solicitudRoutes.js
 
 import express from 'express';
 import { updateEstadoIdByDocumentId } from '../queries/solicitudQueries.js';
 import { fetchExpedientes, createSolicitud, fetchSolicitudesByAlumno } from '../queries/studentQueries.js';
-import { fetchDocumentosPorEstudiante } from '../queries/escuelaUpgQueries.js';
-import { fetchExpedientesByEstado, fetchExpedienteDetails, fetchDocumentosRelacionados, updateEstadoDocumento, updateEstadoExpediente } from '../queries/recepDocsQueries.js'; // Importamos las funciones de consulta
-
-
+import { fetchDocumentosPorEstudiante, fetchSolicitudesObservadasPorFacultadYGrado } from '../queries/escuelaUpgQueries.js';
+import { fetchExpedientesByEstado, fetchExpedienteDetails, fetchDocumentosRelacionados, updateEstadoDocumento, updateEstadoExpediente } from '../queries/recepDocsQueries.js';
 
 const router = express.Router();
 
@@ -34,6 +32,19 @@ router.get('/documentos/tabla/upg/:facultadId/:gradoId/:escuelaIds', (req, res) 
   fetchDocumentosPorEstudiante({ facultadId, gradoId, escuelaIds: escuelaIdsArray }, (err, results) => {
     if (err) {
       res.status(500).json({ message: 'Error al obtener documentos por estudiante', error: err.message });
+    } else {
+      res.status(200).json(results);
+    }
+  });
+});
+
+// Nueva ruta para obtener solicitudes observadas por facultad y grado
+router.get('/observadas/:facultadId/:gradoId', (req, res) => {
+  const { facultadId, gradoId } = req.params;
+
+  fetchSolicitudesObservadasPorFacultadYGrado(facultadId, gradoId, (err, results) => {
+    if (err) {
+      res.status(500).json({ message: 'Error al obtener solicitudes observadas por facultad y grado', error: err.message });
     } else {
       res.status(200).json(results);
     }

@@ -1,3 +1,5 @@
+//backend/queries/escuelaUpgQueries.js
+
 import { executeQuery } from '../config/db.js';
 
 export function fetchEscuelaUpgData(userId, callback) {
@@ -202,3 +204,79 @@ export function fetchDocumentosPorEstudiante({ facultadId, gradoId, escuelaIds }
     }
   });
 }
+
+export function fetchSolicitudesObservadasPorFacultadYGrado(facultadId, gradoId, callback) {
+  const sql = `
+      SELECT 
+          s.id AS solicitud_id,
+          s.id_documentos AS documento_id,
+          s.id_estado AS estado_solicitud,
+          e.codigo_estudiante,
+          p.identificacion_id,
+          CONCAT(p.nombre, ' ', p.apellidos_pat, ' ', p.apellidos_mat) AS nombre_completo,
+          f.nombre AS facultad,
+          g.grado,
+          fp.programa,
+          ARRAY(
+              SELECT json_build_object(
+                  'tipo_documento_observado',
+                  CASE
+                      WHEN s.tesis_estado = 2 THEN 'Tesis'
+                      WHEN s.acta_estado = 2 THEN 'Acta de Sustentacion'
+                      WHEN s.certificado_estado = 2 THEN 'Certificado de Similitud'
+                      WHEN s.auto_estado = 2 THEN 'Autorizacion para el deposito de obra en Cybertesis'
+                      WHEN s.metadatos_estado = 2 THEN 'Hoja de Metadatos'
+                      WHEN s.turnitin_estado = 2 THEN 'Reporte de Turnitin'
+                      WHEN s.consentimiento_estado = 2 THEN 'Consentimiento informado'
+                      WHEN s.postergacion_estado = 2 THEN 'Solicitud de Postergacion'
+                      ELSE 'Ninguno'
+                  END,
+                  'id_documento_observado',
+                  CASE
+                      WHEN s.tesis_estado = 2 THEN d.tesis_id
+                      WHEN s.acta_estado = 2 THEN d.actasust_id
+                      WHEN s.certificado_estado = 2 THEN d.certsimil_id
+                      WHEN s.auto_estado = 2 THEN d.autocyber_id
+                      WHEN s.metadatos_estado = 2 THEN d.metadatos_id
+                      WHEN s.turnitin_estado = 2 THEN d.repturnitin_id
+                      WHEN s.consentimiento_estado = 2 THEN d.consentimiento_id
+                      WHEN s.postergacion_estado = 2 THEN d.postergacion_id
+                      ELSE NULL
+                  END
+              )
+              FROM solicitudes s2
+              WHERE s2.id = s.id AND (
+                  s.tesis_estado = 2 OR
+                  s.acta_estado = 2 OR
+                  s.certificado_estado = 2 OR
+                  s.auto_estado = 2 OR
+                  s.metadatos_estado = 2 OR
+                  s.turnitin_estado = 2 OR
+                  s.consentimiento_estado = 2 OR
+                  s.postergacion_estado = 2
+              )
+          ) AS documentos_observados
+      FROM solicitudes s
+      JOIN documentos d ON s.id_documentos = d.id
+      JOIN estudiante e ON d.estudiante_id = e.id
+      JOIN personas p ON e.persona_id = p.idpersonas
+      JOIN facultad f ON e.facultad_id = f.id
+      JOIN grado_academico g ON e.grado_id = g.id
+      JOIN facultad_programa fp ON e.programa_id = fp.id
+      WHERE s.id_estado = 2
+      AND e.facultad_id = $1
+      AND e.grado_id = $2
+      ORDER BY s.fecha_alum DESC;
+  `;
+
+  executeQuery(sql, [facultadId, gradoId], (err, results) => {
+      if (err) {
+          console.error('Error al obtener solicitudes observadas por facultad y grado:', err);
+          callback({ message: 'Error al obtener solicitudes observadas por facultad y grado' }, null);
+      } else {
+          console.log('Solicitudes observadas encontradas:', results);
+          callback(null, results);
+      }
+  });
+}
+

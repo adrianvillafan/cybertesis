@@ -58,6 +58,18 @@ const solicitudService = {
       throw error;
     }
   },
+
+  // Nuevo método para obtener solicitudes observadas por facultad y grado
+  fetchSolicitudesObservadasPorFacultadYGrado: async (facultadId, gradoId) => {
+    try {
+      const solicitudes = await solicitudAPI.fetchSolicitudesObservadasPorFacultadYGrado(facultadId, gradoId);
+      console.log('Solicitudes observadas encontradas:', solicitudes);
+      return solicitudes;
+    } catch (error) {
+      console.error('Error al obtener solicitudes observadas por facultad y grado:', error);
+      throw error;
+    }
+  },
 };
 
 export default solicitudService;

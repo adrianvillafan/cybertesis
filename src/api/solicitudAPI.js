@@ -6,7 +6,8 @@ import {
   GET_EXPEDIENTE_DETAILS,
   GET_RELATED_DOCUMENTS,
   UPDATE_DOCUMENT_STATUS,
-  UPDATE_EXPEDIENTE_STATE, // Nueva ruta importada
+  UPDATE_EXPEDIENTE_STATE,
+  FETCH_SOLICITUDES_OBSERVADAS_BY_FACULTAD_Y_GRADO, // Nueva ruta importada
 } from '../constants/solicitudApiRoutes';
 
 const getToken = () => localStorage.getItem('token');
@@ -66,7 +67,17 @@ const solicitudAPI = {
     });
     return response.data;
   },
-  
+
+  // Nueva función para obtener solicitudes observadas por facultad y grado
+  fetchSolicitudesObservadasPorFacultadYGrado: async (facultadId, gradoId) => {
+    const response = await axios.get(FETCH_SOLICITUDES_OBSERVADAS_BY_FACULTAD_Y_GRADO.replace('{facultadId}', facultadId).replace('{gradoId}', gradoId), {
+      headers: {
+        'Authorization': `Bearer ${getToken()}`,
+        'Content-Type': 'application/json',
+      },
+    });
+    return response.data;
+  },
 };
 
 export default solicitudAPI;
