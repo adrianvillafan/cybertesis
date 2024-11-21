@@ -1,10 +1,11 @@
-//src/components/dashboard/views/recepDocs/expedientes/recibidos/DocumentosRelacionados.jsx
-
-import React from 'react';
-import { Container, Header, Table, Badge, Button, SpaceBetween, Box } from '@cloudscape-design/components';
+import React, { useState } from 'react';
+import { Container, Header, Table, Badge, Button, SpaceBetween, Box, Modal } from '@cloudscape-design/components';
 import solicitudService from '../../../../../../services/solicitudService'; // Importamos el servicio para manejar solicitudes
 
-const DocumentosRelacionados = ({ documentos, selectedDocuments, setSelectedDocuments, handleVisualizar, solicitudId }) => {
+const DocumentosRelacionados = ({ documentos, selectedDocuments, setSelectedDocuments, handleVisualizar, solicitudId, onBack }) => {
+    const [isModalVisible, setModalVisible] = useState(false); // Estado para mostrar/ocultar el modal
+    const [modalMessage, setModalMessage] = useState(''); // Mensaje del modal
+
     const hayDocumentosPendientes = documentos.some(doc => doc.estado === null || doc.estado === 3);
     const hayDocumentosObservados = documentos.some(doc => doc.estado === 2);
     const todosRevisados = documentos.every(doc => doc.estado === 1);
@@ -20,8 +21,15 @@ const DocumentosRelacionados = ({ documentos, selectedDocuments, setSelectedDocu
             const result = await solicitudService.updateEstadoExpediente(solicitudId, nuevoEstado);
             console.log('Estado del expediente actualizado:', result);
 
-            // Aquí podrías añadir lógica para notificar al usuario, actualizar la vista, etc.
-            alert('Estado del expediente actualizado correctamente.');
+            // Mostrar el modal de éxito
+            setModalMessage('Estado del expediente actualizado correctamente.');
+            setModalVisible(true);
+
+            // Invocar onBack después de unos segundos
+            setTimeout(() => {
+                setModalVisible(false);
+                if (onBack) onBack(); // Llamamos a onBack para volver a la vista anterior
+            }, 3000);
         } catch (error) {
             console.error('Error al actualizar el estado del expediente:', error);
             alert('Hubo un error al actualizar el estado del expediente. Por favor, intenta nuevamente.');
@@ -29,93 +37,107 @@ const DocumentosRelacionados = ({ documentos, selectedDocuments, setSelectedDocu
     };
 
     return (
-        <Container
-            header={
-                <Header
-                    variant="h2"
-                    counter={`(${selectedDocuments.length}/${documentos.length})`}
-                    actions={
-                        <SpaceBetween direction="horizontal" size="xs">
-                            <Button
-                                disabled={selectedDocuments.length === 0 || selectedDocuments.length > 3}
-                                onClick={handleVisualizar}
-                            >
-                                Visualizar
-                            </Button>
-                            <Button
-                                disabled={selectedDocuments.length === 0}
-                            >
-                                Descargar
-                            </Button>
-                            <Button
-                                variant="primary"
-                                disabled={!botonPrincipalHabilitado}
-                                iconAlign="right"
-                                iconName={botonPrincipalIcono}
-                                onClick={handleEnviarExpediente} // Llamamos a la función al hacer click
-                            >
-                                {botonPrincipalTexto}
-                            </Button>
-                        </SpaceBetween>
-                    }
-                >
-                    Documentos Relacionados
-                </Header>
-            }
-        >
-            <Table
-                selectionType="multi"
-                trackBy="idtable"
-                selectedItems={selectedDocuments}
-                onSelectionChange={({ detail }) => setSelectedDocuments(detail.selectedItems)}
-                items={documentos}
-                variant="embedded"
-                columnDefinitions={[
-                    {
-                        id: 'nombre',
-                        header: 'Nombre del Documento',
-                        cell: item => item.nombre,
-                    },
-                    {
-                        id: 'fechaModificacion',
-                        header: 'Última Modificación',
-                        cell: item => item.fechaModificacion ? new Date(item.fechaModificacion).toLocaleString() : 'N/A'
-                    },
-                    {
-                        id: 'fechaRevision',
-                        header: 'Fecha de Revisión',
-                        cell: item => item.fechaRevision ? new Date(item.fechaRevision).toLocaleString() : 'Sin Revisar'
-                    },
-                    {
-                        id: 'estado',
-                        header: 'Estado',
-                        cell: item => {
-                            let badgeColor = 'blue';
-                            let badgeText = 'Pendiente';
-
-                            if (item.estado === 1) {
-                                badgeColor = 'green';
-                                badgeText = 'Revisado';
-                            } else if (item.estado === 2) {
-                                badgeColor = 'red';
-                                badgeText = 'Observado';
-                            }
-
-                            return (
-                                <Badge color={badgeColor}>
-                                    {badgeText}
-                                </Badge>
-                            );
+        <>
+            <Container
+                header={
+                    <Header
+                        variant="h2"
+                        counter={`(${selectedDocuments.length}/${documentos.length})`}
+                        actions={
+                            <SpaceBetween direction="horizontal" size="xs">
+                                <Button
+                                    disabled={selectedDocuments.length === 0 || selectedDocuments.length > 3}
+                                    onClick={handleVisualizar}
+                                >
+                                    Visualizar
+                                </Button>
+                                <Button
+                                    disabled={selectedDocuments.length === 0}
+                                >
+                                    Descargar
+                                </Button>
+                                <Button
+                                    variant="primary"
+                                    disabled={!botonPrincipalHabilitado}
+                                    iconAlign="right"
+                                    iconName={botonPrincipalIcono}
+                                    onClick={handleEnviarExpediente} // Llamamos a la función al hacer click
+                                >
+                                    {botonPrincipalTexto}
+                                </Button>
+                            </SpaceBetween>
                         }
-                    }
-                ]}
-                ariaLabels={{
-                    allItemsSelectionLabel: () => 'Seleccionar todos los documentos',
-                    itemSelectionLabel: (detail, item) => `Seleccionar ${item.nombre}`
-                }}
-                empty={<Box>No hay documentos relacionados</Box>}
-            />
-        </Container>
+                    >
+                        Documentos Relacionados
+                    </Header>
+                }
+            >
+                <Table
+                    selectionType="multi"
+                    trackBy="idtable"
+                    selectedItems={selectedDocuments}
+                    onSelectionChange={({ detail }) => setSelectedDocuments(detail.selectedItems)}
+                    items={documentos}
+                    variant="embedded"
+                    columnDefinitions={[
+                        {
+                            id: 'nombre',
+                            header: 'Nombre del Documento',
+                            cell: item => item.nombre,
+                        },
+                        {
+                            id: 'fechaModificacion',
+                            header: 'Última Modificación',
+                            cell: item => item.fechaModificacion ? new Date(item.fechaModificacion).toLocaleString() : 'N/A'
+                        },
+                        {
+                            id: 'fechaRevision',
+                            header: 'Fecha de Revisión',
+                            cell: item => item.fechaRevision ? new Date(item.fechaRevision).toLocaleString() : 'Sin Revisar'
+                        },
+                        {
+                            id: 'estado',
+                            header: 'Estado',
+                            cell: item => {
+                                let badgeColor = 'blue';
+                                let badgeText = 'Pendiente';
+
+                                if (item.estado === 1) {
+                                    badgeColor = 'green';
+                                    badgeText = 'Revisado';
+                                } else if (item.estado === 2) {
+                                    badgeColor = 'red';
+                                    badgeText = 'Observado';
+                                }
+
+                                return (
+                                    <Badge color={badgeColor}>
+                                        {badgeText}
+                                    </Badge>
+                                );
+                            }
+                        }
+                    ]}
+                    ariaLabels={{
+                        allItemsSelectionLabel: () => 'Seleccionar todos los documentos',
+                        itemSelectionLabel: (detail, item) => `Seleccionar ${item.nombre}`
+                    }}
+                    empty={<Box>No hay documentos relacionados</Box>}
+                />
+            </Container>
+
+            {/* Modal de confirmación */}
+            {isModalVisible && (
+                <Modal
+                    onDismiss={() => setModalVisible(false)}
+                    visible={isModalVisible}
+                    closeAriaLabel="Cerrar"
+                    header="Acción completada"
+                >
+                    {modalMessage}
+                </Modal>
+            )}
+        </>
     );
 };
 
