@@ -164,6 +164,7 @@ const RevisarExpediente = ({ solicitudId, expedienteId, onBack }) => {
                 setSelectedDocuments={setSelectedDocuments}
                 handleVisualizar={handleVisualizar}
                 solicitudId = {solicitudId}
+                onBack = {onBack}
             />
 
             {/* Modales para la visualización de documentos */}
