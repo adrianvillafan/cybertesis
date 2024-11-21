@@ -2,9 +2,16 @@ import { executeQuery } from '../config/db.js';
 
 export function fetchUoariData(userId, callback) {
     const sql = `
-        SELECT *
-        FROM uoari_table
-        WHERE user_id = $1;
+        SELECT 
+            u.id::integer,
+            u.name,
+            u.email,
+            u.current_team_id::integer,
+            r.name AS role_name,
+            r.guard_name
+        FROM users u
+        JOIN roles r ON u.current_team_id = r.id
+        WHERE u.id = $1;
     `;
 
     // Ejecutar la consulta para obtener los datos de UOARI
