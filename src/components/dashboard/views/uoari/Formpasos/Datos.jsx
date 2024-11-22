@@ -31,7 +31,12 @@ export default function Datos() {
         <FormField label="Autor(es)">
           <SpaceBetween direction="vertical" size="s">
             {authors.map((author, index) => (
-              <SpaceBetween key={author.id} direction="vertical" size="m">
+              <Grid
+                key={author.id}
+                gridDefinition={[
+                  { colspan: { default: 12, xxs: 3 } }, // El campo de texto ocupa 9 columnas
+                  { colspan: { default: 3, xxs: 9 } }  // El botón ocupa 3 columnas
+                ]}>
                 <Autosuggest
                   onChange={({ detail }) => handleAuthorChange(author.id, detail.value)}
                   value={author.value}
@@ -50,7 +55,7 @@ export default function Datos() {
                     Eliminar
                   </Button>
                 )}
-              </SpaceBetween>
+              </Grid>
             ))}
             <Button onClick={addAuthor}>Agregar Autor</Button>
           </SpaceBetween>
