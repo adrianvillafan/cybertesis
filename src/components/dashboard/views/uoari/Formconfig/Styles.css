@@ -13,3 +13,10 @@
   .form-container {
     margin-top: 50px; /* Ajusta el valor según sea necesario */
   }
+
+  .custom-form-container {
+    margin-left: 0; /* Mantener el margen izquierdo en su posición original */
+    margin-right: 20px; /* Ajustar el margen derecho únicamente */
+    max-width: 800px; /* Controlar el ancho máximo del formulario */
+    margin-top: 0; /* Opcional: asegúrate de que el margen superior esté controlado */
+  }
