@@ -211,6 +211,7 @@ export function fetchSolicitudesObservadasPorFacultadYGrado(facultadId, gradoId,
           s.id AS solicitud_id,
           s.id_documentos AS documento_id,
           s.id_estado AS estado_solicitud,
+          e.id AS estudiante_id,
           e.codigo_estudiante,
           p.identificacion_id,
           CONCAT(p.nombre, ' ', p.apellidos_pat, ' ', p.apellidos_mat) AS nombre_completo,
@@ -219,42 +220,43 @@ export function fetchSolicitudesObservadasPorFacultadYGrado(facultadId, gradoId,
           fp.programa,
           ARRAY(
               SELECT json_build_object(
-                  'tipo_documento_observado',
-                  CASE
-                      WHEN s.tesis_estado = 2 THEN 'Tesis'
-                      WHEN s.acta_estado = 2 THEN 'Acta de Sustentacion'
-                      WHEN s.certificado_estado = 2 THEN 'Certificado de Similitud'
-                      WHEN s.auto_estado = 2 THEN 'Autorizacion para el deposito de obra en Cybertesis'
-                      WHEN s.metadatos_estado = 2 THEN 'Hoja de Metadatos'
-                      WHEN s.turnitin_estado = 2 THEN 'Reporte de Turnitin'
-                      WHEN s.consentimiento_estado = 2 THEN 'Consentimiento informado'
-                      WHEN s.postergacion_estado = 2 THEN 'Solicitud de Postergacion'
-                      ELSE 'Ninguno'
-                  END,
-                  'id_documento_observado',
-                  CASE
-                      WHEN s.tesis_estado = 2 THEN d.tesis_id
-                      WHEN s.acta_estado = 2 THEN d.actasust_id
-                      WHEN s.certificado_estado = 2 THEN d.certsimil_id
-                      WHEN s.auto_estado = 2 THEN d.autocyber_id
-                      WHEN s.metadatos_estado = 2 THEN d.metadatos_id
-                      WHEN s.turnitin_estado = 2 THEN d.repturnitin_id
-                      WHEN s.consentimiento_estado = 2 THEN d.consentimiento_id
-                      WHEN s.postergacion_estado = 2 THEN d.postergacion_id
-                      ELSE NULL
-                  END
+                  'tipo_documento_observado', tipo_documento_observado,
+                  'tipo_documento_id', tipo_documento_id,
+                  'id_documento_observado', id_documento_observado
               )
-              FROM solicitudes s2
-              WHERE s2.id = s.id AND (
-                  s.tesis_estado = 2 OR
-                  s.acta_estado = 2 OR
-                  s.certificado_estado = 2 OR
-                  s.auto_estado = 2 OR
-                  s.metadatos_estado = 2 OR
-                  s.turnitin_estado = 2 OR
-                  s.consentimiento_estado = 2 OR
-                  s.postergacion_estado = 2
-              )
+              FROM (
+                  SELECT 'Tesis' AS tipo_documento_observado, 1 AS tipo_documento_id, d.tesis_id AS id_documento_observado
+                  FROM solicitudes s2
+                  WHERE s2.id = s.id AND s2.tesis_estado = 2
+                  UNION ALL
+                  SELECT 'Acta de Sustentacion', 2, d.actasust_id
+                  FROM solicitudes s2
+                  WHERE s2.id = s.id AND s2.acta_estado = 2
+                  UNION ALL
+                  SELECT 'Certificado de Similitud', 3, d.certsimil_id
+                  FROM solicitudes s2
+                  WHERE s2.id = s.id AND s2.certificado_estado = 2
+                  UNION ALL
+                  SELECT 'Autorizacion para el deposito de obra en Cybertesis', 4, d.autocyber_id
+                  FROM solicitudes s2
+                  WHERE s2.id = s.id AND s2.auto_estado = 2
+                  UNION ALL
+                  SELECT 'Hoja de Metadatos', 5, d.metadatos_id
+                  FROM solicitudes s2
+                  WHERE s2.id = s.id AND s2.metadatos_estado = 2
+                  UNION ALL
+                  SELECT 'Reporte de Turnitin', 6, d.repturnitin_id
+                  FROM solicitudes s2
+                  WHERE s2.id = s.id AND s2.turnitin_estado = 2
+                  UNION ALL
+                  SELECT 'Consentimiento informado', 7, d.consentimiento_id
+                  FROM solicitudes s2
+                  WHERE s2.id = s.id AND s2.consentimiento_estado = 2
+                  UNION ALL
+                  SELECT 'Solicitud de Postergacion', 8, d.postergacion_id
+                  FROM solicitudes s2
+                  WHERE s2.id = s.id AND s2.postergacion_estado = 2
+              ) observed_docs
           ) AS documentos_observados
       FROM solicitudes s
       JOIN documentos d ON s.id_documentos = d.id
@@ -264,9 +266,12 @@ export function fetchSolicitudesObservadasPorFacultadYGrado(facultadId, gradoId,
       JOIN grado_academico g ON e.grado_id = g.id
       JOIN facultad_programa fp ON e.programa_id = fp.id
       WHERE s.id_estado = 2
-      AND e.facultad_id = $1
-      AND e.grado_id = $2
+        AND e.facultad_id = $1
+        AND e.grado_id = $2
       ORDER BY s.fecha_alum DESC;
+
+
+
   `;
 
   executeQuery(sql, [facultadId, gradoId], (err, results) => {

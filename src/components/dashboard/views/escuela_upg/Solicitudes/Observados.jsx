@@ -1,7 +1,5 @@
-// src/components/dashboard/views/escuela_upg/Solicitudes/Observados.jsx
-
 import React, { useState, useEffect, useContext } from 'react';
-import { Table, Pagination, TextFilter, Box, Select, Grid, Button, Modal, SpaceBetween } from '@cloudscape-design/components';
+import { Table, Pagination, TextFilter, Box, Select, Grid, Button, Modal } from '@cloudscape-design/components';
 import solicitudService from '../../../../../services/solicitudService';
 import UserContext from '../../../contexts/UserContext';
 import ModalObservados from './observados/ModalObservados'; // Importar el nuevo modal
@@ -19,6 +17,7 @@ const Observados = ({ renderHeader }) => {
   const [isAscending, setIsAscending] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedDocumentos, setSelectedDocumentos] = useState([]);
+  const [selectedEstudianteId, setSelectedEstudianteId] = useState(null); // Nuevo estado para id del estudiante
 
   // Al montar el componente, cargar las solicitudes observadas desde el servicio
   useEffect(() => {
@@ -29,6 +28,7 @@ const Observados = ({ renderHeader }) => {
         const expedientesObservados = await solicitudService.fetchSolicitudesObservadasPorFacultadYGrado(facultad_id, grado_id);
         setExpedientes(expedientesObservados);
         setIsLoading(false);
+        console.log('Expedientes observados:', expedientesObservados);
       } catch (error) {
         console.error('Error al obtener expedientes observados:', error);
         setIsLoading(false);
@@ -44,7 +44,7 @@ const Observados = ({ renderHeader }) => {
   const filteredItems = expedientes.filter(item => {
     const matchesText = item.nombre_completo.toLowerCase().includes(filteringText.toLowerCase()) ||
       item.identificacion_id.toLowerCase().includes(filteringText.toLowerCase()) ||
-      item.documento_id.toLowerCase().includes(filteringText.toLowerCase());
+      item.documento_id.toString().toLowerCase().includes(filteringText.toLowerCase());
 
     const matchesFacultad = selectedFacultad ? item.facultad === selectedFacultad : true;
     const matchesGrado = selectedGrado === 'todos' ? true : item.grado.toLowerCase() === selectedGrado.toLowerCase();
@@ -62,8 +62,9 @@ const Observados = ({ renderHeader }) => {
 
   const paginatedItems = sortedItems.slice((pageNumber - 1) * pageSize, pageNumber * pageSize);
 
-  const handleVerDocumentos = (documentosObservados) => {
-    setSelectedDocumentos(documentosObservados);
+  const handleVerDocumentos = (expediente) => {
+    setSelectedDocumentos(expediente.documentos_observados);
+    setSelectedEstudianteId(expediente.estudiante_id); // Guardar el id del estudiante
     setIsModalOpen(true);
   };
 
@@ -77,19 +78,35 @@ const Observados = ({ renderHeader }) => {
           { id: 'dni', header: 'DNI', cell: item => item.identificacion_id, sortingField: 'identificacion_id' },
           { id: 'nombre', header: 'Nombre y Apellido', cell: item => item.nombre_completo, sortingField: 'nombre_completo' },
           { id: 'facultad', header: 'Facultad', cell: item => item.facultad, sortingField: 'facultad' },
-          { id: 'grado', header: 'Grado', cell: item => item.grado, sortingField: 'grado' },
-          { id: 'programa', header: 'Programa', cell: item => item.programa, sortingField: 'programa' },
+          {
+            id: 'grado',
+            header: 'Grado',
+            cell: item => item.grado,
+            sortingField: 'grado'
+          },
+          {
+            id: 'programa',
+            header: 'Programa',
+            cell: item => {
+              const programa = item.programa.toLowerCase();
+              return programa.split(' ').map(word => word.length >= 4 ? word.charAt(0).toUpperCase() + word.slice(1) : word.toLowerCase()).join(' ');
+            },
+            sortingField: 'programa',
+            isResizable: true
+          },
           {
             id: 'tipoTrabajo',
             header: 'Acciones',
             cell: item => (
-              <Button onClick={() => handleVerDocumentos(item.documentos_observados)}>
-                Ver Documentos
+              <Button onClick={() => handleVerDocumentos(item)}>
+                Visualizar
               </Button>
             ),
+            minWidth: 160
           }
         ]}
         sortingColumn={sortingColumn}
+        stickyColumns={{ first: 0, last: 1 }}
         sortingDescending={!isAscending}
         onSortingChange={({ detail }) => {
           setSortingColumn(detail.sortingColumn);
@@ -132,6 +149,7 @@ const Observados = ({ renderHeader }) => {
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
           documentos={selectedDocumentos}
+          idEstudiante={selectedEstudianteId} // Pasar el id del estudiante al modal
         />
       )}
     </>

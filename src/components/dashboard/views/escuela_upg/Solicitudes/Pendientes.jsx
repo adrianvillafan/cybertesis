@@ -67,12 +67,14 @@ const Pendientes = ({ renderHeader, expedientes }) => {
                 {
                     id: 'acciones',
                     header: 'Acciones',
+                    minWidth: 150,
                     cell: item => <Button>Revisar</Button>, // Aquí podrías manejar la acción que corresponda
                     sortingDisabled: true
                 }
             ]}
             sortingColumn={sortingColumn}
             sortingDescending={!isAscending}
+            stickyColumns={{ first: 0, last: 1 }}
             onSortingChange={({ detail }) => {
                 setSortingColumn(detail.sortingColumn);
                 setIsAscending(detail.isDescending ? false : true);
