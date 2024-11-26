@@ -12,6 +12,7 @@ export default function Credencial() {
     <SpaceBetween direction="vertical" size="l">
       <Container header={<Header variant="h2">Solicitud de credenciales</Header>}>
         <SpaceBetween direction="vertical" size="l">
+          
           <FormField label="Seleccione una licencia">
             <Select
               selectedOption={selectedOption1}

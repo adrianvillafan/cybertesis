@@ -31,7 +31,12 @@ export default function Datos() {
         <FormField label="Autor(es)">
           <SpaceBetween direction="vertical" size="s">
             {authors.map((author, index) => (
-              <SpaceBetween key={author.id} direction="vertical" size="m">
+              <Grid
+                key={author.id}
+                gridDefinition={[
+                  { colspan: { default: 12, xxs: 3 } }, // El campo de texto ocupa 9 columnas
+                  { colspan: { default: 12, xxs: 9 } }  // El botón ocupa 3 columnas
+                ]}>
                 <Autosuggest
                   onChange={({ detail }) => handleAuthorChange(author.id, detail.value)}
                   value={author.value}
@@ -50,7 +55,7 @@ export default function Datos() {
                     Eliminar
                   </Button>
                 )}
-              </SpaceBetween>
+              </Grid>
             ))}
             <Button onClick={addAuthor}>Agregar Autor</Button>
           </SpaceBetween>
@@ -64,7 +69,7 @@ export default function Datos() {
           <Input onChange={({ detail }) => setValue(detail.value)} value={value} />
         </FormField>
 
-        <SpaceBetween direction="horizontal" size="l">
+        <ColumnLayout columns={2} /*SpaceBetween direction="horizontal" size="l"*/>
           <FormField label="Fecha de Publicación *" constraintText="Use AAAA/MM/DD format.">
             <DatePicker
               onChange={({ detail }) => setValue(detail.value)}
@@ -80,13 +85,13 @@ export default function Datos() {
           <FormField label="Editorial *">
             <Input onChange={({ detail }) => setValue(detail.value)} value={value} />
           </FormField>
-        </SpaceBetween>
+        </ColumnLayout>
 
         <FormField label="Cómo Citar">
           <Input onChange={({ detail }) => setValue(detail.value)} value={value} />
         </FormField>
 
-        <SpaceBetween direction="horizontal" size="l">
+        <ColumnLayout columns={3} /*SpaceBetween direction="horizontal" size="l"*/> 
           <FormField label="Recurso Relacionado">
             <Input onChange={({ detail }) => setValue(detail.value)} value={value} />
           </FormField>
@@ -98,9 +103,9 @@ export default function Datos() {
           <FormField label="Número de Reporte">
             <Input onChange={({ detail }) => setValue(detail.value)} value={value} />
           </FormField>
-        </SpaceBetween>
+        </ColumnLayout>
 
-        <SpaceBetween direction="horizontal" size="l">
+        <ColumnLayout columns={2} /*SpaceBetween direction="horizontal" size="l"*/>
 
           <FormField label="Tipo de publicación">
             <Select
@@ -130,7 +135,7 @@ export default function Datos() {
               ]}
             />
           </FormField>
-        </SpaceBetween>
+        </ColumnLayout>
 
       </SpaceBetween>
     </Container>
