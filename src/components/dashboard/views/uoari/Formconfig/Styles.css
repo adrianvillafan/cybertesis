@@ -12,6 +12,8 @@
   
   .form-container {
     margin-top: 50px; /* Ajusta el valor según sea necesario */
+    margin-left: 0; /* Mantener el margen izquierdo en su posición original */
+    margin-right: 250px; /* Ajustar el margen derecho únicamente */
   }
 
   .custom-form-container {
@@ -19,4 +21,13 @@
     margin-right: 20px; /* Ajustar el margen derecho únicamente */
     max-width: 800px; /* Controlar el ancho máximo del formulario */
     margin-top: 0; /* Opcional: asegúrate de que el margen superior esté controlado */
+  }
+
+  @media screen and (max-width: 768px) {
+    .form-container {
+      margin-top: 30px; /* Reduce el margen superior en móviles */
+      margin-left: 10px; /* Margen izquierdo reducido */
+      margin-right: 10px; /* Margen derecho reducido */
+      padding: 10px; /* Menor padding en dispositivos pequeños */
+    }
   }

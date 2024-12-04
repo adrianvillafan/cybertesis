@@ -25,3 +25,51 @@ export function fetchUoariData(userId, callback) {
         }
     });
 }
+
+
+export const insertUoariData = (uoariDetails, callback) => {
+    const queryInsertUoari = `
+      INSERT INTO uoari (
+        id_solicitud,
+        autor,
+        titulo1,
+        titulo2,
+        fecha_publicacion,
+        editorial,
+        como_citar,
+        idioma
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      RETURNING id
+    `;
+    const uoariValues = [
+      uoariDetails.id_solicitud,
+      uoariDetails.autor,
+      uoariDetails.titulo1,
+      uoariDetails.titulo2,
+      uoariDetails.fecha_publicacion,
+      uoariDetails.editorial,
+      uoariDetails.como_citar,
+      uoariDetails.idioma
+    ];
+  
+    executeQuery(queryInsertUoari, uoariValues, (err, results) => {
+      if (err) {
+        console.error('Error al insertar datos:', err);
+        callback(err, null);
+      } else {
+        const metadataId = results[0].id; // Ya no es necesario usar results.rows
+  
+        const queryUpdateDocumentos = `
+          UPDATE documentos SET metadatos_id = $1 WHERE id = $2
+        `;
+        executeQuery(queryUpdateDocumentos, [metadataId, uoariDetails.documentos_id], (err, updateResults) => {
+          if (err) {
+            console.error('Error al actualizar documentos:', err);
+            callback(err, null);
+          } else {
+            callback(null, metadataId);
+          }
+        });
+      }
+    });
+  };
