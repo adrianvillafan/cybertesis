@@ -4,7 +4,9 @@ import Wizard from "@cloudscape-design/components/wizard";
 import { i18nConfig } from '../Formconfig/Wizardconfig';
 import Credencial from '../Formpasos/Credencial';
 import Datos from '../Formpasos/Datos';
-import Extra from '../Formpasos/Extra';
+import Notas from '../Formpasos/Notas';
+import Acesor from '../Formpasos/Acesor';
+import Submission from '../Formpasos/Submission';
 
 // Declaración de la función nombrada
 function FormTesis() {
@@ -27,8 +29,18 @@ function FormTesis() {
             isOptional: true,
           },
           {
-            title: "Pasos adicionales",
-            content: <Extra />,
+            title: "Notas",
+            content: <Notas />,
+            isOptional: true,
+          },
+          {
+            title: "Asesor",
+            content: <Acesor />,
+            isOptional: true,
+          },
+          {
+            title: "Submision_section",
+            content: <Submission />,
             isOptional: true,
           },
         ]}

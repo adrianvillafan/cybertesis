@@ -1,7 +1,7 @@
 import { executeQuery } from '../config/db.js';
 
 export const insertMetadata = (metadataDetails, callback) => {
-  const queryMetadata = `
+  const query = `
     INSERT INTO metadata (
       id_participantes,
       linea_investigacion_id,

@@ -2,7 +2,7 @@
 import React from 'react';
 import { Container, SpaceBetween, FormField, Input, Header } from '@cloudscape-design/components';
 
-export default function Extra() {
+export default function Acesor() {
   return (
     <Container header={<Header variant="h2">Pasos Extra 1</Header>}>
       <SpaceBetween direction="vertical" size="l">
