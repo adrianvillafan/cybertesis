@@ -5,7 +5,7 @@ import { i18nConfig } from '../Formconfig/Wizardconfig';
 import Credencial from '../Formpasos/Credencial';
 import Datos from '../Formpasos/Datos';
 import Notas from '../Formpasos/Notas';
-import Acesor from '../Formpasos/Acesor';
+import Acesor from '../Formpasos/Asesor';
 import Submission from '../Formpasos/Submission';
 
 // Declaración de la función nombrada
