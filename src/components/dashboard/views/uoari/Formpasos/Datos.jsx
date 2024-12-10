@@ -23,10 +23,10 @@ export default function Datos() {
   const [recursoRelacionado, setRecursoRelacionado] = React.useState("");
   const [numeroSerie, setNumeroSerie] = React.useState("");
   const [numeroReporte, setNumeroReporte] = React.useState("");
-  const [identificador, setIdentificador] = React.useState({ label: "Creative commons", value: "1" });
+  const [identificador, setIdentificador] = React.useState({ label: "Seleccionar", value: "1" });
   const [enlace, setEnlace] = React.useState("");
-  const [tipoPublicacion, setTipoPublicacion] = React.useState({ label: "Creative commons", value: "1" });
-  const [formato, setFormato] = React.useState({ label: "Creative commons", value: "1" });
+  const [tipoPublicacion, setTipoPublicacion] = React.useState({ label: "Seleccionar", value: "1" });
+  const [formato, setFormato] = React.useState({ label: "Seleccionar", value: "1" });
   const [idioma, setIdioma] = React.useState("");
   const [nivelAcceso, setNivelAcceso] = React.useState("");
   const [authors, setAuthors] = React.useState([{ id: 1, value: "" }]);
@@ -153,11 +153,11 @@ export default function Datos() {
               selectedOption={identificador}
               onChange={({ detail }) => setIdentificador(detail.selectedOption)}
               options={[
-                { label: "Creative commons", value: "1" },
-                { label: "Option 2", value: "2" },
-                { label: "Option 3", value: "3" },
-                { label: "Option 4", value: "4" },
-                { label: "Option 5", value: "5" },
+                { label: "DOI", value: "1" },
+                { label: "ISSN", value: "2" },
+                { label: "ISMN", value: "3" },
+                { label: "ISBN", value: "4" },
+                { label: "URI", value: "5" },
               ]}
             />
           </FormField>
@@ -189,11 +189,9 @@ export default function Datos() {
               selectedOption={formato}
               onChange={({ detail }) => setFormato(detail.selectedOption)}
               options={[
-                { label: "Creative commons", value: "1" },
-                { label: "Option 2", value: "2" },
-                { label: "Option 3", value: "3" },
-                { label: "Option 4", value: "4" },
-                { label: "Option 5", value: "5" },
+                { label: "PDF", value: "1" },
+                { label: "WORLD", value: "2" },
+                { label: "HTML", value: "3" },
               ]}
             />
           </FormField>
