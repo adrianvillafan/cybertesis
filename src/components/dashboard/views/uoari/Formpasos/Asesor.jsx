@@ -82,7 +82,7 @@ export default function Asesor() {
   };
 
   return (
-    <Container header={<Header variant="h2">Datos adicionales</Header>}>
+    <Container >
       <SpaceBetween direction="vertical" size="l">
 
         {/* Codigo de Pais */}

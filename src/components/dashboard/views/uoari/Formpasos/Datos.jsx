@@ -45,9 +45,9 @@ export default function Datos() {
   };
 
   return (
-    <Container header={<Header variant="h2">Información Personal del Tesista</Header>}>
+    <Container >
       <SpaceBetween direction="vertical" size="l">
-        
+
         {/* Sección de autores */}
         <FormField label="Autor(es)">
           <SpaceBetween direction="vertical" size="s">

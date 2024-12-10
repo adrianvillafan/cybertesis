@@ -11,7 +11,7 @@ export default function Notas() {
   const [notas, setNotas] = useState("");
 
   return (
-    <Container header={<Header variant="h2">Notas</Header>}>
+    <Container >
       <SpaceBetween direction="vertical" size="l">
 
         <ColumnLayout columns={2}>

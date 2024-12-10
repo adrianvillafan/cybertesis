@@ -24,7 +24,7 @@ function FormTesis() {
             content: <Credencial />,
           },
           {
-            title: "Información tesista",
+            title: "Información",
             content: <Datos />, 
           },
           {
@@ -32,7 +32,7 @@ function FormTesis() {
             content: <Notas />,
           },
           {
-            title: "Asesor",
+            title: "Participantes",
             content: <Asesor />,
           },
           {
