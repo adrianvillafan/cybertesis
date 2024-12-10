@@ -1,10 +1,7 @@
-// src/Formpasos/Datos.jsx
 import React from 'react';
 import '../Formconfig/Styles.css';
 import ColumnLayout from "@cloudscape-design/components/column-layout";
 import {
-  Grid,
-  Select,
   Container,
   SpaceBetween,
   FormField,
@@ -12,25 +9,37 @@ import {
   Input,
   Header,
   Button,
-  DatePicker
+  DatePicker,
+  Select
 } from '@cloudscape-design/components';
 
 export default function Datos() {
-  const [value, setValue] = React.useState("");
+  // Estados individuales para cada campo
+  const [titulo, setTitulo] = React.useState("");
+  const [tituloAlternativo, setTituloAlternativo] = React.useState("");
+  const [fechaPublicacion, setFechaPublicacion] = React.useState("");
+  const [editorial, setEditorial] = React.useState("");
+  const [comoCitar, setComoCitar] = React.useState("");
+  const [recursoRelacionado, setRecursoRelacionado] = React.useState("");
+  const [numeroSerie, setNumeroSerie] = React.useState("");
+  const [numeroReporte, setNumeroReporte] = React.useState("");
+  const [identificador, setIdentificador] = React.useState({ label: "Creative commons", value: "1" });
+  const [enlace, setEnlace] = React.useState("");
+  const [tipoPublicacion, setTipoPublicacion] = React.useState({ label: "Creative commons", value: "1" });
+  const [formato, setFormato] = React.useState({ label: "Creative commons", value: "1" });
+  const [idioma, setIdioma] = React.useState("");
+  const [nivelAcceso, setNivelAcceso] = React.useState("");
   const [authors, setAuthors] = React.useState([{ id: 1, value: "" }]);
-  const [selectedOption1, setSelectedOption1] = React.useState({ label: "Creative commons", value: "1" });
 
-  // Función para manejar el cambio de valor en el autosuggest específico
+  // Manejo de autores
   const handleAuthorChange = (id, newValue) => {
     setAuthors(authors.map(author => (author.id === id ? { ...author, value: newValue } : author)));
   };
 
-  // Función para agregar un nuevo campo de autor
   const addAuthor = () => {
     setAuthors([...authors, { id: authors.length + 1, value: "" }]);
   };
 
-  // Función para eliminar un campo de autor específico
   const removeAuthor = (id) => {
     setAuthors(authors.filter(author => author.id !== id));
   };
@@ -38,17 +47,14 @@ export default function Datos() {
   return (
     <Container header={<Header variant="h2">Información Personal del Tesista</Header>}>
       <SpaceBetween direction="vertical" size="l">
+        
         {/* Sección de autores */}
         <FormField label="Autor(es)">
           <SpaceBetween direction="vertical" size="s">
             {authors.map((author, index) => (
               <div
                 key={author.id}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "10px",
-                }}
+                className="form-automatico"
               >
                 <Autosuggest
                   onChange={({ detail }) => handleAuthorChange(author.id, detail.value)}
@@ -64,7 +70,11 @@ export default function Datos() {
                   virtualScroll
                 />
                 {index > 0 && (
-                  <Button onClick={() => removeAuthor(author.id)} variant="normal">
+                  <Button
+                    onClick={() => removeAuthor(author.id)}
+                    variant="normal"
+                    className="button-eliminar"
+                  >
                     Eliminar
                   </Button>
                 )}
@@ -76,45 +86,63 @@ export default function Datos() {
 
         {/* Título */}
         <FormField label="Título *">
-          <Input onChange={({ detail }) => setValue(detail.value)} value={value} />
+          <Input
+            onChange={({ detail }) => setTitulo(detail.value)}
+            value={titulo}
+          />
         </FormField>
 
         <FormField label="Título Alternativo">
-          <Input onChange={({ detail }) => setValue(detail.value)} value={value} />
+          <Input
+            onChange={({ detail }) => setTituloAlternativo(detail.value)}
+            value={tituloAlternativo}
+          />
         </FormField>
 
         {/* Fecha de publicación y editorial */}
         <ColumnLayout columns={2}>
           <FormField label="Fecha de Publicación *" constraintText="Use AAAA/MM/DD format.">
             <DatePicker
-              onChange={({ detail }) => setValue(detail.value)}
-              value={value}
-              openCalendarAriaLabel={selectedDate =>
-                `Choose certificate expiry date${selectedDate ? `, selected date is ${selectedDate}` : ""}`
-              }
+              onChange={({ detail }) => setFechaPublicacion(detail.value)}
+              value={fechaPublicacion}
               placeholder="YYYY/MM/DD"
             />
           </FormField>
           <FormField label="Editorial *">
-            <Input onChange={({ detail }) => setValue(detail.value)} value={value} />
+            <Input
+              onChange={({ detail }) => setEditorial(detail.value)}
+              value={editorial}
+            />
           </FormField>
         </ColumnLayout>
 
         {/* Cómo citar */}
         <FormField label="Cómo Citar">
-          <Input onChange={({ detail }) => setValue(detail.value)} value={value} />
+          <Input
+            onChange={({ detail }) => setComoCitar(detail.value)}
+            value={comoCitar}
+          />
         </FormField>
 
         {/* Recurso relacionado, número de serie, y número de reporte */}
         <ColumnLayout columns={3}>
           <FormField label="Recurso Relacionado">
-            <Input onChange={({ detail }) => setValue(detail.value)} value={value} />
+            <Input
+              onChange={({ detail }) => setRecursoRelacionado(detail.value)}
+              value={recursoRelacionado}
+            />
           </FormField>
           <FormField label="Número de Serie">
-            <Input onChange={({ detail }) => setValue(detail.value)} value={value} />
+            <Input
+              onChange={({ detail }) => setNumeroSerie(detail.value)}
+              value={numeroSerie}
+            />
           </FormField>
           <FormField label="Número de Reporte">
-            <Input onChange={({ detail }) => setValue(detail.value)} value={value} />
+            <Input
+              onChange={({ detail }) => setNumeroReporte(detail.value)}
+              value={numeroReporte}
+            />
           </FormField>
         </ColumnLayout>
 
@@ -122,8 +150,8 @@ export default function Datos() {
         <ColumnLayout columns={2}>
           <FormField label="Identificador(es)">
             <Select
-              selectedOption={selectedOption1}
-              onChange={({ detail }) => setSelectedOption1(detail.selectedOption)}
+              selectedOption={identificador}
+              onChange={({ detail }) => setIdentificador(detail.selectedOption)}
               options={[
                 { label: "Creative commons", value: "1" },
                 { label: "Option 2", value: "2" },
@@ -133,8 +161,11 @@ export default function Datos() {
               ]}
             />
           </FormField>
-          <FormField label = "Enlace">
-            <Input onChange={({ detail }) => setValue(detail.value)} value={value} />
+          <FormField label="Enlace">
+            <Input
+              onChange={({ detail }) => setEnlace(detail.value)}
+              value={enlace}
+            />
           </FormField>
         </ColumnLayout>
 
@@ -142,8 +173,8 @@ export default function Datos() {
         <ColumnLayout columns={2}>
           <FormField label="Tipo de publicación">
             <Select
-              selectedOption={selectedOption1}
-              onChange={({ detail }) => setSelectedOption1(detail.selectedOption)}
+              selectedOption={tipoPublicacion}
+              onChange={({ detail }) => setTipoPublicacion(detail.selectedOption)}
               options={[
                 { label: "Creative commons", value: "1" },
                 { label: "Option 2", value: "2" },
@@ -155,8 +186,8 @@ export default function Datos() {
           </FormField>
           <FormField label="Formato">
             <Select
-              selectedOption={selectedOption1}
-              onChange={({ detail }) => setSelectedOption1(detail.selectedOption)}
+              selectedOption={formato}
+              onChange={({ detail }) => setFormato(detail.selectedOption)}
               options={[
                 { label: "Creative commons", value: "1" },
                 { label: "Option 2", value: "2" },
@@ -168,17 +199,20 @@ export default function Datos() {
           </FormField>
         </ColumnLayout>
 
-      <FormField label="Idioma *">
-        <Input onChange={({ detail }) => setValue(detail.value)} value={value} />
-      </FormField>
-      
-      <FormField label="Nivel de Acceso *">
-        <Input onChange={({ detail }) => setValue(detail.value)} value={value} />
-      </FormField>
+        <FormField label="Idioma *">
+          <Input
+            onChange={({ detail }) => setIdioma(detail.value)}
+            value={idioma}
+          />
+        </FormField>
 
+        <FormField label="Nivel de Acceso *">
+          <Input
+            onChange={({ detail }) => setNivelAcceso(detail.value)}
+            value={nivelAcceso}
+          />
+        </FormField>
       </SpaceBetween>
-
-    
     </Container>
   );
 }

@@ -13,15 +13,9 @@
   .form-container {
     margin-top: 50px; /* Ajusta el valor según sea necesario */
     margin-left: 0; /* Mantener el margen izquierdo en su posición original */
-    margin-right: 250px; /* Ajustar el margen derecho únicamente */
+    max-width: 990px; /* Controlar el ancho máximo del formulario */
   }
 
-  .custom-form-container {
-    margin-left: 0; /* Mantener el margen izquierdo en su posición original */
-    margin-right: 20px; /* Ajustar el margen derecho únicamente */
-    max-width: 800px; /* Controlar el ancho máximo del formulario */
-    margin-top: 0; /* Opcional: asegúrate de que el margen superior esté controlado */
-  }
 
   @media screen and (max-width: 768px) {
     .form-container {
@@ -31,3 +25,22 @@
       padding: 10px; /* Menor padding en dispositivos pequeños */
     }
   }
+
+  .button-eliminar {
+    white-space: nowrap; /* Asegura que el texto no se corte */
+    padding: 0 10px; /* Ajusta el espacio interno */
+    flex-shrink: 0; /* Evita que se reduzca */
+  }
+
+  .form-automatico {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+  }
+  
+  .full-width-input {
+    width: 100%; /* Hace que el input ocupe todo el espacio disponible */
+    box-sizing: border-box; /* Incluye padding y border en el cálculo del ancho */
+  }
+  

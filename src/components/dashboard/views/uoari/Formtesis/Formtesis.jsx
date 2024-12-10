@@ -5,7 +5,7 @@ import { i18nConfig } from '../Formconfig/Wizardconfig';
 import Credencial from '../Formpasos/Credencial';
 import Datos from '../Formpasos/Datos';
 import Notas from '../Formpasos/Notas';
-import Acesor from '../Formpasos/Asesor';
+import Asesor from '../Formpasos/Asesor';
 import Submission from '../Formpasos/Submission';
 
 // Declaración de la función nombrada
@@ -25,23 +25,19 @@ function FormTesis() {
           },
           {
             title: "Información tesista",
-            content: <Datos />, // <div className="custom-form-container"><Datos /></div>
-            isOptional: true,
+            content: <Datos />, 
           },
           {
             title: "Notas",
             content: <Notas />,
-            isOptional: true,
           },
           {
             title: "Asesor",
-            content: <Acesor />,
-            isOptional: true,
+            content: <Asesor />,
           },
           {
             title: "Submision_section",
             content: <Submission />,
-            isOptional: true,
           },
         ]}
       />
