@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useContext } from 'react';
-import { Modal, Box, Header, SpaceBetween, Button, ColumnLayout, FileUpload, Spinner, Table, Icon } from '@cloudscape-design/components';
+import { Modal, Box, Header, SpaceBetween, Button, ColumnLayout, FileUpload, Table, Icon } from '@cloudscape-design/components';
 import { Document, Page, pdfjs } from 'react-pdf';
 import 'pdfjs-dist/web/pdf_viewer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
@@ -238,6 +238,14 @@ const ModalObservados = ({ isOpen, onClose, documentos, idEstudiante }) => {
     }
   };
 
+  const handleVolverATabla = () => {
+    setCurrentView('table');
+    setFile(null);
+    setNewFileUrl(null);
+  };
+
+  const areAllDocumentsCorrected = documentos.every(doc => correctedDocuments.includes(doc.id_documento_observado));
+
   return (
     <Modal
       visible={isOpen}
@@ -252,13 +260,13 @@ const ModalObservados = ({ isOpen, onClose, documentos, idEstudiante }) => {
               if (currentView === 'table') {
                 onClose();
               } else {
-                setCurrentView('table');
+                handleVolverATabla();
               }
             }}>
               {currentView === 'table' ? 'Cerrar' : 'Volver a la tabla'}
             </Button>
             {currentView === 'table' && (
-              <Button variant="primary" onClick={() => alert('Solicitud reenviada correctamente.')}>
+              <Button variant="primary" onClick={() => alert('Solicitud reenviada correctamente.')} disabled={!areAllDocumentsCorrected}>
                 Reenviar solicitud
               </Button>
             )}

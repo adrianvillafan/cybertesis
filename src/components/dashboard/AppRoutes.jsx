@@ -84,3 +84,4 @@ const AppRoutes = ({ onLogoutClick }) => {
 };
 
 export default AppRoutes;
+
