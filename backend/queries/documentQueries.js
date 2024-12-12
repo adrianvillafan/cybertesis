@@ -1,3 +1,5 @@
+//backend/queries/documentQueries.js
+
 import { executeQuery } from '../config/db.js';
 
 export const createOrFetchDocumentos = (gradeId, studentId, userId, callback) => {
