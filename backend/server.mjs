@@ -7,6 +7,7 @@ import fileRoutes from './routes/fileRoutes.js';
 import solicitudRoutes from './routes/solicitudRoutes.js';
 import usuariosRoutes from './routes/usuariosRoutes.js';
 import mailRoutes from './routes/mailRoutes.js';
+import uoariRoutes from './routes/uoariRoutes.js';
 
 const app = express();
 const port = 3000;
@@ -28,6 +29,9 @@ app.use('/api/estudiantes', usuariosRoutes)
 
 // Rutas para mailer
 app.use('/api/mailer', mailRoutes);
+
+// Rutas para uoari
+app.use('/api/uoari', uoariRoutes);
 
 app.listen(port, () => {
   console.log(`Servidor Express escuchando en http://localhost:${port}`);

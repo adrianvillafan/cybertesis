@@ -27,113 +27,75 @@ export function fetchUoariData(userId, callback) {
 }
 
 
-export const insertUoariData = (uoariDetails, callback) => {
-  const queryInsertUoari = `
-    INSERT INTO uoari (
-      id_solicitud,
-      autor,
-      titulo1,
-      titulo2,
-      fecha_publicacion,
-      editorial,
-      como_citar,
-      idioma,
-      autor2,
-      recurso_relacionado,
-      numero_serie,
-      numero_reporte,
-      identificador,
-      enlace,
-      tipo_publicacion,
-      formato,
-      nivel_acceso,
-      resumen,
-      patrocinio,
-      notas,
-      codigo_pais,
-      tipo_doc1,
-      doc1,
-      tipo_doc2,
-      doc2,
-      asesor1,
-      asesor2,
-      orcid1,
-      orcid2,
-      tipo_trabajo,
-      nombre_grado,
-      grado_academico,
-      nombre_programa,
-      codigo_programa,
-      inst_otorgante,
-      jurado1,
-      jurado2
-    ) VALUES (
-      $1, $2, $3, $4, $5, $6, $7, $8, $9, $10,
-      $11, $12, $13, $14, $15, $16, $17, $18, $19, $20,
-      $21, $22, $23, $24, $25, $26, $27, $28, $29, $30,
-      $31, $32, $33, $34, $35, $36, $37, $38
-    )
-    RETURNING id
+export function listUoariData(dataId, callback) {
+    const sql = `
+        SELECT id
+        FROM solicitudes s
+        WHERE s.id_estado = $1;
+    `;
+
+    // Ejecutar la consulta para obtener los datos de UOARI
+    executeQuery(sql, [dataId], (err, results) => {
+        if (err || results.length === 0) {  // Ya no es necesario usar results.rows.length
+            console.error('Error al buscar datos de UOARI:', err);
+            callback({ message: 'Error al buscar datos de UOARI' }, null);
+        } else {
+            console.log('Datos de UOARI encontrados:', results[0]);  // Ya no es necesario usar results.rows[0]
+            callback(null, results[0]);
+        }
+    });
+}
+
+
+export function uoariData(solicitudId, callback) {
+  const sql = `
+      SELECT 
+          ts.titulo AS Titulo,
+          CONCAT(at1.apellidos_pat,' ',at1.apellidos_mat,' ',at1.nombre) AS Autor1,
+          at1.identificacion_id AS DNI_autor1,
+          CONCAT(at2.apellidos_pat,' ',at2.apellidos_mat,' ',at2.nombre) AS Autor2,
+          at2.identificacion_id AS DNI_autor2,
+          CONCAT(ass1.apellidos_pat,' ',ass1.apellidos_mat,' ',ass1.nombre) AS Asesor1,
+          ass1.identificacion_id AS DNI_asesor1,
+          ass1.orcid AS ORCID_asesor1,
+          CONCAT(ass2.apellidos_pat,' ',ass2.apellidos_mat,' ',ass2.nombre) AS Asesor2,
+          ass2.identificacion_id AS DNI_asesor2,
+          ass2.orcid AS ORCID_asesor2,
+          CONCAT(jf.apellidos_pat,' ',jf.apellidos_mat,' ',jf.nombre) AS Presidente_jurado,
+          jf.identificacion_id AS DNI_presidente,
+          CONCAT(jr1.apellidos_pat,' ',jr1.apellidos_mat,' ',jr1.nombre) AS Jurado1,
+          jr1.identificacion_id AS DNI_jurado1,
+          CONCAT(jr2.apellidos_pat,' ',jr2.apellidos_mat,' ',jr2.nombre) AS Jurado2,
+          jr2.identificacion_id AS DNI_jurado2,
+          CONCAT(jr3.apellidos_pat,' ',jr3.apellidos_mat,' ',jr3.nombre) AS Jurado3,
+          jr3.identificacion_id AS DNI_jurado3
+      FROM solicitudes s
+      JOIN documentos doc ON s.id_documentos = doc.id
+      JOIN metadata mt ON doc.metadatos_id = mt.id
+      JOIN tesis ts ON doc.tesis_id = ts.id_tesis
+      JOIN tesis_participacion tsp ON ts.id_participantes = tsp.id_participantes
+      LEFT JOIN personas at1 ON tsp.id_autor1 = at1.idpersonas
+      LEFT JOIN personas at2 ON tsp.id_autor2 = at2.idpersonas
+      LEFT JOIN personas ass1 ON tsp.id_asesor1 = ass1.idpersonas
+      LEFT JOIN personas ass2 ON tsp.id_asesor2 = ass2.idpersonas
+      JOIN acta_sustentacion ast ON doc.actasust_id = ast.id
+      LEFT JOIN personas jf ON ast.id_presidente = jf.idpersonas
+      LEFT JOIN personas jr1 ON ast.id_miembro1 = jr1.idpersonas
+      LEFT JOIN personas jr2 ON ast.id_miembro2 = jr2.idpersonas
+      LEFT JOIN personas jr3 ON ast.id_miembro3 = jr3.idpersonas
+      WHERE s.id = $1;
   `;
 
-  const uoariValues = [
-    uoariDetails.id_solicitud,
-    uoariDetails.autor,
-    uoariDetails.titulo1,
-    uoariDetails.titulo2,
-    uoariDetails.fecha_publicacion,
-    uoariDetails.editorial,
-    uoariDetails.como_citar,
-    uoariDetails.idioma,
-    uoariDetails.autor2,
-    uoariDetails.recurso_relacionado,
-    uoariDetails.numero_serie,
-    uoariDetails.numero_reporte,
-    uoariDetails.identificador,
-    uoariDetails.enlace,
-    uoariDetails.tipo_publicacion,
-    uoariDetails.formato,
-    uoariDetails.nivel_acceso,
-    uoariDetails.resumen,
-    uoariDetails.patrocinio,
-    uoariDetails.notas,
-    uoariDetails.codigo_pais,
-    uoariDetails.tipo_doc1,
-    uoariDetails.doc1,
-    uoariDetails.tipo_doc2,
-    uoariDetails.doc2,
-    uoariDetails.asesor1,
-    uoariDetails.asesor2,
-    uoariDetails.orcid1,
-    uoariDetails.orcid2,
-    uoariDetails.tipo_trabajo,
-    uoariDetails.nombre_grado,
-    uoariDetails.grado_academico,
-    uoariDetails.nombre_programa,
-    uoariDetails.codigo_programa,
-    uoariDetails.inst_otorgante,
-    uoariDetails.jurado1,
-    uoariDetails.jurado2,
-  ];
-
-  executeQuery(queryInsertUoari, uoariValues, (err, results) => {
-    if (err) {
-      console.error('Error al insertar datos:', err);
-      callback(err, null);
-    } else {
-      const metadataId = results[0].id;
-
-      const queryUpdateDocumentos = `
-        UPDATE documentos SET metadatos_id = $1 WHERE id = $2
-      `;
-      executeQuery(queryUpdateDocumentos, [metadataId, uoariDetails.documentos_id], (err, updateResults) => {
-        if (err) {
-          console.error('Error al actualizar documentos:', err);
-          callback(err, null);
-        } else {
-          callback(null, metadataId);
-        }
-      });
-    }
+  // Ejecutar la consulta para obtener los datos de la tesis
+  executeQuery(sql, [solicitudId], (err, results) => {
+      if (err || results.length === 0) {
+          console.error('Error al buscar datos:', err);
+          callback({ message: 'Error al buscar datos' }, null);
+      } else {
+          console.log('Datos:', results[0]);
+          callback(null, results[0]);
+      }
   });
-};
+}
+
+
