@@ -47,6 +47,7 @@ export function listUoariData(dataId, callback) {
 }
 
 
+
 export function uoariData(solicitudId, callback) {
   const sql = `
       SELECT 

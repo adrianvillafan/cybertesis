@@ -16,6 +16,9 @@
     max-width: 990px; /* Controlar el ancho máximo del formulario */
   }
 
+  .form-lista {
+    margin-top: 50px; /* Ajusta el valor según sea necesario */
+  }
 
   @media screen and (max-width: 768px) {
     .form-container {

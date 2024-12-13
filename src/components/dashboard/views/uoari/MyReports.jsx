@@ -1,11 +1,11 @@
 // En /src/components/dashboard/views/uoari/MyReports.jsx
 import React from 'react';
+import Lista from './Lista/lista';
 
 const MyReports = () => {
   return (
-    <div>
-      <h1>Mis Reportes</h1>
-      <p>Esta es la sección de reportes para UOARI.</p>
+    <div className="form-lista">
+      <Lista/>
     </div>
   );
 };
