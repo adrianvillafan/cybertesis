@@ -27,21 +27,25 @@ export function fetchUoariData(userId, callback) {
 }
 
 
-export function listUoariData(dataId, callback) {
+export function listUoariData(callback) {
     const sql = `
-        SELECT id
+        SELECT s.id,
+               f.nombre,
+               gr.grado
         FROM solicitudes s
-        WHERE s.id_estado = $1;
+        JOIN facultad f ON s.id_facultad = f.id
+        JOIN grado gr ON s.id_grado = gr.id
+        WHERE s.id_estado = 1; -- El estado siempre será 1
     `;
 
     // Ejecutar la consulta para obtener los datos de UOARI
-    executeQuery(sql, [dataId], (err, results) => {
-        if (err || results.length === 0) {  // Ya no es necesario usar results.rows.length
+    executeQuery(sql, [], (err, results) => {
+        if (err || results.length === 0) {
             console.error('Error al buscar datos de UOARI:', err);
             callback({ message: 'Error al buscar datos de UOARI' }, null);
         } else {
-            console.log('Datos de UOARI encontrados:', results[0]);  // Ya no es necesario usar results.rows[0]
-            callback(null, results[0]);
+            console.log('Datos de UOARI encontrados:', results);
+            callback(null, results);
         }
     });
 }
