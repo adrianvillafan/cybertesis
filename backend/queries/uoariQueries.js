@@ -30,9 +30,13 @@ export function fetchUoariData(userId, callback) {
 export function listUoariData(callback) {
     const sql = `
         SELECT s.id,
-               f.nombre,
-               gr.grado
+               ts.titulo AS "Titulo",
+               ts.tipo_tesis AS "Tipo",
+               f.nombre AS "Facultad",
+               gr.grado AS "Grado"
         FROM solicitudes s
+        JOIN documentos doc ON s.id_documentos = doc.id
+        JOIN tesis ts ON doc.tesis_id = ts.id_tesis
         JOIN facultad f ON s.id_facultad = f.id
         JOIN grado gr ON s.id_grado = gr.id
         WHERE s.id_estado = 1; -- El estado siempre será 1
