@@ -17,7 +17,7 @@ const Expedientes = lazy(() => import('./views/recepDocs/Expedientes'));
 const ExpedientReports = lazy(() => import('./views/recepDocs/ExpedientReports'));
 const ResultReports = lazy(() => import('./views/recepDocs/ResultReports'));
 const RegisterCyberthesis = lazy(() => import('./views/uoari/RegisterCyberthesis'));
-const MyReports = lazy(() => import('./views/uoari/MyReports'));
+const Navigator = lazy(() => import('./views/uoari/Navigator'));
 const Inicio = lazy(() => import('./views/Inicio'));
 const Notif = lazy(() => import('./views/Notif'));
 const Profile = lazy(() => import('./Profile'));
@@ -55,7 +55,7 @@ const AppRoutes = ({ onLogoutClick }) => {
         return (
           <>
             <Route path="/register-cyberthesis" element={<RegisterCyberthesis />} />
-            <Route path="/my-reports" element={<MyReports />} />
+            <Route path="/my-reports" element={<Navigator />} />
           </>
         );
       default:

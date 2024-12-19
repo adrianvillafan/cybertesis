@@ -1,18 +1,17 @@
-// src/Formpasos/Credencial.jsx
-import React from 'react';
+import React, { useState } from 'react';
 import { Container, SpaceBetween, FormField, Select, RadioGroup, Autosuggest, Header } from '@cloudscape-design/components';
 
-export default function Credencial() {
-  const [selectedOption1, setSelectedOption1] = React.useState({ label: "Creative commons", value: "1" });
-  const [radioValue1, setRadioValue1] = React.useState("first");
-  const [radioValue2, setRadioValue2] = React.useState("first");
-  const [value, setValue] = React.useState("");
+const Credencial = () => {
+  const [selectedOption1, setSelectedOption1] = useState({ label: "Creative commons", value: "1" });
+  const [radioValue1, setRadioValue1] = useState("first");
+  const [radioValue2, setRadioValue2] = useState("first");
+  const [value, setValue] = useState("");
 
   return (
     <SpaceBetween direction="vertical" size="l">
-      <Container >
+      <Container>
         <SpaceBetween direction="vertical" size="l">
-          
+
           <FormField label="Seleccione una licencia">
             <Select
               selectedOption={selectedOption1}
@@ -64,8 +63,11 @@ export default function Credencial() {
               placeholder="Ingrese País"
             />
           </FormField>
+
         </SpaceBetween>
       </Container>
     </SpaceBetween>
   );
-}
+};
+
+export default Credencial;

@@ -2,7 +2,9 @@
 import React from 'react';
 import FormTesis from './Formtesis/Formtesis';
 
-const RegisterCyberthesis = () => {
+const RegisterCyberthesis = ({solicitudId , handleBackStep}) => {
+
+  console.log("esta vista es de RegisterCyberthesis",solicitudId)
   return (
     <div className="form-container">
       <FormTesis/>

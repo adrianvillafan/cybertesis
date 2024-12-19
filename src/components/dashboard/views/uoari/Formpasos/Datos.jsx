@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import '../Formconfig/Styles.css';
 import ColumnLayout from "@cloudscape-design/components/column-layout";
 import {
@@ -13,23 +13,23 @@ import {
   Select
 } from '@cloudscape-design/components';
 
-export default function Datos() {
+const Datos = () => {
   // Estados individuales para cada campo
-  const [titulo, setTitulo] = React.useState("");
-  const [tituloAlternativo, setTituloAlternativo] = React.useState("");
-  const [fechaPublicacion, setFechaPublicacion] = React.useState("");
-  const [editorial, setEditorial] = React.useState("");
-  const [comoCitar, setComoCitar] = React.useState("");
-  const [recursoRelacionado, setRecursoRelacionado] = React.useState("");
-  const [numeroSerie, setNumeroSerie] = React.useState("");
-  const [numeroReporte, setNumeroReporte] = React.useState("");
-  const [identificador, setIdentificador] = React.useState({ label: "Seleccionar", value: "1" });
-  const [enlace, setEnlace] = React.useState("");
-  const [tipoPublicacion, setTipoPublicacion] = React.useState({ label: "Seleccionar", value: "1" });
-  const [formato, setFormato] = React.useState({ label: "Seleccionar", value: "1" });
-  const [idioma, setIdioma] = React.useState("");
-  const [nivelAcceso, setNivelAcceso] = React.useState("");
-  const [authors, setAuthors] = React.useState([{ id: 1, value: "" }]);
+  const [titulo, setTitulo] = useState("");
+  const [tituloAlternativo, setTituloAlternativo] = useState("");
+  const [fechaPublicacion, setFechaPublicacion] = useState("");
+  const [editorial, setEditorial] = useState("");
+  const [comoCitar, setComoCitar] = useState("");
+  const [recursoRelacionado, setRecursoRelacionado] = useState("");
+  const [numeroSerie, setNumeroSerie] = useState("");
+  const [numeroReporte, setNumeroReporte] = useState("");
+  const [identificador, setIdentificador] = useState({ label: "Seleccionar", value: "1" });
+  const [enlace, setEnlace] = useState("");
+  const [tipoPublicacion, setTipoPublicacion] = useState({ label: "Seleccionar", value: "1" });
+  const [formato, setFormato] = useState({ label: "Seleccionar", value: "1" });
+  const [idioma, setIdioma] = useState("");
+  const [nivelAcceso, setNivelAcceso] = useState("");
+  const [authors, setAuthors] = useState([{ id: 1, value: "" }]);
 
   // Manejo de autores
   const handleAuthorChange = (id, newValue) => {
@@ -45,7 +45,7 @@ export default function Datos() {
   };
 
   return (
-    <Container >
+    <Container>
       <SpaceBetween direction="vertical" size="l">
 
         {/* Sección de autores */}
@@ -213,4 +213,6 @@ export default function Datos() {
       </SpaceBetween>
     </Container>
   );
-}
+};
+
+export default Datos;

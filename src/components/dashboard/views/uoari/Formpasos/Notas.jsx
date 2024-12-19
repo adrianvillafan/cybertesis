@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import ColumnLayout from "@cloudscape-design/components/column-layout";
 import { Container, SpaceBetween, FormField, Input, Header, Textarea } from '@cloudscape-design/components';
 
-export default function Notas() {
+const Notas = () => {
   // Estados para manejar los valores de cada campo
   const [palabrasClave, setPalabrasClave] = useState("");
   const [campoConocimiento, setCampoConocimiento] = useState("");
@@ -11,7 +11,7 @@ export default function Notas() {
   const [notas, setNotas] = useState("");
 
   return (
-    <Container >
+    <Container>
       <SpaceBetween direction="vertical" size="l">
 
         <ColumnLayout columns={2}>
@@ -67,4 +67,6 @@ export default function Notas() {
       </SpaceBetween>
     </Container>
   );
-}
+};
+
+export default Notas;

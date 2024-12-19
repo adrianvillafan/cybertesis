@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import Table from "@cloudscape-design/components/table";
-import Box from "@cloudscape-design/components/box";
 import SpaceBetween from "@cloudscape-design/components/space-between";
 import Button from "@cloudscape-design/components/button";
 import Header from "@cloudscape-design/components/header";
@@ -9,12 +8,21 @@ import Pagination from "@cloudscape-design/components/pagination";
 import PropertyFilter from "@cloudscape-design/components/property-filter";
 import uoariService from "../../../../services/uoariService";
 
-const MyReports = () => {
+
+const MyReports = ({handleNextStep}) => {
   const [selectedItems, setSelectedItems] = useState([]);
   const [items, setItems] = useState([]);
   const [filteredItems, setFilteredItems] = useState([]);
   const [query, setQuery] = useState({ tokens: [], operation: "and" });
   const [filteringOptions, setFilteringOptions] = useState([]);
+  const [loading, setLoading] = useState(true); // Estado para manejar el estado de carga
+
+  console.log(selectedItems[0])
+
+  const NextStep = () => {
+    const docid = selectedItems[0].id;
+    handleNextStep(docid);
+  }
 
   // Efecto para cargar los datos dinámicos desde el servicio
   useEffect(() => {
@@ -36,6 +44,8 @@ const MyReports = () => {
         setFilteringOptions([...new Set(uniqueOptions.map(JSON.stringify))].map(JSON.parse));
       } catch (error) {
         console.error("Error fetching data:", error);
+      } finally {
+        setLoading(false); // Cambiar el estado de carga a false después de obtener los datos
       }
     };
 
@@ -78,17 +88,10 @@ const MyReports = () => {
         ]}
         enableKeyboardNavigation
         items={filteredItems}
-        loadingText="Loading resources"
+        loading={loading} // Mostrar el estado de carga
+        loadingText="Cargando datos" // Texto para el estado de carga
         selectionType="single"
         trackBy="id"
-        empty={
-          <Box margin={{ vertical: "xs" }} textAlign="center" color="inherit">
-            <SpaceBetween size="m">
-              <b>No resources</b>
-              <Button>Create resource</Button>
-            </SpaceBetween>
-          </Box>
-        }
         filter={
           <PropertyFilter
             query={query}
@@ -114,13 +117,13 @@ const MyReports = () => {
               <SpaceBetween direction="horizontal" size="xs">
                 <ButtonDropdown
                   items={[
-                    { text: "Editar", id: "edit" },
+                    { text: "Editar", id: "edit"  },
                     { text: "Eliminar", id: "delete" },
                   ]}
                 >
                   Actions
                 </ButtonDropdown>
-                <Button variant="primary">Create resource</Button>
+                <Button onClick={NextStep} variant="primary">Create resource</Button>
               </SpaceBetween>
             }
           >
