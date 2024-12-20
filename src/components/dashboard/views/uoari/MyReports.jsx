@@ -134,7 +134,7 @@ const MyReports = ({ handleNextStep }) => {
                 >
                   Actions
                 </ButtonDropdown>
-                <Button onClick={NextStep} variant="primary">Create resource</Button>
+                <Button onClick={NextStep} variant="primary">Subir Datos</Button>
               </SpaceBetween>
             }
           >

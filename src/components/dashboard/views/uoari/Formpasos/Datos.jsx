@@ -27,6 +27,7 @@ const Datos = () => {
   const [enlace, setEnlace] = useState("");
   const [tipoPublicacion, setTipoPublicacion] = useState({ label: "Seleccionar", value: "1" });
   const [formato, setFormato] = useState({ label: "Seleccionar", value: "1" });
+  const [acceso, setacceso] = useState({ label: "Seleccionar", value: "1" });
   const [idioma, setIdioma] = useState("");
   const [nivelAcceso, setNivelAcceso] = useState("");
   const [authors, setAuthors] = useState([{ id: 1, value: "" }]);
@@ -124,28 +125,6 @@ const Datos = () => {
           />
         </FormField>
 
-        {/* Recurso relacionado, número de serie, y número de reporte */}
-        <ColumnLayout columns={3}>
-          <FormField label="Recurso Relacionado">
-            <Input
-              onChange={({ detail }) => setRecursoRelacionado(detail.value)}
-              value={recursoRelacionado}
-            />
-          </FormField>
-          <FormField label="Número de Serie">
-            <Input
-              onChange={({ detail }) => setNumeroSerie(detail.value)}
-              value={numeroSerie}
-            />
-          </FormField>
-          <FormField label="Número de Reporte">
-            <Input
-              onChange={({ detail }) => setNumeroReporte(detail.value)}
-              value={numeroReporte}
-            />
-          </FormField>
-        </ColumnLayout>
-
         {/* Identificadores */}
         <ColumnLayout columns={2}>
           <FormField label="Identificador(es)">
@@ -176,11 +155,8 @@ const Datos = () => {
               selectedOption={tipoPublicacion}
               onChange={({ detail }) => setTipoPublicacion(detail.selectedOption)}
               options={[
-                { label: "Creative commons", value: "1" },
-                { label: "Option 2", value: "2" },
-                { label: "Option 3", value: "3" },
-                { label: "Option 4", value: "4" },
-                { label: "Option 5", value: "5" },
+                { label: "Tesis", value: "1" },
+                { label: "Proyectos de Investigación", value: "2" },
               ]}
             />
           </FormField>
@@ -205,11 +181,17 @@ const Datos = () => {
         </FormField>
 
         <FormField label="Nivel de Acceso *">
-          <Input
-            onChange={({ detail }) => setNivelAcceso(detail.value)}
-            value={nivelAcceso}
-          />
-        </FormField>
+            <Select
+              selectedOption={acceso}
+              onChange={({ detail }) => setFormato(detail.selectedOption)}
+              options={[
+                { label: "Acceso abierto", value: "1" },
+                { label: "Acceso cerrado", value: "2" },
+                { label: "Acceso restringido", value: "3" },
+                { label: "Acceso embargado", value: "4" },
+              ]}
+            />
+          </FormField>
       </SpaceBetween>
     </Container>
   );
