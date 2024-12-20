@@ -8,8 +8,7 @@ import Pagination from "@cloudscape-design/components/pagination";
 import PropertyFilter from "@cloudscape-design/components/property-filter";
 import uoariService from "../../../../services/uoariService";
 
-
-const MyReports = ({handleNextStep}) => {
+const MyReports = ({ handleNextStep }) => {
   const [selectedItems, setSelectedItems] = useState([]);
   const [items, setItems] = useState([]);
   const [filteredItems, setFilteredItems] = useState([]);
@@ -17,39 +16,51 @@ const MyReports = ({handleNextStep}) => {
   const [filteringOptions, setFilteringOptions] = useState([]);
   const [loading, setLoading] = useState(true); // Estado para manejar el estado de carga
 
-  console.log(selectedItems[0])
-
+  // Función para avanzar al siguiente paso con el ID seleccionado
   const NextStep = () => {
-    const docid = selectedItems[0].id;
-    handleNextStep(docid);
-  }
+    const docid = selectedItems[0]?.id; // Asegurarse de que hay un elemento seleccionado
+    if (docid) {
+      handleNextStep(docid);
+    } else {
+      console.warn("No hay un documento seleccionado");
+    }
+  };
 
-  // Efecto para cargar los datos dinámicos desde el servicio
+  // Efecto para cargar los datos dinámicos desde el servicio (solo una vez)
   useEffect(() => {
+    let isMounted = true; // Para evitar actualizaciones después de desmontar el componente
     const fetchData = async () => {
       try {
         const response = await uoariService.Datos_Tabla_Principal();
-        setItems(response);
-        setFilteredItems(response);
+        if (isMounted) {
+          setItems(response);
+          setFilteredItems(response);
 
-        // Generar valores únicos para las opciones de filtrado
-        const uniqueOptions = [];
-        response.forEach((item) => {
-          uniqueOptions.push({ propertyKey: "id", value: item.id.toString() });
-          uniqueOptions.push({ propertyKey: "Titulo", value: item.Titulo });
-          uniqueOptions.push({ propertyKey: "Tipo", value: item.Tipo });
-          uniqueOptions.push({ propertyKey: "Facultad", value: item.Facultad });
-          uniqueOptions.push({ propertyKey: "Grado", value: item.Grado });
-        });
-        setFilteringOptions([...new Set(uniqueOptions.map(JSON.stringify))].map(JSON.parse));
+          // Generar valores únicos para las opciones de filtrado
+          const uniqueOptions = [];
+          response.forEach((item) => {
+            uniqueOptions.push({ propertyKey: "id", value: item.id.toString() });
+            uniqueOptions.push({ propertyKey: "Titulo", value: item.Titulo });
+            uniqueOptions.push({ propertyKey: "Tipo", value: item.Tipo });
+            uniqueOptions.push({ propertyKey: "Facultad", value: item.Facultad });
+            uniqueOptions.push({ propertyKey: "Grado", value: item.Grado });
+          });
+          setFilteringOptions([...new Set(uniqueOptions.map(JSON.stringify))].map(JSON.parse));
+        }
       } catch (error) {
         console.error("Error fetching data:", error);
       } finally {
-        setLoading(false); // Cambiar el estado de carga a false después de obtener los datos
+        if (isMounted) {
+          setLoading(false); // Cambiar el estado de carga a false después de obtener los datos
+        }
       }
     };
 
     fetchData();
+
+    return () => {
+      isMounted = false; // Marcar como desmontado
+    };
   }, []);
 
   // Función para filtrar los datos según la consulta
@@ -117,7 +128,7 @@ const MyReports = ({handleNextStep}) => {
               <SpaceBetween direction="horizontal" size="xs">
                 <ButtonDropdown
                   items={[
-                    { text: "Editar", id: "edit"  },
+                    { text: "Editar", id: "edit" },
                     { text: "Eliminar", id: "delete" },
                   ]}
                 >
