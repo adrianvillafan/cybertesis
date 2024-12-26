@@ -27,10 +27,12 @@ export function fetchUoariData(userId, callback) {
 }
 
 
+// QUERY PARA LA TABLA PRINCIPAL //
 export function listUoariData(callback) {
     const sql = `
         SELECT 
-            s.id,
+            u.id,
+            s.id AS "Solicitud_ID",
             ts.titulo AS "Titulo",
             ts.tipo_tesis AS "Tipo",
             f.nombre AS "Facultad",
@@ -60,7 +62,8 @@ export function listUoariData(callback) {
 export function listAbiertoUoariData(callback) {
     const sql = `
         SELECT 
-            s.id,
+            u.id,
+            s.id AS "Solicitud_ID",
             ts.titulo AS "Titulo",
             ts.tipo_tesis AS "Tipo",
             f.nombre AS "Facultad",
@@ -90,7 +93,8 @@ export function listAbiertoUoariData(callback) {
 export function listCerradoUoariData(callback) {
     const sql = `
         SELECT 
-            s.id,
+            u.id,
+            s.id AS "Solicitud_ID",
             ts.titulo AS "Titulo",
             ts.tipo_tesis AS "Tipo",
             f.nombre AS "Facultad",
@@ -120,7 +124,8 @@ export function listCerradoUoariData(callback) {
 export function listEmbargoUoariData(callback) {
     const sql = `
         SELECT 
-            s.id,
+            u.id,
+            s.id AS "Solicitud_ID",
             ts.titulo AS "Titulo",
             ts.tipo_tesis AS "Tipo",
             f.nombre AS "Facultad",
@@ -148,58 +153,7 @@ export function listEmbargoUoariData(callback) {
 }
 
 
-export function uoariData(solicitudId, callback) {
-  const sql = `
-      SELECT 
-          ts.titulo AS Titulo,
-          CONCAT(at1.apellidos_pat,' ',at1.apellidos_mat,' ',at1.nombre) AS Autor1,
-          at1.identificacion_id AS DNI_autor1,
-          CONCAT(at2.apellidos_pat,' ',at2.apellidos_mat,' ',at2.nombre) AS Autor2,
-          at2.identificacion_id AS DNI_autor2,
-          CONCAT(ass1.apellidos_pat,' ',ass1.apellidos_mat,' ',ass1.nombre) AS Asesor1,
-          ass1.identificacion_id AS DNI_asesor1,
-          ass1.orcid AS ORCID_asesor1,
-          CONCAT(ass2.apellidos_pat,' ',ass2.apellidos_mat,' ',ass2.nombre) AS Asesor2,
-          ass2.identificacion_id AS DNI_asesor2,
-          ass2.orcid AS ORCID_asesor2,
-          CONCAT(jf.apellidos_pat,' ',jf.apellidos_mat,' ',jf.nombre) AS Presidente_jurado,
-          jf.identificacion_id AS DNI_presidente,
-          CONCAT(jr1.apellidos_pat,' ',jr1.apellidos_mat,' ',jr1.nombre) AS Jurado1,
-          jr1.identificacion_id AS DNI_jurado1,
-          CONCAT(jr2.apellidos_pat,' ',jr2.apellidos_mat,' ',jr2.nombre) AS Jurado2,
-          jr2.identificacion_id AS DNI_jurado2,
-          CONCAT(jr3.apellidos_pat,' ',jr3.apellidos_mat,' ',jr3.nombre) AS Jurado3,
-          jr3.identificacion_id AS DNI_jurado3
-      FROM solicitudes s
-      JOIN documentos doc ON s.id_documentos = doc.id
-      JOIN metadata mt ON doc.metadatos_id = mt.id
-      JOIN tesis ts ON doc.tesis_id = ts.id_tesis
-      JOIN tesis_participacion tsp ON ts.id_participantes = tsp.id_participantes
-      LEFT JOIN personas at1 ON tsp.id_autor1 = at1.idpersonas
-      LEFT JOIN personas at2 ON tsp.id_autor2 = at2.idpersonas
-      LEFT JOIN personas ass1 ON tsp.id_asesor1 = ass1.idpersonas
-      LEFT JOIN personas ass2 ON tsp.id_asesor2 = ass2.idpersonas
-      JOIN acta_sustentacion ast ON doc.actasust_id = ast.id
-      LEFT JOIN personas jf ON ast.id_presidente = jf.idpersonas
-      LEFT JOIN personas jr1 ON ast.id_miembro1 = jr1.idpersonas
-      LEFT JOIN personas jr2 ON ast.id_miembro2 = jr2.idpersonas
-      LEFT JOIN personas jr3 ON ast.id_miembro3 = jr3.idpersonas
-      WHERE s.id = $1;
-  `;
-
-  // Ejecutar la consulta para obtener los datos de la tesis
-  executeQuery(sql, [solicitudId], (err, results) => {
-      if (err || results.length === 0) {
-          console.error('Error al buscar datos:', err);
-          callback({ message: 'Error al buscar datos' }, null);
-      } else {
-          console.log('Datos:', results[0]);
-          callback(null, results[0]);
-      }
-  });
-}
-
-
+// INSERTAR DATOS EN LA TABLA //
 export function insertUoari(uoariDetails, callback) {
     const queryUoari = `
       INSERT INTO uoari (
@@ -249,6 +203,49 @@ export function insertUoari(uoariDetails, callback) {
 }
 
 
+// MOSTRAR DATOS DEL FORMULARIO //
+export function formUoariData(uoariData, callback) {
+    const sql = `
+        SELECT 
+            estado,
+		    fecha_publicacion,
+            editorial,
+            cita,
+            identificador,
+            enlace,
+            tipo_publicacion,
+            formato,
+            palabra_clave,
+            conocimiento,
+            resumen,
+            patrocinio,
+            notas,
+            tipo_investigacion,
+            nombre_grado,
+            titulo_profesional,
+            programa,
+            codigo_programa,
+            institucion_otorgante
+        FROM uoari
+        WHERE id=$1
+    `;
+
+    const uoariValues = [uoariData];
+
+    // Ejecutar la consulta para obtener los datos de UOARI
+    executeQuery(sql, uoariValues, (err, results) => {
+        if (err || results.length === 0) {
+            console.error('Error al buscar datos de UOARI:', err);
+            callback({ message: 'Error al buscar datos de UOARI' }, null);
+        } else {
+            console.log('Datos de UOARI encontrados:', results);
+            callback(null, results);
+        }
+    });
+}
+
+
+// ACTUALIZAR DATOS DEL FORMULARIO //
 export function updateUoari(uoariDetails, callback) {
     const queryUoari = `
       UPDATE uoari SET
@@ -260,19 +257,18 @@ export function updateUoari(uoariDetails, callback) {
         enlace = $6,
         tipo_publicacion = $7,
         formato = $8,
-        idioma = $9,
-        palabra_clave = $10,
-        conocimiento = $11,
-        resumen = $12,
-        patrocinio = $13,
-        notas = $14,
-        tipo_investigacion = $15,
-        nombre_grado = $16,
-        titulo_profesional = $17,
-        programa = $18,
-        codigo_programa = $19,
-        institucion_otorgante = $20
-      WHERE solicitud_id = $21
+        palabra_clave = $9,
+        conocimiento = $10,
+        resumen = $11,
+        patrocinio = $12,
+        notas = $13,
+        tipo_investigacion = $14,
+        nombre_grado = $15,
+        titulo_profesional = $16,
+        programa = $17,
+        codigo_programa = $18,
+        institucion_otorgante = $19
+      WHERE id = $20
       RETURNING id
     `;
   
@@ -285,7 +281,6 @@ export function updateUoari(uoariDetails, callback) {
       uoariDetails.enlace,
       uoariDetails.tipo_publicacion,
       uoariDetails.formato,
-      uoariDetails.idioma,
       uoariDetails.palabra_clave,
       uoariDetails.conocimiento,
       uoariDetails.resumen,
@@ -297,13 +292,15 @@ export function updateUoari(uoariDetails, callback) {
       uoariDetails.programa,
       uoariDetails.codigo_programa,
       uoariDetails.institucion_otorgante,
-      uoariDetails.solicitud_id, // ID del registro a actualizar
+      uoariDetails.id, // ID del registro a actualizar
     ];
   
     executeQuery(queryUoari, uoariValues, (err, results) => {
       if (err) {
         console.error('Error al actualizar en uoari:', err);
         callback(err, null);
+      } else if (results.length === 0) {
+        callback(new Error('No se encontró ningún registro para actualizar'), null);
       } else {
         const uoariId = results[0].id;
         callback(null, uoariId);
@@ -311,4 +308,23 @@ export function updateUoari(uoariDetails, callback) {
     });
   }
   
+  
 
+  //ELIMINAR INOFRMACION DE LA TABLA //
+export function deleteUoariBySolicitudId(uoariID, callback) {
+    const queryUoari = `
+      DELETE FROM uoari
+      WHERE id = $1
+    `;
+  
+    const uoariValues = [uoariID];
+  
+    executeQuery(queryUoari, uoariValues, (err, results) => {
+      if (err) {
+        console.error('Error al eliminar en uoari:', err);
+        callback(err, null);
+      } else {
+        callback(null, results.rowCount); // Devuelve el número de filas afectadas
+      }
+    });
+  }
