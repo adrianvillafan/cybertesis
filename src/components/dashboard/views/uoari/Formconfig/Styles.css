@@ -11,7 +11,7 @@
   }
   
   .form-container {
-    margin-top: 50px; /* Ajusta el valor según sea necesario */
+    margin-top: 38px; /* Ajusta el valor según sea necesario */
     margin-left: 0; /* Mantener el margen izquierdo en su posición original */
     max-width: 990px; /* Controlar el ancho máximo del formulario */
   }
@@ -46,4 +46,14 @@
     width: 100%; /* Hace que el input ocupe todo el espacio disponible */
     box-sizing: border-box; /* Incluye padding y border en el cálculo del ancho */
   }
+  
+  .tabs-container {
+    margin-top: 35px; /* Ajusta este valor según sea necesario */
+  }
+
+
+
+
+
+
   

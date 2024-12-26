@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import '../Formconfig/Styles.css';
 import { Container, SpaceBetween, FormField, Select, RadioGroup, Autosuggest, Header } from '@cloudscape-design/components';
 
 const Credencial = () => {

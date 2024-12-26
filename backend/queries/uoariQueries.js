@@ -29,17 +29,20 @@ export function fetchUoariData(userId, callback) {
 
 export function listUoariData(callback) {
     const sql = `
-        SELECT s.id,
-               ts.titulo AS "Titulo",
-               ts.tipo_tesis AS "Tipo",
-               f.nombre AS "Facultad",
-               gr.grado AS "Grado"
+        SELECT 
+            s.id,
+            ts.titulo AS "Titulo",
+            ts.tipo_tesis AS "Tipo",
+            f.nombre AS "Facultad",
+            gr.grado AS "Grado",
+            u.estado AS "Estado"
         FROM solicitudes s
         JOIN documentos doc ON s.id_documentos = doc.id
         JOIN tesis ts ON doc.tesis_id = ts.id_tesis
         JOIN facultad f ON s.id_facultad = f.id
         JOIN grado gr ON s.id_grado = gr.id
-        WHERE s.id_estado = 1; -- El estado siempre será 1
+        LEFT JOIN uoari u ON s.id = u.solicitud_id
+        WHERE s.id_estado = 1 AND u.estado IS null; -- El estado siempre será 1 y u.estado debe ser nulo
     `;
 
     // Ejecutar la consulta para obtener los datos de UOARI
@@ -54,6 +57,95 @@ export function listUoariData(callback) {
     });
 }
 
+export function listAbiertoUoariData(callback) {
+    const sql = `
+        SELECT 
+            s.id,
+            ts.titulo AS "Titulo",
+            ts.tipo_tesis AS "Tipo",
+            f.nombre AS "Facultad",
+            gr.grado AS "Grado",
+            u.estado AS "Estado"
+        FROM solicitudes s
+        JOIN documentos doc ON s.id_documentos = doc.id
+        JOIN tesis ts ON doc.tesis_id = ts.id_tesis
+        JOIN facultad f ON s.id_facultad = f.id
+        JOIN grado gr ON s.id_grado = gr.id
+        LEFT JOIN uoari u ON s.id = u.solicitud_id
+        WHERE s.id_estado = 1 AND u.estado = 1; -- El estado siempre será 1 y u.estado debe ser nulo
+    `;
+
+    // Ejecutar la consulta para obtener los datos de UOARI
+    executeQuery(sql, [], (err, results) => {
+        if (err || results.length === 0) {
+            console.error('Error al buscar datos de UOARI:', err);
+            callback({ message: 'Error al buscar datos de UOARI' }, null);
+        } else {
+            console.log('Datos de UOARI encontrados:', results);
+            callback(null, results);
+        }
+    });
+}
+
+export function listCerradoUoariData(callback) {
+    const sql = `
+        SELECT 
+            s.id,
+            ts.titulo AS "Titulo",
+            ts.tipo_tesis AS "Tipo",
+            f.nombre AS "Facultad",
+            gr.grado AS "Grado",
+            u.estado AS "Estado"
+        FROM solicitudes s
+        JOIN documentos doc ON s.id_documentos = doc.id
+        JOIN tesis ts ON doc.tesis_id = ts.id_tesis
+        JOIN facultad f ON s.id_facultad = f.id
+        JOIN grado gr ON s.id_grado = gr.id
+        LEFT JOIN uoari u ON s.id = u.solicitud_id
+        WHERE s.id_estado = 1 AND u.estado = 2; -- El estado siempre será 1 y u.estado debe ser nulo
+    `;
+
+    // Ejecutar la consulta para obtener los datos de UOARI
+    executeQuery(sql, [], (err, results) => {
+        if (err || results.length === 0) {
+            console.error('Error al buscar datos de UOARI:', err);
+            callback({ message: 'Error al buscar datos de UOARI' }, null);
+        } else {
+            console.log('Datos de UOARI encontrados:', results);
+            callback(null, results);
+        }
+    });
+}
+
+export function listEmbargoUoariData(callback) {
+    const sql = `
+        SELECT 
+            s.id,
+            ts.titulo AS "Titulo",
+            ts.tipo_tesis AS "Tipo",
+            f.nombre AS "Facultad",
+            gr.grado AS "Grado",
+            u.estado AS "Estado"
+        FROM solicitudes s
+        JOIN documentos doc ON s.id_documentos = doc.id
+        JOIN tesis ts ON doc.tesis_id = ts.id_tesis
+        JOIN facultad f ON s.id_facultad = f.id
+        JOIN grado gr ON s.id_grado = gr.id
+        LEFT JOIN uoari u ON s.id = u.solicitud_id
+        WHERE s.id_estado = 1 AND u.estado = 3; -- El estado siempre será 1 y u.estado debe ser nulo
+    `;
+
+    // Ejecutar la consulta para obtener los datos de UOARI
+    executeQuery(sql, [], (err, results) => {
+        if (err || results.length === 0) {
+            console.error('Error al buscar datos de UOARI:', err);
+            callback({ message: 'Error al buscar datos de UOARI' }, null);
+        } else {
+            console.log('Datos de UOARI encontrados:', results);
+            callback(null, results);
+        }
+    });
+}
 
 
 export function uoariData(solicitudId, callback) {
@@ -107,4 +199,116 @@ export function uoariData(solicitudId, callback) {
   });
 }
 
+
+export function insertUoari(uoariDetails, callback) {
+    const queryUoari = `
+      INSERT INTO uoari (
+        solicitud_id, estado, fecha_publicacion, editorial, cita, identificador, enlace, 
+        tipo_publicacion, formato, idioma, palabra_clave, conocimiento, 
+        resumen, patrocinio, notas, tipo_investigacion, nombre_grado, titulo_profesional, 
+        programa, codigo_programa, institucion_otorgante, codigo_pais
+      ) VALUES (
+        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22
+      ) RETURNING id
+    `;
+  
+    const uoariValues = [
+      uoariDetails.solicitud_id,
+      uoariDetails.estado,
+      uoariDetails.fecha_publicacion,
+      uoariDetails.editorial,
+      uoariDetails.cita,
+      uoariDetails.identificador,
+      uoariDetails.enlace,
+      uoariDetails.tipo_publicacion,
+      uoariDetails.formato,
+      uoariDetails.idioma,
+      uoariDetails.palabra_clave,
+      uoariDetails.conocimiento,
+      uoariDetails.resumen,
+      uoariDetails.patrocinio,
+      uoariDetails.notas,
+      uoariDetails.tipo_investigacion,
+      uoariDetails.nombre_grado,
+      uoariDetails.titulo_profesional,
+      uoariDetails.programa,
+      uoariDetails.codigo_programa,
+      uoariDetails.institucion_otorgante,
+      uoariDetails.codigo_pais
+    ];
+  
+    executeQuery(queryUoari, uoariValues, (err, results) => {
+      if (err) {
+        console.error('Error al insertar en uoari:', err);
+        callback(err, null);
+      } else {
+        const uoariId = results[0].id; // Obtenemos el ID del registro insertado
+        callback(null, uoariId);
+      }
+    });
+}
+
+
+export function updateUoari(uoariDetails, callback) {
+    const queryUoari = `
+      UPDATE uoari SET
+        estado = $1,
+        fecha_publicacion = $2,
+        editorial = $3,
+        cita = $4,
+        identificador = $5,
+        enlace = $6,
+        tipo_publicacion = $7,
+        formato = $8,
+        idioma = $9,
+        palabra_clave = $10,
+        conocimiento = $11,
+        resumen = $12,
+        patrocinio = $13,
+        notas = $14,
+        tipo_investigacion = $15,
+        nombre_grado = $16,
+        titulo_profesional = $17,
+        programa = $18,
+        codigo_programa = $19,
+        institucion_otorgante = $20
+      WHERE solicitud_id = $21
+      RETURNING id
+    `;
+  
+    const uoariValues = [
+      uoariDetails.estado,
+      uoariDetails.fecha_publicacion,
+      uoariDetails.editorial,
+      uoariDetails.cita,
+      uoariDetails.identificador,
+      uoariDetails.enlace,
+      uoariDetails.tipo_publicacion,
+      uoariDetails.formato,
+      uoariDetails.idioma,
+      uoariDetails.palabra_clave,
+      uoariDetails.conocimiento,
+      uoariDetails.resumen,
+      uoariDetails.patrocinio,
+      uoariDetails.notas,
+      uoariDetails.tipo_investigacion,
+      uoariDetails.nombre_grado,
+      uoariDetails.titulo_profesional,
+      uoariDetails.programa,
+      uoariDetails.codigo_programa,
+      uoariDetails.institucion_otorgante,
+      uoariDetails.solicitud_id, // ID del registro a actualizar
+    ];
+  
+    executeQuery(queryUoari, uoariValues, (err, results) => {
+      if (err) {
+        console.error('Error al actualizar en uoari:', err);
+        callback(err, null);
+      } else {
+        const uoariId = results[0].id;
+        callback(null, uoariId);
+      }
+    });
+  }
+  
 

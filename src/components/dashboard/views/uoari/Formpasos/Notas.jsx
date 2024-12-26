@@ -1,69 +1,84 @@
-import React, { useState } from 'react';
-import ColumnLayout from "@cloudscape-design/components/column-layout";
-import { Container, SpaceBetween, FormField, Input, Header, Textarea } from '@cloudscape-design/components';
+import React, { useState, useEffect } from 'react';
+import '../Formconfig/Styles.css';
+import { Container, SpaceBetween, FormField, Input, Textarea } from '@cloudscape-design/components';
 
-const Notas = () => {
-  // Estados para manejar los valores de cada campo
-  const [palabrasClave, setPalabrasClave] = useState("");
-  const [campoConocimiento, setCampoConocimiento] = useState("");
-  const [resumen, setResumen] = useState("");
-  const [patrocinio, setPatrocinio] = useState("");
-  const [notas, setNotas] = useState("");
+const Notas = ({ uoariDetails, updateUoariDetails, validateStep }) => {
+  const [errors, setErrors] = useState({});
+
+  useEffect(() => {
+    validateStep.current = () => {
+      const newErrors = {};
+
+      // Verificar si los campos requeridos están completos
+      if (!uoariDetails.palabra_clave || uoariDetails.palabra_clave.trim() === "") {
+        newErrors.palabra_clave = "Campo obligatorio";
+      }
+      if (!uoariDetails.conocimiento || uoariDetails.conocimiento.trim() === "") {
+        newErrors.conocimiento = "Campo obligatorio";
+      }
+      if (!uoariDetails.resumen || uoariDetails.resumen.trim() === "") {
+        newErrors.resumen = "Campo obligatorio";
+      }
+      if (!uoariDetails.patrocinio || uoariDetails.patrocinio.trim() === "") {
+        newErrors.patrocinio = "Campo obligatorio";
+      }
+
+      setErrors(newErrors);
+
+      // Retornar true si no hay errores, false si los hay
+      return Object.keys(newErrors).length === 0;
+    };
+  }, [uoariDetails, validateStep]);
 
   return (
     <Container>
       <SpaceBetween direction="vertical" size="l">
-
-        <ColumnLayout columns={2}>
-          {/* Palabra(s) Clave */}
-          <FormField label="Palabra(s) Clave*">
-            <Input 
-              value={palabrasClave}
-              onChange={({ detail }) => setPalabrasClave(detail.value)}
-              placeholder="Ingrese palabras clave..."
-            /> 
-          </FormField>
-
-          {/* Campo del Conocimiento OCDE */}
-          <FormField label="Campo del Conocimiento OCDE*">
-            <Input 
-              value={campoConocimiento}
-              onChange={({ detail }) => setCampoConocimiento(detail.value)}
-              placeholder="Ingrese el campo de conocimiento..."
-            />
-          </FormField>
-        </ColumnLayout>
-
-        {/* Resumen */}
-        <FormField label="Resumen*">
-          <Textarea 
-            value={resumen}
-            onChange={({ detail }) => setResumen(detail.value)}
-            placeholder="Ingrese resumen..." 
-            rows={4} 
+        <FormField
+          label="Palabras clave"
+          errorText={errors.palabra_clave} // Mostrar mensaje de error
+        >
+          <Input
+            onChange={({ detail }) => updateUoariDetails("palabra_clave", detail.value)}
+            value={uoariDetails.palabra_clave || ""}
           />
         </FormField>
 
-        {/* Patrocinio */}
-        <FormField label="Patrocinio">
-          <Textarea 
-            value={patrocinio}
-            onChange={({ detail }) => setPatrocinio(detail.value)}
-            placeholder="Ingrese patrocinio..." 
-            rows={4} 
+        <FormField
+          label="Conocimiento"
+          errorText={errors.conocimiento} // Mostrar mensaje de error
+        >
+          <Input
+            onChange={({ detail }) => updateUoariDetails("conocimiento", detail.value)}
+            value={uoariDetails.conocimiento || ""}
           />
         </FormField>
 
-        {/* Notas */}
-        <FormField label="Notas">
-          <Textarea 
-            value={notas}
-            onChange={({ detail }) => setNotas(detail.value)}
-            placeholder="Ingrese notas..." 
-            rows={4} 
+        <FormField
+          label="Resumen"
+          errorText={errors.resumen} // Mostrar mensaje de error
+        >
+          <Textarea
+            onChange={({ detail }) => updateUoariDetails("resumen", detail.value)}
+            value={uoariDetails.resumen || ""}
           />
         </FormField>
 
+        <FormField
+          label="Patrocinio"
+          errorText={errors.patrocinio} // Mostrar mensaje de error
+        >
+          <Input
+            onChange={({ detail }) => updateUoariDetails("patrocinio", detail.value)}
+            value={uoariDetails.patrocinio || ""}
+          />
+        </FormField>
+
+        <FormField label="Notas adicionales">
+          <Textarea
+            onChange={({ detail }) => updateUoariDetails("notas", detail.value)}
+            value={uoariDetails.notas || ""}
+          />
+        </FormField>
       </SpaceBetween>
     </Container>
   );
