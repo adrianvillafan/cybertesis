@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import ModalTwoCol from './ModalTwoCol';
 import { Button, FormField, Input, Select, SpaceBetween, Container, Header, ColumnLayout } from '@cloudscape-design/components';
-import { fetchDatosByDni, fetchTesisById } from '../../../../../../api';
+import studentService from '../../../../../services/studentService';
+import tesisService from '../../../../../services/escuela_upg/modals/tesisService';
 
 const TesisModalVer = ({ onClose, documentos }) => {
   const [formData, setFormData] = useState({
@@ -26,7 +27,7 @@ const TesisModalVer = ({ onClose, documentos }) => {
 
   const fetchAndSetDataByDni = async (tipoIdentificacionId, identificacionId, index, type) => {
     try {
-      const data = await fetchDatosByDni(tipoIdentificacionId, identificacionId);
+      const data = await studentService.fetchDatosByDni(tipoIdentificacionId, identificacionId);
       const gradoLabel = gradoOptions.find(option => option.value === data.grado_academico_id.toString())?.label || '';
 
       const newEntry = {
@@ -65,7 +66,7 @@ const TesisModalVer = ({ onClose, documentos }) => {
 
   useEffect(() => {
     if (documentos.tesis_id) {
-      fetchTesisById(documentos.tesis_id).then(data => {
+      tesisService.fetchTesisById(documentos.tesis_id).then(data => {
         if (data) {
           setFormData({
             facultad: data.facultad_nombre,

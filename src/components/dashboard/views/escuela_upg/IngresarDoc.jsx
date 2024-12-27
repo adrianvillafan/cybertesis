@@ -1,5 +1,7 @@
+//src/components/dashboard/views/escuela_upg/IngresarDoc.jsx
+
 import React, { useState, useContext } from 'react';
-import { Container, ExpandableSection, Box, Link } from '@cloudscape-design/components';
+import { Container } from '@cloudscape-design/components';
 import UserContext from '../../contexts/UserContext';
 import RequerimientosInicio from './steps/RequerimientosInicio';
 import ConfirmarDatos from './steps/ConfirmarDatos';
