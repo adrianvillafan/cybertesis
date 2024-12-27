@@ -59,7 +59,19 @@ const uoariService = {
     }
   },
 
+  
   // MOSTRAR DATOS DE FORMULARIO // // EDITAR FORMULARIO //
+  Get_Uoari_Form: async (uoariData) => {
+    try {
+      const getalldatos = await uoariAPI.allUoariInfo(uoariData);
+      console.log('Datos obtenidos:', deletedatos);
+      return getalldatos;
+    } catch (error) {
+      console.error("Error al obtener datos:", error); // Manejador de errores
+      throw error;
+    }
+  },
+
   Update_Uoari_Datos: async (uoariDetails) => {
     try {
       const datosActualizados = await uoariAPI.updateUoariDatos(uoariDetails);

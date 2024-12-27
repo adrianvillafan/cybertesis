@@ -44,7 +44,7 @@ const uoariAPI = {
   },
 
   // MOSTRAR DATOS DE FORMULARIO // // EDITAR FORMULARIO //
-  allUoariInfor: async (uoariData) => {
+  allUoariInfo: async (uoariData) => {
     const response = await axios.get(GET_ALL_UOARI_INFO(uoariData));
     return response.data;
   },
