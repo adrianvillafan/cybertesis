@@ -1,7 +1,9 @@
+//src/components/dashboard/views/escuela_upg/steps/ConfirmarDatos.jsx
+
 import React, { useState, useEffect, useContext } from 'react';
 import { Box, Header, Button, Select, ColumnLayout, Container, SpaceBetween } from '@cloudscape-design/components';
 import UserContext from '../../../contexts/UserContext';
-import { fetchAlumnadoByProgramaId, fetchDatosByStudentId, createOrFetchDocumentos, fetchProgramasByFacultadId } from '../../../../../../api';
+import confirmarDatosService from '../../../../../services/escuela_upg/steps/confirmarDatosService';
 
 const ConfirmarDatos = ({ setStep, handleAlumnoSelection, setDocumentos }) => {
   const { user } = useContext(UserContext);
@@ -19,7 +21,8 @@ const ConfirmarDatos = ({ setStep, handleAlumnoSelection, setDocumentos }) => {
   useEffect(() => {
     if (user.grado_id === 2 && user.facultad_id) {
       setIsLoading(true);
-      fetchProgramasByFacultadId(user.facultad_id)
+      confirmarDatosService
+        .fetchProgramasByFacultadId(user.facultad_id)
         .then(data => {
           setProgramas(data);
           setIsLoading(false);
@@ -34,7 +37,8 @@ const ConfirmarDatos = ({ setStep, handleAlumnoSelection, setDocumentos }) => {
   useEffect(() => {
     if (selectedEscuela) {
       setIsLoading(true);
-      fetchAlumnadoByEscuelaId(selectedEscuela.value, user.grado_id)
+      confirmarDatosService
+        .fetchAlumnadoByEscuelaId(selectedEscuela.value, user.grado_id)
         .then(data => {
           setAlumnos(data);
           setIsLoading(false);
@@ -49,7 +53,8 @@ const ConfirmarDatos = ({ setStep, handleAlumnoSelection, setDocumentos }) => {
   useEffect(() => {
     if (selectedPrograma) {
       setIsLoading(true);
-      fetchAlumnadoByProgramaId(selectedPrograma.value)
+      confirmarDatosService
+        .fetchAlumnadoByProgramaId(selectedPrograma.value)
         .then(data => {
           setAlumnos(data);
           setIsLoading(false);
@@ -65,7 +70,8 @@ const ConfirmarDatos = ({ setStep, handleAlumnoSelection, setDocumentos }) => {
     const selectedOption = event.detail.selectedOption;
     setSelectedAlumno(selectedOption);
     setIsLoading(true);
-    fetchDatosByStudentId(selectedOption.value)
+    confirmarDatosService
+      .fetchDatosByStudentId(selectedOption.value)
       .then(alumnoInfo => {
         setAlumnoData(alumnoInfo);
         handleAlumnoSelection(alumnoInfo);
@@ -80,8 +86,12 @@ const ConfirmarDatos = ({ setStep, handleAlumnoSelection, setDocumentos }) => {
   const handleSiguiente = async () => {
     if (selectedAlumno) {
       try {
-        const fetchedDocumentos = await createOrFetchDocumentos(user.grado_id, alumnoData.id, user.user_id);
-        console.log(fetchedDocumentos)
+        const fetchedDocumentos = await confirmarDatosService.createOrFetchDocumentos(
+          user.grado_id,
+          alumnoData.id,
+          user.user_id
+        );
+        console.log(fetchedDocumentos);
         setDocumentos(fetchedDocumentos);
         setStep(3);
       } catch (error) {
@@ -179,7 +189,7 @@ const ConfirmarDatos = ({ setStep, handleAlumnoSelection, setDocumentos }) => {
             <Box>
               <SpaceBetween direction="horizontal" size="xs">
                 <Button onClick={handleCancelar}>Cancelar</Button>
-                <Button  variant="primary" onClick={handleSiguiente} disabled={!selectedAlumno}>Siguiente</Button>
+                <Button variant="primary" onClick={handleSiguiente} disabled={!selectedAlumno}>Siguiente</Button>
               </SpaceBetween>
             </Box>
           </>

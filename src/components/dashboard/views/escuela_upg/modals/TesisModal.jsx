@@ -1,7 +1,10 @@
+//src/components/dashboard/views/escuela_upg/modals/TesisModal.jsx
+
 import React, { useState, useEffect } from 'react';
 import ModalTwoCol from './ModalTwoCol';
 import { Button, FormField, Input, Select, SpaceBetween, Container, Header, ColumnLayout, Box, StatusIndicator } from '@cloudscape-design/components';
-import { fetchDatosByDni, fetchDatosOrcid, saveTesis, fetchTesisById, uploadTesisFile } from '../../../../../../api';
+import tesisService from '../../../../../services/escuela_upg/modals/tesisService';
+import studentService from '../../../../../services/studentService';
 
 const TesisModal = ({ onClose, alumnoData, onSave, readOnly, fileUrl, formData: initialFormData, documentos_id, user }) => {
   const [file, setFile] = useState(null);
@@ -81,7 +84,7 @@ const TesisModal = ({ onClose, alumnoData, onSave, readOnly, fileUrl, formData: 
 
   useEffect(() => {
     if (readOnly) {
-      fetchTesisById(documentos_id.id).then((data) => {
+      tesisService.fetchTesisById(documentos_id.id).then((data) => {
         const autores = [
           {
             id: data.id_autor1,
@@ -156,7 +159,7 @@ const TesisModal = ({ onClose, alumnoData, onSave, readOnly, fileUrl, formData: 
   const fetchAndSetDataByDni = async (tipoIdentificacionId, identificacionId, index, type) => {
     setLoadingDni(prev => ({ ...prev, [type]: { ...prev[type], [index]: true } }));
     try {
-      const data = await fetchDatosByDni(tipoIdentificacionId, identificacionId);
+      const data = await studentService.fetchDatosByDni(tipoIdentificacionId, identificacionId);
       const gradoLabel = gradoOptions.find(option => option.value === data.grado_academico_id.toString())?.label || '';
 
       handleChange('id', data.idpersonas, index, type);
@@ -180,7 +183,7 @@ const TesisModal = ({ onClose, alumnoData, onSave, readOnly, fileUrl, formData: 
 
   const fetchAndSetDataByOrcid = async (orcid, index, type) => {
     try {
-      const data = await fetchDatosOrcid(orcid);
+      const data = await studentService.fetchDatosOrcid(orcid);
       setOrcidData(prev => ({
         ...prev,
         [type]: {
@@ -289,7 +292,7 @@ const TesisModal = ({ onClose, alumnoData, onSave, readOnly, fileUrl, formData: 
         };
 
         // Subir el archivo y enviar los detalles del evento
-        const uploadResponse = await uploadTesisFile(file, eventoDetails);
+        const uploadResponse = await tesisService.uploadTesisFile(file, eventoDetails);
 
         const { fileName } = uploadResponse;
         console.log("uploadResponse:", uploadResponse);
@@ -314,7 +317,7 @@ const TesisModal = ({ onClose, alumnoData, onSave, readOnly, fileUrl, formData: 
           is_notificacion: 1
         };
 
-        const saveResponse = await saveTesis(tesisData);
+        const saveResponse = await tesisService.saveTesis(tesisData);
 
         onSave({ formData, fileUrl: fileName });
         onClose();

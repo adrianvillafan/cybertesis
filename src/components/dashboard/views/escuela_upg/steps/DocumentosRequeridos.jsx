@@ -1,7 +1,10 @@
+//src/components/dashboard/views/escuela_upg/steps/DocumentosRequeridos.jsx
+
 import React, { useState, useEffect } from 'react';
 import { Box, Header, Button, Link, Table, SpaceBetween, StatusIndicator } from '@cloudscape-design/components';
 import TesisModal from '../modals/TesisModal';
 import TesisModalVer from '../modals/TesisModalVer';
+import TesisModalDelete from '../modals/TesisModalDelete';
 import ActaSustentacionModal from '../modals/ActaSustentacionModal';
 import ActaSustentacionModalVer from '../modals/ActaSustentacionModalVer';
 import ActaSustentacionModalDelete from '../modals/ActaSustentacionModalDelete';
@@ -17,14 +20,13 @@ import MetadatosModalDelete from '../modals/MetadatosDelete';
 import RepTurnitinModal from '../modals/RepTurnitin';
 import RepTurnitinModalVer from '../modals/RepTurnitinModalVer';
 import RepTurnitinModalDelete from '../modals/RepTurnitinModalDelete';
-import TesisModalDelete from '../modals/TesisModalDelete';
-import ConsentimientoInformado from '../modals/ConsentimientoInformadoModal';  // Nuevos modales
+import ConsentimientoInformado from '../modals/ConsentimientoInformadoModal';
 import ConsentimientoInformadoVer from '../modals/ConsentimientoInformadoVer';
 import ConsentimientoInformadoDelete from '../modals/ConsentimientoInformadoDelete';
 import PostergacionPublicacion from '../modals/PostergacionPublicacionModal';
 import PostergacionPublicacionVer from '../modals/PostergacionPublicacionVer';
 import PostergacionPublicacionDelete from '../modals/PostergacionPublicacionDelete';
-import { createOrFetchDocumentos } from '../../../../../../api';
+import confirmarDatosService from '../../../../../services/escuela_upg/steps/confirmarDatosService';
 
 const DocumentosRequeridos = ({
   documentos,
@@ -43,7 +45,11 @@ const DocumentosRequeridos = ({
 
   const fetchDocumentos = async () => {
     try {
-      const updatedDocumentos = await createOrFetchDocumentos(alumnoData.grado_id, alumnoData.id, alumnoData.usuarioCarga_id);
+      const updatedDocumentos = await confirmarDatosService.createOrFetchDocumentos(
+        alumnoData.grado_id,
+        alumnoData.id,
+        alumnoData.usuarioCarga_id
+      );
       console.log('Documentos actualizados:', updatedDocumentos);
       const documents = {
         'Tesis': updatedDocumentos.tesis_id,
@@ -52,8 +58,8 @@ const DocumentosRequeridos = ({
         'Autorización para el depósito de obra en Cybertesis': updatedDocumentos.autocyber_id,
         'Hoja de Metadatos': updatedDocumentos.metadatos_id,
         'Reporte de Turnitin': updatedDocumentos.repturnitin_id,
-        'Consentimiento Informado': updatedDocumentos.consentimiento_id,  // Nuevo documento
-        'Postergación de Publicación': updatedDocumentos.postergacion_id  // Nuevo documento
+        'Consentimiento Informado': updatedDocumentos.consentimiento_id,
+        'Postergación de Publicación': updatedDocumentos.postergacion_id
       };
       setSavedDocuments(documents);
       setDocumentos(updatedDocumentos);
@@ -72,8 +78,8 @@ const DocumentosRequeridos = ({
         'Autorización para el depósito de obra en Cybertesis': documentos.autocyber_id,
         'Hoja de Metadatos': documentos.metadatos_id,
         'Reporte de Turnitin': documentos.repturnitin_id,
-        'Consentimiento Informado': documentos.consentimiento_id,  // Nuevo documento
-        'Postergación de Publicación': documentos.postergacion_id  // Nuevo documento
+        'Consentimiento Informado': documentos.consentimiento_id,
+        'Postergación de Publicación': documentos.postergacion_id
       };
       setSavedDocuments(documents);
       checkIfCanProceed(documents);
@@ -81,10 +87,11 @@ const DocumentosRequeridos = ({
   }, [documentos]);
 
   const checkIfCanProceed = (documents) => {
-    const allDocumentsCompleted = Object.values(documents).every(id => id !== null || documents['Postergación de Publicación']) !== null; //Arreglar logica 
+    const allDocumentsCompleted = Object.values(documents).every(
+      (id) => id !== null || documents['Postergación de Publicación'] !== null
+    );
     console.log('allDocumentsCompleted:', allDocumentsCompleted);
     setCanProceed(allDocumentsCompleted);
-    console.log('Can proceed:', allDocumentsCompleted);
   };
 
   const handleModalClose = async () => {
@@ -103,7 +110,7 @@ const DocumentosRequeridos = ({
 
   const handleDeleteDocument = async () => {
     console.log('Eliminando documento:', deleteDocType);
-    setSavedDocuments(prev => {
+    setSavedDocuments((prev) => {
       const updated = { ...prev, [deleteDocType]: null };
       checkIfCanProceed(updated);
       return updated;
@@ -113,14 +120,14 @@ const DocumentosRequeridos = ({
   };
 
   const documentosRequeridos = [
-    { id: 1, nombre: 'Tesis' , display: 'Registro de Tesis' },
-    { id: 2, nombre: 'Acta de Sustentación' , display: 'Registro de Acta de Sustentación' },
-    { id: 3, nombre: 'Certificado de Similitud' , display: 'Registro de Certificado de Similitud' },
-    { id: 4, nombre: 'Autorización para el depósito de obra en Cybertesis' , display: 'Autorización para el depósito de obra en Cybertesis' },
-    { id: 5, nombre: 'Hoja de Metadatos' , display: 'Registro de Metadatos Complementarios' },
-    { id: 6, nombre: 'Reporte de Turnitin' , display: 'Registro de Reporte de Turnitin'},
-    { id: 7, nombre: 'Consentimiento Informado' , display: 'Registro de Consentimiento Informado' },  // Nuevo documento
-    { id: 8, nombre: 'Postergación de Publicación' , display: 'Solicitud de Postergación en Cybertesis' }  // Nuevo documento con especificación de opcional
+    { id: 1, nombre: 'Tesis', display: 'Registro de Tesis' },
+    { id: 2, nombre: 'Acta de Sustentación', display: 'Registro de Acta de Sustentación' },
+    { id: 3, nombre: 'Certificado de Similitud', display: 'Registro de Certificado de Similitud' },
+    { id: 4, nombre: 'Autorización para el depósito de obra en Cybertesis', display: 'Autorización para el depósito de obra en Cybertesis' },
+    { id: 5, nombre: 'Hoja de Metadatos', display: 'Registro de Metadatos Complementarios' },
+    { id: 6, nombre: 'Reporte de Turnitin', display: 'Registro de Reporte de Turnitin' },
+    { id: 7, nombre: 'Consentimiento Informado', display: 'Registro de Consentimiento Informado' },
+    { id: 8, nombre: 'Postergación de Publicación', display: 'Solicitud de Postergación en Cybertesis' }
   ];
 
   const isTesisComplete = !!savedDocuments['Tesis'];
@@ -129,42 +136,44 @@ const DocumentosRequeridos = ({
   return (
     <Box>
       <SpaceBetween direction="vertical" size="l">
-        <Header variant="h2"> <u>Paso 2</u>: Adjuntar Documentos</Header>
+        <Header variant="h2"><u>Paso 2</u>: Adjuntar Documentos</Header>
         <Table
           items={documentosRequeridos}
           columnDefinitions={[
             { id: 'id', header: 'ID', cell: (item) => item.id },
             { id: 'tipoDocumento', header: 'Tipo de Documento', cell: (item) => item.display },
-            { id: 'verModelo', header: 'Modelo', cell: (item) => <Link href={`/path/to/model/${item.nombre}.pdf`} external={true}>Ver modelo</Link> },
+            { id: 'verModelo', header: 'Modelo', cell: (item) => <Link href={`/path/to/model/${item.nombre}.pdf`} external>Ver modelo</Link> },
             {
               id: 'cargarEditar',
               header: 'Acciones',
-              cell: (item) => savedDocuments[item.nombre] ? (
-                <SpaceBetween direction="horizontal" size="xs">
-                  <Button onClick={() => handleModalOpen(item.nombre, false)}>Ver</Button>
-                  <Button onClick={() => { setDeleteDocType(item.nombre); setShowDeleteConfirmation(true); }}>Eliminar</Button>
-                </SpaceBetween>
-              ) : (
-                <Button
-                  onClick={() => handleModalOpen(item.nombre, true)}
-                  disabled={
-                    (item.nombre === 'Acta de Sustentación' && !isTesisComplete) ||
-                    (item.nombre === 'Hoja de Metadatos' && (!isTesisComplete || !isActaSustentacionComplete))
-                  }
-                >
-                  Adjuntar
-                </Button>
-              )
+              cell: (item) =>
+                savedDocuments[item.nombre] ? (
+                  <SpaceBetween direction="horizontal" size="xs">
+                    <Button onClick={() => handleModalOpen(item.nombre, false)}>Ver</Button>
+                    <Button onClick={() => { setDeleteDocType(item.nombre); setShowDeleteConfirmation(true); }}>Eliminar</Button>
+                  </SpaceBetween>
+                ) : (
+                  <Button
+                    onClick={() => handleModalOpen(item.nombre, true)}
+                    disabled={
+                      (item.nombre === 'Acta de Sustentación' && !isTesisComplete) ||
+                      (item.nombre === 'Hoja de Metadatos' && (!isTesisComplete || !isActaSustentacionComplete))
+                    }
+                  >
+                    Adjuntar
+                  </Button>
+                )
             },
             {
               id: 'estado',
               header: 'Estado',
-              cell: (item) => savedDocuments[item.nombre] && savedDocuments[item.nombre] !== null ? (
-                <StatusIndicator type="success">Registrado</StatusIndicator>
-              ) : (
-                <StatusIndicator type="error">Pendiente</StatusIndicator>
-              )
-            },
+              cell: (item) =>
+                savedDocuments[item.nombre] ? (
+                  <StatusIndicator type="success">Registrado</StatusIndicator>
+                ) : (
+                  <StatusIndicator type="error">Pendiente</StatusIndicator>
+                )
+            }
           ]}
         />
       </SpaceBetween>
