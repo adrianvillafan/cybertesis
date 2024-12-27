@@ -9,31 +9,41 @@ import Pagination from "@cloudscape-design/components/pagination";
 import PropertyFilter from "@cloudscape-design/components/property-filter";
 import Badge from "@cloudscape-design/components/badge";
 import Modal from "@cloudscape-design/components/modal";
+import Flashbar from "@cloudscape-design/components/flashbar";
 import uoariService from "../../../../services/uoariService";
-import "../uoari/Formconfig/Styles.css";
+import "../uoari/Formconfig/Styles.css"; // Archivo CSS para estilos específicos
 
 const MyReports = ({ handleNextStep }) => {
-  const [activeTab, setActiveTab] = useState("general"); // Estado de la pestaña activa
-  const [selectedItems, setSelectedItems] = useState([]); // Elementos seleccionados
-  const [items, setItems] = useState([]); // Elementos de la tabla
-  const [filteredItems, setFilteredItems] = useState([]); // Elementos filtrados
-  const [query, setQuery] = useState({ tokens: [], operation: "and" }); // Estado para el filtro
-  const [filteringOptions, setFilteringOptions] = useState([]); // Opciones únicas de filtrado
-  const [loading, setLoading] = useState(true); // Estado de carga
-  const [modalVisible, setModalVisible] = useState(false); // Estado del modal de confirmación
-  const [deletingId, setDeletingId] = useState(null); // ID del registro a eliminar
+  const [activeTab, setActiveTab] = useState("general");
+  const [selectedItems, setSelectedItems] = useState([]);
+  const [items, setItems] = useState([]);
+  const [filteredItems, setFilteredItems] = useState([]);
+  const [query, setQuery] = useState({ tokens: [], operation: "and" });
+  const [filteringOptions, setFilteringOptions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [deletingId, setDeletingId] = useState(null);
+  const [flashItems, setFlashItems] = useState([]);
 
-  // Función para avanzar al siguiente paso con el ID seleccionado
   const NextStep = () => {
-    const docid = selectedItems[0]?.Solicitud_ID; // Asegurarse de que hay un elemento seleccionado
-    if (docid) {
+    const docid = selectedItems[0]?.Solicitud_ID;
+
+    if (docid === items[0]?.Solicitud_ID) {
       handleNextStep(docid);
     } else {
-      console.warn("No hay un documento seleccionado");
+      setFlashItems([
+        {
+          type: "warning",
+          dismissible: true,
+          dismissLabel: "Cerrar mensaje",
+          onDismiss: () => setFlashItems([]),
+          content: "Atender documentos en orden de llegada.",
+          id: "warning_message",
+        },
+      ]);
     }
   };
 
-  // Función para cargar datos según la pestaña seleccionada
   const fetchData = async (tab) => {
     setLoading(true);
     setItems([]);
@@ -60,13 +70,12 @@ const MyReports = ({ handleNextStep }) => {
 
       const formattedResponse = response.map((item) => ({
         ...item,
-        visibleId: item.Solicitud_ID, // Usamos esta clave para mostrar el ID visible
+        visibleId: item.Solicitud_ID,
       }));
 
       setItems(formattedResponse);
       setFilteredItems(formattedResponse);
 
-      // Generar valores únicos para las opciones de filtrado
       const uniqueOptions = [];
       formattedResponse.forEach((item) => {
         uniqueOptions.push({ propertyKey: "Solicitud_ID", value: item.Solicitud_ID.toString() });
@@ -76,6 +85,7 @@ const MyReports = ({ handleNextStep }) => {
         uniqueOptions.push({ propertyKey: "Grado", value: item.Grado });
         uniqueOptions.push({ propertyKey: "Estado", value: item.Estado || "Enviado" });
       });
+
       setFilteringOptions([...new Set(uniqueOptions.map(JSON.stringify))].map(JSON.parse));
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -84,60 +94,54 @@ const MyReports = ({ handleNextStep }) => {
     }
   };
 
-  // Llamar a `fetchData` cuando cambie la pestaña activa
   useEffect(() => {
     fetchData(activeTab);
   }, [activeTab]);
 
-  // Filtrar los datos según la consulta
   useEffect(() => {
     let result = items;
-
     query.tokens.forEach((token) => {
       const { propertyKey, value } = token;
       result = result.filter((item) =>
         item[propertyKey]?.toString().toLowerCase().includes(value.toLowerCase())
       );
     });
-
     setFilteredItems(result);
   }, [query, items]);
 
-  // Función para abrir el modal de confirmación
+  const handleSelectionChange = ({ detail }) => {
+    setSelectedItems(detail.selectedItems);
+  };
+
   const showDeleteModal = () => {
     if (selectedItems.length > 0) {
-      setDeletingId(selectedItems[0]?.id); // Toma el ID interno para eliminar
+      setDeletingId(selectedItems[0]?.id);
       setModalVisible(true);
     } else {
       console.warn("No hay un registro seleccionado para eliminar");
     }
   };
 
-  // Función para eliminar el registro
   const handleDelete = async () => {
     try {
       if (deletingId) {
-        console.log("Eliminando registro con ID:", deletingId);
-        await uoariService.Delete_Uoari_Datos(deletingId); // Llamada al servicio
-        setItems((prev) => prev.filter((item) => item.id !== deletingId)); // Actualizar la tabla
+        await uoariService.Delete_Uoari_Datos(deletingId);
+        setItems((prev) => prev.filter((item) => item.id !== deletingId));
         setFilteredItems((prev) => prev.filter((item) => item.id !== deletingId));
         setDeletingId(null);
         setModalVisible(false);
-        console.log("Registro eliminado con éxito");
       }
     } catch (error) {
       console.error("Error al eliminar el registro:", error);
     }
   };
-  
 
-  // Función para renderizar la tabla
   const renderTable = () => (
     <Table
       renderAriaLive={({ firstIndex, lastIndex, totalItemsCount }) =>
         `Mostrando elementos ${firstIndex} a ${lastIndex} de ${totalItemsCount}`
       }
-      onSelectionChange={({ detail }) => setSelectedItems(detail.selectedItems)}
+      onSelectionChange={handleSelectionChange}
       selectedItems={selectedItems}
       ariaLabels={{
         selectionGroupLabel: "Selección de elementos",
@@ -206,11 +210,15 @@ const MyReports = ({ handleNextStep }) => {
           counter={`(${filteredItems.length})`}
           actions={
             <SpaceBetween direction="horizontal" size="xs">
-              {activeTab === "general" ? (
-                <Button onClick={NextStep} variant="primary">
-                  Subir Datos
+              {activeTab === "general" && (
+                <Button
+                  onClick={NextStep}
+                  variant={selectedItems[0]?.Solicitud_ID !== items[0]?.Solicitud_ID ? "normal" : "primary"}
+                >
+                  {selectedItems[0]?.Solicitud_ID !== items[0]?.Solicitud_ID ? "Cargar Datos" : "Cargar Datos"}
                 </Button>
-              ) : (
+              )}
+              {activeTab !== "general" && (
                 <>
                   <Button onClick={() => console.log("Editar acción")} variant="normal">
                     Editar
@@ -232,6 +240,7 @@ const MyReports = ({ handleNextStep }) => {
 
   return (
     <div className="tabs-container">
+      {flashItems.length > 0 && <Flashbar items={flashItems} />}
       <Tabs
         activeTabId={activeTab}
         onChange={({ detail }) => setActiveTab(detail.activeTabId)}
@@ -242,7 +251,6 @@ const MyReports = ({ handleNextStep }) => {
           { label: "Acceso Embargado", id: "embargo", content: renderTable() },
         ]}
       />
-      {/* Modal de confirmación */}
       <Modal
         onDismiss={() => setModalVisible(false)}
         visible={modalVisible}

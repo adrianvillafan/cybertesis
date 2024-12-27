@@ -44,7 +44,8 @@ export function listUoariData(callback) {
         JOIN facultad f ON s.id_facultad = f.id
         JOIN grado gr ON s.id_grado = gr.id
         LEFT JOIN uoari u ON s.id = u.solicitud_id
-        WHERE s.id_estado = 1 AND u.estado IS null; -- El estado siempre será 1 y u.estado debe ser nulo
+        WHERE s.id_estado = 1 AND u.estado IS null -- El estado siempre será 1 y u.estado debe ser nulo
+        ORDER BY s.id;
     `;
 
     // Ejecutar la consulta para obtener los datos de UOARI
@@ -75,7 +76,8 @@ export function listAbiertoUoariData(callback) {
         JOIN facultad f ON s.id_facultad = f.id
         JOIN grado gr ON s.id_grado = gr.id
         LEFT JOIN uoari u ON s.id = u.solicitud_id
-        WHERE s.id_estado = 1 AND u.estado = 1; -- El estado siempre será 1 y u.estado debe ser nulo
+        WHERE s.id_estado = 1 AND u.estado = 1 -- El estado siempre será 1 y u.estado debe ser nulo
+        ORDER BY s.id;
     `;
 
     // Ejecutar la consulta para obtener los datos de UOARI
@@ -106,7 +108,8 @@ export function listCerradoUoariData(callback) {
         JOIN facultad f ON s.id_facultad = f.id
         JOIN grado gr ON s.id_grado = gr.id
         LEFT JOIN uoari u ON s.id = u.solicitud_id
-        WHERE s.id_estado = 1 AND u.estado = 2; -- El estado siempre será 1 y u.estado debe ser nulo
+        WHERE s.id_estado = 1 AND u.estado = 2 -- El estado siempre será 1 y u.estado debe ser nulo
+        ORDER BY s.id;
     `;
 
     // Ejecutar la consulta para obtener los datos de UOARI
@@ -137,7 +140,8 @@ export function listEmbargoUoariData(callback) {
         JOIN facultad f ON s.id_facultad = f.id
         JOIN grado gr ON s.id_grado = gr.id
         LEFT JOIN uoari u ON s.id = u.solicitud_id
-        WHERE s.id_estado = 1 AND u.estado = 3; -- El estado siempre será 1 y u.estado debe ser nulo
+        WHERE s.id_estado = 1 AND u.estado = 3 -- El estado siempre será 1 y u.estado debe ser nulo
+        ORDER BY s.id;
     `;
 
     // Ejecutar la consulta para obtener los datos de UOARI
@@ -160,9 +164,9 @@ export function insertUoari(uoariDetails, callback) {
         solicitud_id, estado, fecha_publicacion, editorial, cita, identificador, enlace, 
         tipo_publicacion, formato, idioma, palabra_clave, conocimiento, 
         resumen, patrocinio, notas, tipo_investigacion, nombre_grado, titulo_profesional, 
-        programa, codigo_programa, institucion_otorgante, codigo_pais
+        programa, codigo_programa, institucion_otorgante, codigo_pais, licencia, fecha_creacion, fecha_modificacion
       ) VALUES (
-        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22
+        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25
       ) RETURNING id
     `;
   
@@ -188,7 +192,10 @@ export function insertUoari(uoariDetails, callback) {
       uoariDetails.programa,
       uoariDetails.codigo_programa,
       uoariDetails.institucion_otorgante,
-      uoariDetails.codigo_pais
+      uoariDetails.codigo_pais,
+      uoariDetails.licencia,
+      new Date(),
+      new Date(),
     ];
   
     executeQuery(queryUoari, uoariValues, (err, results) => {

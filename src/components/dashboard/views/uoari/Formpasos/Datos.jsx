@@ -109,13 +109,6 @@ const Datos = ({ uoariDetails, updateUoariDetails, validateStep }) => {
           </FormField>
         </ColumnLayout>
 
-        {/*}<FormField label="Idioma *" errorText={errors.idioma}>
-          <Input
-            onChange={({ detail }) => updateUoariDetails("idioma", detail.value)}
-            value={uoariDetails.idioma || ""}
-          />
-        </FormField>*/}
-
         <FormField label="Nivel de Acceso *" errorText={errors.estado}>
           <Select
             selectedOption={
