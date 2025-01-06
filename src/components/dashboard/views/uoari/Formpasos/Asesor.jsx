@@ -16,8 +16,8 @@ const Asesor = ({ uoariDetails, updateUoariDetails, validateStep }) => {
       if (!uoariDetails.nombre_grado || uoariDetails.nombre_grado.trim() === "") {
         newErrors.nombre_grado = "Campo obligatorio";
       }
-      if (!uoariDetails.titulo_profesional || uoariDetails.titulo_profesional.trim() === "") {
-        newErrors.titulo_profesional = "Campo obligatorio";
+      if (!uoariDetails.grado_profesional || uoariDetails.grado_profesional.trim() === "") {
+        newErrors.grado_profesional = "Campo obligatorio";
       }
       if (!uoariDetails.programa || uoariDetails.programa.trim() === "") {
         newErrors.programa = "Campo obligatorio";
@@ -60,12 +60,12 @@ const Asesor = ({ uoariDetails, updateUoariDetails, validateStep }) => {
         </FormField>
 
         <FormField
-          label="Título Profesional"
-          errorText={errors.titulo_profesional} // Mostrar mensaje de error
+          label="Grado Profesional"
+          errorText={errors.grado_profesional} // Mostrar mensaje de error
         >
           <Input
-            value={uoariDetails.titulo_profesional || ""}
-            onChange={({ detail }) => updateUoariDetails("titulo_profesional", detail.value)}
+            value={uoariDetails.grado_profesional || ""}
+            onChange={({ detail }) => updateUoariDetails("grado_profesional", detail.value)}
           />
         </FormField>
 

@@ -9,7 +9,7 @@ const Datos = ({ uoariDetails, updateUoariDetails, validateStep }) => {
     const newErrors = {};
 
     if (!uoariDetails.fecha_publicacion) newErrors.fecha_publicacion = "Campo obligatorio";
-    if (!uoariDetails.editorial) newErrors.editorial = "Campo obligatorio";
+    //if (!uoariDetails.editorial) newErrors.editorial = "Campo obligatorio";
     //if (!uoariDetails.idioma) newErrors.idioma = "Campo obligatorio";
     if (!uoariDetails.estado) newErrors.estado = "Campo obligatorio";
 

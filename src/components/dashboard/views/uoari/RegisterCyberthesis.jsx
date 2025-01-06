@@ -19,7 +19,7 @@ const RegisterCyberthesis = ({ solicitudId, handleBackStep }) => {
     solicitud_id: solicitudId, // ID de la solicitud inicial
     estado: null,
     fecha_publicacion: null,
-    editorial: null,
+    editorial: "Universidad Nacional Mayor de San Marcos",
     cita: null,
     identificador: null,
     enlace: null,
@@ -33,7 +33,7 @@ const RegisterCyberthesis = ({ solicitudId, handleBackStep }) => {
     notas: null,
     tipo_investigacion: null,
     nombre_grado: null,
-    titulo_profesional: null,
+    grado_profesional: null,
     programa: null,
     codigo_programa: null,
     institucion_otorgante: null,
@@ -68,6 +68,22 @@ const RegisterCyberthesis = ({ solicitudId, handleBackStep }) => {
       ]);
       return; // Evita avanzar si la validación falla
     }
+
+    // Evita retroceder si la validación falla
+    if (detail.requestedStepIndex < activeStepIndex && !validateStep.current()) {
+      setFlashItems([
+        {
+          type: "error", // Tipo de mensaje
+          dismissible: true, // Permite cerrar el mensaje
+          dismissLabel: "Cerrar mensaje",
+          onDismiss: () => setFlashItems([]), // Borra el mensaje al cerrarlo
+          content: "Por favor, completa los campos obligatorios antes de retroceder.",
+          id: "validation_error_back", // ID único del mensaje para retroceder
+        },
+      ]);
+      return; // Evita retroceder si la validación falla
+    }
+
     setActiveStepIndex(detail.requestedStepIndex); // Actualiza el paso activo
   };
 

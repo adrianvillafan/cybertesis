@@ -163,7 +163,7 @@ export function insertUoari(uoariDetails, callback) {
       INSERT INTO uoari (
         solicitud_id, estado, fecha_publicacion, editorial, cita, identificador, enlace, 
         tipo_publicacion, formato, idioma, palabra_clave, conocimiento, 
-        resumen, patrocinio, notas, tipo_investigacion, nombre_grado, titulo_profesional, 
+        resumen, patrocinio, notas, tipo_investigacion, nombre_grado, grado_profesional, 
         programa, codigo_programa, institucion_otorgante, codigo_pais, licencia, fecha_creacion, fecha_modificacion
       ) VALUES (
         $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25
@@ -188,7 +188,7 @@ export function insertUoari(uoariDetails, callback) {
       uoariDetails.notas,
       uoariDetails.tipo_investigacion,
       uoariDetails.nombre_grado,
-      uoariDetails.titulo_profesional,
+      uoariDetails.grado_profesional,
       uoariDetails.programa,
       uoariDetails.codigo_programa,
       uoariDetails.institucion_otorgante,
@@ -215,7 +215,7 @@ export function formUoariData(uoariData, callback) {
     const sql = `
         SELECT 
             estado,
-		    fecha_publicacion,
+		        fecha_publicacion,
             editorial,
             cita,
             identificador,
